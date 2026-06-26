@@ -9,8 +9,9 @@ function inWindow(iso: string, fromMs: number, toMs: number): boolean {
 }
 
 /**
- * Hourly cron: booking SMS reminders (≈24h and ≈2h) + post-completion follow-up notification.
- * Vercel: set CRON_SECRET and schedule in vercel.json.
+ * Daily cron (Vercel Hobby): booking reminders + post-completion follow-up.
+ * Runs once per day at 08:00 UTC. Wider windows compensate for non-hourly schedule.
+ * Set CRON_SECRET in Vercel env; Pro plan can use `0 * * * *` for hourly precision.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET?.trim();
@@ -32,10 +33,10 @@ export async function GET(request: Request) {
   let reminders2 = 0;
   let followUps = 0;
 
-  const h23 = 23 * 60 * 60 * 1000;
-  const h25 = 25 * 60 * 60 * 1000;
-  const h90m = 90 * 60 * 1000;
-  const h150m = 150 * 60 * 1000;
+  const h20 = 20 * 60 * 60 * 1000;
+  const h30 = 30 * 60 * 60 * 1000;
+  const h2 = 2 * 60 * 60 * 1000;
+  const h14 = 14 * 60 * 60 * 1000;
 
   const yesterdayStart = new Date();
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
@@ -48,12 +49,12 @@ export async function GET(request: Request) {
     const phone = (b.profiles as { phone?: string | null } | null)?.phone ?? null;
 
     if (b.status === "confirmed" && b.start_at) {
-      if (!state.h24 && inWindow(b.start_at, h23, h25) && phone) {
+      if (!state.h24 && inWindow(b.start_at, h20, h30) && phone) {
         await sendTransactionalMessage({
           toPhone: phone,
-          subject: "Booking reminder",
-          html: "<p>Reminder: your Kabuki appointment is tomorrow.</p>",
-          smsText: "Kabuki reminder: your makeup appointment is within 24 hours. Reply if you need to reschedule.",
+          subject: "Appointment reminder",
+          html: "<p>Reminder: your Glam Room appointment is tomorrow.</p>",
+          smsText: "The Glam Room: your appointment is within 24 hours. Reply if you need to reschedule.",
         });
         await admin
           .from("bookings")
@@ -64,12 +65,12 @@ export async function GET(request: Request) {
           .eq("id", b.id);
         reminders24 += 1;
       }
-      if (!state.h2 && inWindow(b.start_at, h90m, h150m) && phone) {
+      if (!state.h2 && inWindow(b.start_at, h2, h14) && phone) {
         await sendTransactionalMessage({
           toPhone: phone,
-          subject: "Booking soon",
-          html: "<p>Your Kabuki session is coming up in about two hours.</p>",
-          smsText: "Kabuki: your appointment is in ~2 hours. See you soon!",
+          subject: "Appointment today",
+          html: "<p>Your Glam Room appointment is coming up soon.</p>",
+          smsText: "The Glam Room: your appointment is today. See you soon!",
         });
         await admin
           .from("bookings")
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
         await admin.from("notifications").insert({
           user_id: b.user_id,
           title: "How was your look?",
-          body: "We would love a short review or referral. Thank you for choosing Kabuki.",
+          body: "We would love a short review. Thank you for choosing The Glam Room.",
           type: "follow_up",
         });
         await admin
