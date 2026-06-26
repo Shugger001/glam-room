@@ -2,10 +2,9 @@ import { revalidatePath } from "next/cache";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
-import { locationLabelFromId, requireSuperAdmin, requireStaffBookingAccess } from "@/lib/admin/access";
+import { requireSuperAdmin, requireStaffBookingAccess } from "@/lib/admin/access";
+import { BookingsTable, type AdminBookingRow } from "@/components/admin/bookings-table";
 import {
-  AdminBtnPrimary,
-  adminFormRowClass,
   AdminKpi,
   AdminPageHeader,
   AdminSetupNotice,
@@ -106,7 +105,7 @@ export default async function AdminOverviewPage() {
     admin
       .from("bookings")
       .select(
-        "id, start_at, status, location_id, client_name, client_phone, deposit_paid, deposit_amount, profiles(full_name,phone), services(name)",
+        "id, start_at, status, location_id, client_name, client_phone, client_notes, deposit_paid, deposit_amount, profiles(full_name,phone), services(name)",
       )
       .order("created_at", { ascending: false })
       .limit(10),
@@ -161,53 +160,14 @@ export default async function AdminOverviewPage() {
         <p className="mt-2 text-sm text-white/55">
           Confirm, reschedule, or cancel recent booking requests from the salon website.
         </p>
-        <div className="mt-5 space-y-3">
-          {(recentBookingsRes.data ?? []).length === 0 ? (
-            <p className="text-sm text-white/55">No bookings yet.</p>
-          ) : null}
-          {(recentBookingsRes.data ?? []).map((b) => {
-            const profile = b.profiles as { full_name?: string; phone?: string } | null;
-            const clientName = b.client_name ?? profile?.full_name ?? "Guest";
-            const loc = locationLabelFromId(b.location_id);
-
-            return (
-              <form key={b.id} action={updateBookingStatus} className={adminFormRowClass}>
-                <input type="hidden" name="id" value={b.id} />
-                <div>
-                  <p className="font-medium text-white">
-                    {(b.services as { name?: string } | null)?.name ?? "Service"} · {clientName}
-                  </p>
-                  <p className="text-xs text-white/55">
-                    {new Date(b.start_at).toLocaleString()}
-                    {loc ? ` · ${loc}` : ""}
-                    {b.client_phone ?? profile?.phone ? ` · ${b.client_phone ?? profile?.phone}` : ""}
-                    {typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0 ? (
-                      <>
-                        {" · "}
-                        {b.deposit_paid ? (
-                          <span className="text-glam-accent">Deposit paid</span>
-                        ) : (
-                          <span className="text-amber-200/90">Deposit pending</span>
-                        )}
-                      </>
-                    ) : null}
-                  </p>
-                </div>
-                <select
-                  name="status"
-                  defaultValue={b.status}
-                  className="rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
-                >
-                  {statusOptions.map((s) => (
-                    <option key={s} value={s} className="bg-glam-primary">
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <AdminBtnPrimary>Save</AdminBtnPrimary>
-              </form>
-            );
-          })}
+        <div className="mt-5">
+          <BookingsTable
+            bookings={(recentBookingsRes.data ?? []) as AdminBookingRow[]}
+            updateBookingStatus={updateBookingStatus}
+            showReschedule={false}
+            showStaff={false}
+            emptyMessage="No bookings yet."
+          />
         </div>
       </section>
     </div>

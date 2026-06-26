@@ -3,14 +3,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 import {
   bookingLocationScope,
-  locationLabelFromId,
   requireAdminAccess,
   requireStaffBookingAccess,
 } from "@/lib/admin/access";
+import { BookingsTable, type AdminBookingRow } from "@/components/admin/bookings-table";
 import {
-  AdminBtnPrimary,
   adminBtnOutline,
-  adminFormRowClass,
   AdminPanel,
   adminTabClass,
   AdminSetupNotice,
@@ -189,68 +187,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           Apply range
         </button>
       </form>
-      <div className="mt-6 space-y-3">
-        {(data ?? []).length === 0 ? (
-          <p className="text-sm text-white/55">No appointments match this filter.</p>
-        ) : null}
-        {(data ?? []).map((b) => {
-          const profile = b.profiles as { full_name?: string; phone?: string } | null;
-          const clientName = b.client_name ?? profile?.full_name ?? "Guest";
-          const clientPhone = b.client_phone ?? profile?.phone ?? null;
-          const loc = locationLabelFromId(b.location_id);
-          const staffName = (b.staff as { name?: string } | null)?.name;
-
-          return (
-            <form key={b.id} action={updateBookingStatus} className={adminFormRowClass}>
-              <input type="hidden" name="id" value={b.id} />
-              <div>
-                <p className="font-semibold text-white">
-                  {(b.services as { name?: string } | null)?.name ?? "Service"} · {clientName}
-                </p>
-                <p className="text-xs text-white/55">
-                  {new Date(b.start_at).toLocaleString()}
-                  {loc ? ` · ${loc}` : ""}
-                  {staffName ? ` · ${staffName}` : ""}
-                  {clientPhone ? ` · ${clientPhone}` : ""}
-                  {typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0 ? (
-                    <>
-                      {" · "}
-                      {b.deposit_paid ? (
-                        <span className="text-glam-accent">Deposit paid</span>
-                      ) : (
-                        <span className="text-amber-200/90">Deposit pending</span>
-                      )}
-                    </>
-                  ) : null}
-                </p>
-                {b.client_notes ? (
-                  <p className="mt-2 line-clamp-2 text-xs text-white/45">{b.client_notes}</p>
-                ) : null}
-                <label className="mt-2 block text-xs text-white/55">
-                  Reschedule (optional)
-                  <input
-                    type="datetime-local"
-                    name="start_at"
-                    defaultValue={new Date(b.start_at).toISOString().slice(0, 16)}
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
-                  />
-                </label>
-              </div>
-              <select
-                name="status"
-                defaultValue={b.status}
-                className="rounded-xl border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
-              >
-                {statusOptions.map((s) => (
-                  <option key={s} value={s} className="bg-glam-primary">
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <AdminBtnPrimary>Update</AdminBtnPrimary>
-            </form>
-          );
-        })}
+      <div className="mt-6">
+        <BookingsTable
+          bookings={(data ?? []) as AdminBookingRow[]}
+          updateBookingStatus={updateBookingStatus}
+        />
       </div>
     </AdminPanel>
   );
