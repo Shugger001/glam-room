@@ -82,6 +82,12 @@ export default async function AdminSettingsPage() {
             /api/paystack/webhook
           </code>
         </p>
+        <p className="mt-3 font-medium text-white">WhatsApp deep links</p>
+        <p className="mt-2">
+          Booking emails include one-tap WhatsApp buttons for the salon team (reply to client) and
+          clients (message Glam Room). No extra API needed — links open WhatsApp with pre-filled
+          messages.
+        </p>
         <p className="mt-3 font-medium text-white">Database</p>
         <p className="mt-2">
           Ensure migration <code className="text-glam-accent">00011_booking_paystack_reference</code>{" "}

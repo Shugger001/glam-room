@@ -2,9 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { locationLabelFromId } from "@/lib/admin/access";
 import { BOOKING_DEPOSIT_GHS } from "@/lib/booking/deposit";
 import { parseClientNotesField } from "@/lib/booking/phone";
-import { formatShopPrice } from "@/lib/format/money";
+import { renderBookingEmail } from "@/lib/notifications/email-templates";
 import { getSalonNotifyContacts } from "@/lib/notifications/salon-contact";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
+import {
+  buildClientBookingSupportLink,
+  buildClientReplyLink,
+} from "@/lib/notifications/whatsapp-links";
+import { formatShopPrice } from "@/lib/format/money";
 
 type BookingRow = {
   id: string;
@@ -34,6 +39,10 @@ function formatWhen(iso: string) {
   });
 }
 
+function appBaseUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://glam-room-gilt.vercel.app";
+}
+
 async function loadBooking(admin: SupabaseClient, bookingId: string) {
   const { data, error } = await admin
     .from("bookings")
@@ -58,12 +67,12 @@ function bookingSummary(booking: BookingRow) {
   const service = serviceName(booking.services);
   const deposit = Number(booking.deposit_amount ?? BOOKING_DEPOSIT_GHS);
   const depositLine = booking.deposit_paid
-    ? `Deposit paid: ${formatShopPrice(deposit)}`
+    ? `Paid · ${formatShopPrice(deposit)}`
     : deposit > 0
-      ? `Deposit pending: ${formatShopPrice(deposit)}`
-      : "No deposit required";
+      ? `Pending · ${formatShopPrice(deposit)}`
+      : "Not required";
 
-  return { clientName, when, location, service, depositLine };
+  return { clientName, when, location, service, depositLine, deposit };
 }
 
 /** Alert salon team about a new or secured booking request. */
@@ -77,20 +86,36 @@ export async function notifySalonBookingRequest(
 
   const { clientName, when, location, service, depositLine } = bookingSummary(booking);
   const clientPhone = booking.client_phone ?? parseClientNotesField(booking.client_notes, "Phone");
+  const adminUrl = `${appBaseUrl()}/admin/appointments`;
+  const whatsAppUrl = clientPhone
+    ? buildClientReplyLink(clientPhone, clientName, service, when)
+    : null;
+
   const subject =
     event === "deposit_paid" ? "New booking — deposit received" : "New booking request";
 
-  const html = `
-    <p><strong>${clientName}</strong> booked <strong>${service}</strong>.</p>
-    <p>${when}<br/>${location}<br/>${depositLine}</p>
-    ${clientPhone ? `<p>Phone: ${clientPhone}</p>` : ""}
-    <p>Review in admin: ${process.env.NEXT_PUBLIC_APP_URL ?? ""}/admin/appointments</p>
-  `.trim();
+  const html = renderBookingEmail({
+    variant: event === "deposit_paid" ? "salon_deposit_paid" : "salon_new",
+    clientName,
+    service,
+    when,
+    location,
+    depositLine,
+    clientPhone,
+    adminUrl,
+    whatsAppUrl,
+  });
 
-  const smsText =
+  const smsText = [
     event === "deposit_paid"
       ? `Glam Room: ${clientName} paid deposit for ${service} on ${when} (${location}).`
-      : `Glam Room: new booking request from ${clientName} for ${service} on ${when} (${location}).`;
+      : `Glam Room: new booking from ${clientName} for ${service} on ${when} (${location}).`,
+    clientPhone ? `Client: ${clientPhone}` : null,
+    whatsAppUrl ? `WhatsApp: ${whatsAppUrl}` : null,
+    `Admin: ${adminUrl}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const { email, phone } = getSalonNotifyContacts();
   await sendTransactionalMessage({
@@ -111,28 +136,36 @@ export async function notifyClientBookingUpdate(
   const booking = await loadBooking(admin, bookingId);
   if (!booking) return;
 
-  const { clientName, when, location, service } = bookingSummary(booking);
+  const { clientName, when, location, service, depositLine } = bookingSummary(booking);
   const clientPhone = booking.client_phone ?? parseClientNotesField(booking.client_notes, "Phone");
   const clientEmail = clientEmailFromNotes(booking.client_notes);
+  const trackUrl = `${appBaseUrl()}/#track-booking`;
+  const whatsAppUrl = buildClientBookingSupportLink(clientName, service, when);
 
   const subject =
     event === "deposit_paid" ? "Glam Room — deposit received" : "Glam Room — booking received";
 
-  const html =
-    event === "deposit_paid"
-      ? `<p>Hi ${clientName},</p><p>We received your ${formatShopPrice(Number(booking.deposit_amount ?? BOOKING_DEPOSIT_GHS))} deposit for <strong>${service}</strong> on ${when} at ${location}.</p><p>Our team will confirm your appointment via WhatsApp shortly.</p>`
-      : `<p>Hi ${clientName},</p><p>We received your booking request for <strong>${service}</strong> on ${when} at ${location}.</p><p>Our team will confirm via WhatsApp shortly.</p>`;
+  const html = renderBookingEmail({
+    variant: event === "deposit_paid" ? "client_deposit_paid" : "client_submitted",
+    clientName,
+    service,
+    when,
+    location,
+    depositLine: event === "deposit_paid" ? depositLine : undefined,
+    whatsAppUrl,
+    trackUrl,
+  });
 
   const smsText =
     event === "deposit_paid"
-      ? `The Glam Room: deposit received for ${service} on ${when}. We'll confirm your appointment soon.`
-      : `The Glam Room: we received your booking request for ${service} on ${when}. We'll confirm soon.`;
+      ? `The Glam Room: deposit confirmed for ${service} on ${when}. We'll confirm on WhatsApp soon. ${whatsAppUrl ?? ""}`
+      : `The Glam Room: booking received for ${service} on ${when}. We'll confirm on WhatsApp soon. ${whatsAppUrl ?? ""}`;
 
   await sendTransactionalMessage({
     toEmail: clientEmail,
     toPhone: clientPhone,
     subject,
     html,
-    smsText,
+    smsText: smsText.trim(),
   });
 }
