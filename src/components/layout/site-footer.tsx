@@ -74,11 +74,6 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/auth?next=/admin" className="transition hover:text-white">
-                Staff Login
-              </Link>
-            </li>
           </ul>
         </div>
         <div>

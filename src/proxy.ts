@@ -15,6 +15,14 @@ export function proxy(request: NextRequest) {
     res.headers.set("Vercel-CDN-Cache-Control", "no-store");
   }
 
+  if (
+    request.nextUrl.pathname.startsWith("/admin") ||
+    request.nextUrl.pathname.startsWith("/auth") ||
+    request.nextUrl.pathname.startsWith("/account")
+  ) {
+    res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+
   return res;
 }
 

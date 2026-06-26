@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { GlamLogo } from "@/components/brand/glam-logo";
 import { ADMIN_NAV } from "@/lib/constants/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+export const metadata: Metadata = {
+  title: "Operations",
+  robots: { index: false, follow: false },
+};
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .eq("id", user.id)
     .maybeSingle();
   if (!profile || (profile.role !== "admin" && profile.role !== "staff")) {
-    redirect("/account");
+    redirect("/auth?next=/admin");
   }
 
   async function signOut() {
@@ -35,19 +39,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div>
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-glam-accent">
-              Super admin
+              Operations
             </p>
-            <Link href="/" className="mt-2 inline-block" aria-label="Home">
-              <GlamLogo variant="onDark" className="[&_span]:leading-tight" />
-            </Link>
+            <p className="font-display mt-2 text-2xl">Glam Room Admin</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="text-sm font-medium text-white/60 transition hover:text-white"
-            >
-              View site
-            </Link>
             <form action={signOut}>
               <button
                 type="submit"
