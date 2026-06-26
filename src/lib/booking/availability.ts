@@ -69,17 +69,32 @@ export async function isShopDailyCapacityAvailable(
   locationId: string,
   bookingDate: string,
 ) {
-  const { count, error } = await countActiveBookings(supabase, { locationId, bookingDate });
-  if (error) return { available: false, error: error.message };
-
-  if ((count ?? 0) >= MAX_BOOKINGS_PER_SHOP_PER_DAY) {
+  const status = await getShopDailyBookingStatus(supabase, locationId, bookingDate);
+  if (status.error) return { available: false, error: status.error };
+  if (status.fullyBooked) {
     return {
       available: false,
       error: `This shop is fully booked for that day (${MAX_BOOKINGS_PER_SHOP_PER_DAY} appointments maximum). Please pick another date or location.`,
     };
   }
-
   return { available: true, error: null };
+}
+
+export async function getShopDailyBookingStatus(
+  supabase: SupabaseClient,
+  locationId: string,
+  bookingDate: string,
+) {
+  const { count, error } = await countActiveBookings(supabase, { locationId, bookingDate });
+  if (error) return { count: 0, max: MAX_BOOKINGS_PER_SHOP_PER_DAY, fullyBooked: false, error: error.message };
+
+  const bookingCount = count ?? 0;
+  return {
+    count: bookingCount,
+    max: MAX_BOOKINGS_PER_SHOP_PER_DAY,
+    fullyBooked: bookingCount >= MAX_BOOKINGS_PER_SHOP_PER_DAY,
+    error: null as string | null,
+  };
 }
 
 /** Enforce per-slot (3) and per-shop daily (12) capacity before creating a booking. */

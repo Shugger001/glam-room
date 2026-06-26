@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,9 @@ export function BookingForm({
 }: BookingFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dateFullyBooked, setDateFullyBooked] = useState(false);
+  const [checkingDateCapacity, setCheckingDateCapacity] = useState(false);
+  const lastCapacityToastKey = useRef("");
 
   const form = useForm<GuestBookingValues>({
     resolver: zodResolver(guestBookingSchema),
@@ -107,6 +110,62 @@ export function BookingForm({
     if (!stillValid) form.setValue("serviceId", "");
   }, [category, stylesForCategory, serviceId, form]);
 
+  useEffect(() => {
+    if (!locationId || !bookingDate) {
+      setDateFullyBooked(false);
+      return;
+    }
+
+    const capacityKey = `${locationId}:${bookingDate}`;
+    let cancelled = false;
+
+    async function checkDailyCapacity() {
+      setCheckingDateCapacity(true);
+      try {
+        const params = new URLSearchParams({ locationId, bookingDate });
+        const res = await fetch(`/api/bookings/capacity?${params.toString()}`);
+        const data = (await res.json()) as {
+          fullyBooked?: boolean;
+          locationLabel?: string;
+          error?: string;
+        };
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setDateFullyBooked(false);
+          return;
+        }
+
+        const fullyBooked = Boolean(data.fullyBooked);
+        setDateFullyBooked(fullyBooked);
+
+        if (fullyBooked) {
+          form.setValue("bookingTime", "");
+          if (lastCapacityToastKey.current !== capacityKey) {
+            lastCapacityToastKey.current = capacityKey;
+            toast.error("This date is fully booked", {
+              description: `${data.locationLabel ?? selectedLocation?.area ?? "This shop"} has no openings left on ${bookingDate}. Please choose another date or location.`,
+              duration: 6000,
+            });
+          }
+        } else {
+          lastCapacityToastKey.current = capacityKey;
+        }
+      } catch {
+        if (!cancelled) setDateFullyBooked(false);
+      } finally {
+        if (!cancelled) setCheckingDateCapacity(false);
+      }
+    }
+
+    void checkDailyCapacity();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [locationId, bookingDate, form, selectedLocation?.area]);
+
   const summaryReady = Boolean(
     clientName?.trim() &&
       selectedService &&
@@ -119,6 +178,13 @@ export function BookingForm({
   const requiresDeposit = paystackEnabled && depositAmount > 0;
 
   async function onSubmit(values: GuestBookingValues) {
+    if (dateFullyBooked) {
+      toast.error("This date is fully booked", {
+        description: "Please choose another date or Glam Room location.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       if (requiresDeposit) {
@@ -354,10 +420,23 @@ export function BookingForm({
                   {form.formState.errors.bookingDate.message}
                 </p>
               ) : null}
+              {checkingDateCapacity ? (
+                <p className="mt-2 text-xs text-glam-muted">Checking availability…</p>
+              ) : null}
+              {dateFullyBooked ? (
+                <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                  {selectedLocation?.area ?? "This shop"} is fully booked on this date. Please pick
+                  another date or location.
+                </p>
+              ) : null}
             </label>
             <label className="block text-sm font-medium">
               Time
-              <select className={inputClass} {...form.register("bookingTime")}>
+              <select
+                className={inputClass}
+                disabled={dateFullyBooked}
+                {...form.register("bookingTime")}
+              >
                 <option value="">Select time</option>
                 {BOOKING_TIME_SLOTS.map((slot) => (
                   <option key={slot.value} value={slot.value}>
@@ -423,7 +502,12 @@ export function BookingForm({
             )}
           </div>
 
-          <Button type="submit" variant="accent" className="w-full" disabled={submitting}>
+          <Button
+            type="submit"
+            variant="accent"
+            className="w-full"
+            disabled={submitting || dateFullyBooked || checkingDateCapacity}
+          >
             {submitting
               ? requiresDeposit
                 ? "Redirecting to Paystack…"
