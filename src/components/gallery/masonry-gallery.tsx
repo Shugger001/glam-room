@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
+import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
 import { FilterChipRow } from "@/components/ui/filter-chip-row";
 import { cn } from "@/lib/utils/cn";
@@ -67,19 +68,21 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
             <button
               type="button"
               onClick={() => setSelected(item)}
-              className="group relative block w-full overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glam-accent"
+              className="group relative block w-full overflow-hidden rounded-2xl border border-glam-border/60 bg-glam-secondary shadow-soft transition-all duration-500 hover:border-glam-accent/35 hover:shadow-premium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glam-accent"
               aria-label={`View ${item.alt}`}
             >
-              <Image
+              <ParallaxImage
                 src={item.src}
                 alt={item.alt}
-                width={item.width}
-                height={item.height}
-                loading="lazy"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                aspectRatio={`${item.width} / ${item.height}`}
+                className="w-full"
+                imageClassName="transition-transform duration-700 group-hover:scale-[1.03]"
+                yRange={["-5%", "5%"]}
+                scaleRange={[1.04, 1.09]}
               />
-              <div className="absolute inset-0 bg-glam-primary/0 transition-colors duration-500 group-hover:bg-glam-primary/20" />
+              <div className="pointer-events-none absolute inset-0 bg-glam-primary/0 transition-colors duration-500 group-hover:bg-glam-primary/15" />
+              <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-glam-accent/0 transition-all duration-500 group-hover:ring-glam-accent/30" />
             </button>
           </Reveal>
         ))}
@@ -110,7 +113,7 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="relative max-h-[90vh] max-w-5xl"
+              className="relative max-h-[90vh] max-w-5xl rounded-xl border border-glam-accent/25 p-1 shadow-[var(--shadow-gold)]"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
@@ -121,7 +124,7 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
                 className="max-h-[90vh] w-auto rounded-lg object-contain"
                 priority
               />
-              <p className="mt-4 text-center text-sm text-white/70">{selected.alt}</p>
+              <p className="mt-4 text-center text-sm tracking-wide text-white/70">{selected.alt}</p>
             </m.div>
           </m.div>
         ) : null}

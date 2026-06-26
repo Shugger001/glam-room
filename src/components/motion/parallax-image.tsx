@@ -11,6 +11,7 @@ type ParallaxImageProps = {
   sizes?: string;
   className?: string;
   imageClassName?: string;
+  aspectRatio?: string;
   yRange?: [string, string];
   scaleRange?: [number, number];
 };
@@ -21,6 +22,7 @@ export function ParallaxImage({
   sizes = "100vw",
   className,
   imageClassName,
+  aspectRatio,
   yRange = ["-6%", "6%"],
   scaleRange = [1.06, 1.12],
 }: ParallaxImageProps) {
@@ -33,8 +35,12 @@ export function ParallaxImage({
   const scale = useTransform(scrollYProgress, [0, 1], scaleRange);
 
   return (
-    <div ref={ref} className={cn("relative overflow-hidden", className)}>
-      <m.div className="absolute inset-0" style={{ y, scale }}>
+    <div
+      ref={ref}
+      className={cn("relative overflow-hidden", className)}
+      style={aspectRatio ? { aspectRatio } : undefined}
+    >
+      <m.div className="absolute inset-0 origin-center" style={{ y, scale }}>
         <Image src={src} alt={alt} fill sizes={sizes} className={cn("object-cover", imageClassName)} />
       </m.div>
     </div>
