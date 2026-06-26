@@ -64,7 +64,6 @@ export function ServicesGrid({ services, limit }: ServicesGridProps) {
 }
 
 export function ServicesPreview({ services }: { services: SalonService[] }) {
-  const featured = services.filter((s) => s.featured).slice(0, 3);
   return (
     <Section id="services" background="white">
       <SectionHeader
@@ -73,12 +72,11 @@ export function ServicesPreview({ services }: { services: SalonService[] }) {
         description="Pick your vibe and let us work our magic. Every service comes with main character energy included."
         align="center"
       />
-      <ServicesGrid services={featured.length > 0 ? featured : services.slice(0, 3)} />
-      <Reveal className="mt-12 text-center">
-        <ButtonLink href="/services" variant="outline" size="lg">
-          View All Services
-        </ButtonLink>
-      </Reveal>
+      <ServicesGrid services={services} />
+      <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-glam-muted" role="note">
+        Please note that all Braids prices do not include hair extensions. You can either come along
+        with your own extensions or purchase from our salon.
+      </p>
     </Section>
   );
 }

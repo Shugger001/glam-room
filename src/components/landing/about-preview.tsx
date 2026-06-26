@@ -36,7 +36,7 @@ export function AboutPreview() {
                 — {BRAND.copy.quoteAuthor}
               </footer>
             </blockquote>
-            <ButtonLink href="/about" variant="outline">
+            <ButtonLink href="/#about" variant="outline">
               Our Story
             </ButtonLink>
           </Reveal>

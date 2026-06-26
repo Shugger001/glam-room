@@ -49,7 +49,7 @@ export function LandingHero() {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-glam-accent"
         >
-          🇬🇭 2 Locations · Accra
+          🇬🇭 3 Locations · Accra
         </m.p>
 
         <m.h1
@@ -90,7 +90,7 @@ export function LandingHero() {
           </MagneticWrap>
           <MagneticWrap>
             <ButtonLink
-              href="/services"
+              href="/#services"
               variant="outline"
               size="lg"
               className="border-white/30 text-glam-secondary hover:border-glam-accent hover:text-glam-accent"

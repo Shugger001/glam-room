@@ -56,10 +56,12 @@ export function SiteHeader() {
             )}
             aria-label="Primary"
           >
-            {PRIMARY_NAV.map((item) => (
+            {PRIMARY_NAV.map((item) => {
+              const href = isHome && item.href.startsWith("/#") ? item.href.slice(1) : item.href;
+              return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href}
                 className={cn(
                   "relative transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-glam-accent after:transition-transform hover:after:scale-x-100",
                   showSolidHeader
@@ -69,7 +71,8 @@ export function SiteHeader() {
               >
                 {item.label}
               </Link>
-            ))}
+            );
+            })}
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -155,7 +158,9 @@ export function SiteHeader() {
               aria-label="Primary mobile"
             >
               <ul className="flex flex-1 flex-col gap-1">
-                {PRIMARY_NAV.map((item, i) => (
+                {PRIMARY_NAV.map((item, i) => {
+                  const href = isHome && item.href.startsWith("/#") ? item.href.slice(1) : item.href;
+                  return (
                   <m.li
                     key={item.href}
                     initial={{ opacity: 0, x: 16 }}
@@ -163,14 +168,15 @@ export function SiteHeader() {
                     transition={{ delay: 0.04 + i * 0.04, duration: 0.35 }}
                   >
                     <Link
-                      href={item.href}
+                      href={href}
                       className="flex min-h-12 items-center rounded-xl px-4 text-lg font-medium tracking-tight text-glam-primary transition hover:bg-glam-accent/10"
                       onClick={() => setMenuOpen(false)}
                     >
                       {item.label}
                     </Link>
                   </m.li>
-                ))}
+                );
+                })}
               </ul>
               <div className="mt-auto flex flex-col gap-3 border-t border-glam-border pt-6">
                 <ButtonLink

@@ -4,16 +4,7 @@ import { m } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const MARKETING_PATHS = new Set([
-  "/",
-  "/about",
-  "/services",
-  "/gallery",
-  "/experts",
-  "/testimonials",
-  "/faq",
-  "/contact",
-]);
+const MARKETING_PATHS = new Set(["/"]);
 
 export function FloatingBookCta() {
   const pathname = usePathname();
