@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { GlamLogo } from "@/components/brand/glam-logo";
 import { PRIMARY_NAV } from "@/lib/constants/navigation";
+import { BRAND } from "@/lib/constants/brand";
 import { ButtonLink } from "@/components/ui/button";
 
 export function SiteHeader() {
@@ -40,7 +41,7 @@ export function SiteHeader() {
       <m.header
         initial={false}
         className={cn(
-          "fixed inset-x-0 top-0 z-50 flex h-[var(--header-height)] overflow-visible border-b transition-[border-color,background-color] duration-500",
+          "fixed inset-x-0 top-0 z-50 flex h-[calc(var(--header-height)+env(safe-area-inset-top,0px))] overflow-visible border-b pt-[env(safe-area-inset-top,0px)] transition-[border-color,background-color] duration-500",
           showSolidHeader
             ? "border-glam-border bg-glam-secondary/90 shadow-[var(--shadow-glass)] backdrop-blur-xl"
             : "border-transparent bg-transparent",
@@ -80,15 +81,10 @@ export function SiteHeader() {
               href="/book"
               size="sm"
               variant={showSolidHeader ? "primary" : "accent"}
-              className="flex min-h-9 items-center sm:hidden"
-            >
-              Book
-            </ButtonLink>
-            <ButtonLink
-              href="/book"
-              size="sm"
-              variant={showSolidHeader ? "primary" : "accent"}
-              className="hidden sm:inline-flex"
+              className={cn(
+                "inline-flex min-h-9 items-center",
+                isHome && "hidden sm:inline-flex",
+              )}
             >
               Book
             </ButtonLink>
@@ -137,7 +133,7 @@ export function SiteHeader() {
         {menuOpen ? (
           <m.div
             id="mobile-primary-nav"
-            className="fixed inset-0 z-40 lg:hidden"
+            className="fixed inset-0 z-[60] lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -158,6 +154,19 @@ export function SiteHeader() {
               aria-label="Primary mobile"
             >
               <ul className="flex flex-1 flex-col gap-1">
+                <m.li
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.04, duration: 0.35 }}
+                >
+                  <Link
+                    href="/"
+                    className="flex min-h-12 items-center rounded-xl px-4 text-lg font-medium tracking-tight text-glam-primary transition hover:bg-glam-accent/10"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
+                </m.li>
                 {PRIMARY_NAV.map((item, i) => {
                   const href = isHome && item.href.startsWith("/#") ? item.href.slice(1) : item.href;
                   return (
@@ -165,7 +174,7 @@ export function SiteHeader() {
                     key={item.href}
                     initial={{ opacity: 0, x: 16 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.04 + i * 0.04, duration: 0.35 }}
+                    transition={{ delay: 0.08 + i * 0.04, duration: 0.35 }}
                   >
                     <Link
                       href={href}
@@ -178,7 +187,7 @@ export function SiteHeader() {
                 );
                 })}
               </ul>
-              <div className="mt-auto flex flex-col gap-3 border-t border-glam-border pt-6">
+              <div className="mt-auto flex flex-col gap-3 border-t border-glam-border pt-6 pb-[env(safe-area-inset-bottom)]">
                 <ButtonLink
                   href="/book"
                   size="lg"
@@ -187,6 +196,15 @@ export function SiteHeader() {
                 >
                   Book Appointment
                 </ButtonLink>
+                <a
+                  href={BRAND.links.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex min-h-12 w-full items-center justify-center rounded-full border border-glam-border text-sm font-semibold text-glam-primary transition hover:border-glam-accent hover:text-glam-accent"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  WhatsApp Glam Room
+                </a>
               </div>
             </m.nav>
           </m.div>

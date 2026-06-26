@@ -18,9 +18,9 @@ export function StatsRow({ locationCount, serviceCount, testimonialCount }: Stat
 
   return (
     <Section className="!py-12 sm:!py-16" background="white">
-      <div ref={ref} className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+      <div ref={ref} className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
         <div className="text-center">
-          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">
+          <p className="heading-display text-3xl text-glam-accent sm:text-4xl lg:text-5xl">
             <CountUp value={locationCount} active={inView} />
           </p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
@@ -28,7 +28,7 @@ export function StatsRow({ locationCount, serviceCount, testimonialCount }: Stat
           </p>
         </div>
         <div className="text-center">
-          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">
+          <p className="heading-display text-3xl text-glam-accent sm:text-4xl lg:text-5xl">
             <CountUp value={serviceCount} active={inView} />
           </p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
@@ -36,14 +36,14 @@ export function StatsRow({ locationCount, serviceCount, testimonialCount }: Stat
           </p>
         </div>
         <div className="text-center">
-          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">
+          <p className="heading-display text-3xl text-glam-accent sm:text-4xl lg:text-5xl">
             <CountUp value={testimonialCount} active={inView} />
           </p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
             Client Love Notes
           </p>
         </div>
-        <SalonOpenStatus variant="stat" />
+        <SalonOpenStatus variant="stat" className="col-span-2 lg:col-span-1" />
       </div>
     </Section>
   );

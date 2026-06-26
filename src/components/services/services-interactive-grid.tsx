@@ -3,6 +3,7 @@
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo, useState } from "react";
 import { ServiceCard } from "@/components/services/service-card";
+import { FilterChipRow } from "@/components/ui/filter-chip-row";
 import {
   SERVICE_CATEGORIES,
   type SalonService,
@@ -31,14 +32,14 @@ export function ServicesInteractiveGrid({ services }: ServicesInteractiveGridPro
 
   return (
     <>
-      <div className="mb-10 flex flex-wrap justify-center gap-2">
+      <FilterChipRow>
         {FILTER_OPTIONS.map((option) => (
           <button
             key={option.id}
             type="button"
             onClick={() => setActive(option.id)}
             className={cn(
-              "rounded-full px-5 py-2 text-sm font-medium transition-all duration-300",
+              "shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 touch-manipulation",
               active === option.id
                 ? "bg-glam-primary text-glam-secondary shadow-soft"
                 : "border border-glam-border bg-glam-secondary text-glam-primary hover:border-glam-accent",
@@ -48,7 +49,7 @@ export function ServicesInteractiveGrid({ services }: ServicesInteractiveGridPro
             {option.label}
           </button>
         ))}
-      </div>
+      </FilterChipRow>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout" initial={false}>

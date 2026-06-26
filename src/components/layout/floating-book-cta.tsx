@@ -4,7 +4,7 @@ import { m } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const MARKETING_PATHS = new Set(["/"]);
+const MARKETING_PATHS = new Set(["/book"]);
 
 export function FloatingBookCta() {
   const pathname = usePathname();
@@ -13,7 +13,7 @@ export function FloatingBookCta() {
 
   return (
     <m.div
-      className="fixed bottom-6 right-5 z-40 md:hidden"
+      className="fixed bottom-5 right-4 z-40 pb-[env(safe-area-inset-bottom)] md:hidden"
       initial={{ opacity: 0, scale: 0.85, y: 12 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: 1.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}

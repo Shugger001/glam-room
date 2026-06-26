@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Reveal } from "@/components/motion/reveal";
+import { FilterChipRow } from "@/components/ui/filter-chip-row";
 import { cn } from "@/lib/utils/cn";
 import {
   GALLERY_CATEGORIES,
@@ -41,7 +42,7 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
   return (
     <>
       {showFilters ? (
-        <div className="mb-10 flex flex-wrap justify-center gap-2">
+        <FilterChipRow>
           <FilterButton
             active={activeCategory === "all"}
             onClick={() => setActiveCategory("all")}
@@ -57,7 +58,7 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
               />
             ),
           )}
-        </div>
+        </FilterChipRow>
       ) : null}
 
       <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
@@ -143,7 +144,7 @@ function FilterButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full px-5 py-2 text-sm font-medium transition-all duration-300",
+        "shrink-0 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 touch-manipulation",
         active
           ? "bg-glam-primary text-glam-secondary"
           : "border border-glam-border bg-glam-secondary text-glam-primary hover:border-glam-accent",

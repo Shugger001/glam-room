@@ -40,7 +40,7 @@ export function LandingHero() {
       </m.div>
 
       <m.div
-        className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pb-24 pt-[calc(var(--header-height)+2rem)] text-center sm:px-8"
+        className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-4 pb-28 pt-[calc(var(--header-height)+env(safe-area-inset-top,0px)+1.5rem)] text-center sm:px-8 sm:pb-24"
         style={{ y: contentY, opacity }}
       >
         <m.p
@@ -56,7 +56,7 @@ export function LandingHero() {
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="heading-display max-w-4xl text-5xl leading-[1.05] text-glam-secondary sm:text-6xl md:text-7xl lg:text-8xl"
+          className="heading-display max-w-4xl text-4xl leading-[1.05] text-glam-secondary sm:text-6xl md:text-7xl lg:text-8xl"
         >
           Your Crown.
           <br />
@@ -69,24 +69,25 @@ export function LandingHero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.75, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10"
+          className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:mt-10 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4"
         >
-          <MagneticWrap>
+          <MagneticWrap className="w-full sm:w-auto">
             <ButtonLink
               href="/book"
               variant="accent"
               size="lg"
+              className="w-full justify-center sm:w-auto"
               onClick={() => track("hero_cta_book")}
             >
               Book Your Glow Up
             </ButtonLink>
           </MagneticWrap>
-          <MagneticWrap>
+          <MagneticWrap className="w-full sm:w-auto">
             <ButtonLink
               href="/#services"
               variant="outline"
               size="lg"
-              className="border-white/30 text-glam-secondary hover:border-glam-accent hover:text-glam-accent"
+              className="w-full justify-center border-white/30 text-glam-secondary hover:border-glam-accent hover:text-glam-accent sm:w-auto"
               onClick={() => track("hero_cta_services")}
             >
               View Services
@@ -96,7 +97,7 @@ export function LandingHero() {
       </m.div>
 
       <m.div
-        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
+        className="absolute bottom-24 left-1/2 z-10 hidden -translate-x-1/2 sm:bottom-8 sm:block"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.8 }}

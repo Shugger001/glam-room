@@ -49,19 +49,8 @@ export function FindBookingTracker() {
 
   return (
     <Section id="track-booking" background="white">
-      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-        <Reveal className="relative aspect-[4/3] overflow-hidden rounded-2xl">
-          <Image
-            src="/images/glam-red-indoor.png"
-            alt="Find your Glam Room booking"
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 via-glam-primary/20 to-transparent" />
-        </Reveal>
-
-        <div>
+      <div className="flex flex-col gap-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
+        <div className="order-1 lg:order-2">
           <SectionHeader
             eyebrow="Track"
             title="Find My Booking"
@@ -138,6 +127,17 @@ export function FindBookingTracker() {
             </p>
           </Reveal>
         </div>
+
+        <Reveal className="relative order-2 aspect-[4/3] overflow-hidden rounded-2xl lg:order-1">
+          <Image
+            src="/images/glam-red-indoor.png"
+            alt="Find your Glam Room booking"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 via-glam-primary/20 to-transparent" />
+        </Reveal>
       </div>
     </Section>
   );

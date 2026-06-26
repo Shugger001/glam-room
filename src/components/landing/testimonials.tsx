@@ -79,7 +79,7 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
             onClick={() =>
               setActive((currentIndex) => (currentIndex - 1 + testimonials.length) % testimonials.length)
             }
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent touch-manipulation"
             aria-label="Previous testimonial"
           >
             ←
@@ -102,7 +102,7 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
           <button
             type="button"
             onClick={() => setActive((currentIndex) => (currentIndex + 1) % testimonials.length)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent touch-manipulation"
             aria-label="Next testimonial"
           >
             →

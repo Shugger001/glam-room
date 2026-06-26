@@ -10,6 +10,8 @@
   --background: var(--glam-background);
   --foreground: var(--glam-primary);
   --header-height: 4rem;
+  --mobile-bar-height: 4.25rem;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @theme inline {
@@ -79,7 +81,11 @@
 }
 
 @utility section-padding {
-  @apply px-5 py-20 sm:px-8 sm:py-28;
+  @apply px-4 py-14 sm:px-8 sm:py-28;
+}
+
+@utility mobile-page-bottom {
+  padding-bottom: calc(var(--mobile-bar-height) + var(--safe-bottom) + 1rem);
 }
 
 @utility container-narrow {

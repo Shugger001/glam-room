@@ -1,7 +1,7 @@
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MarketingMain } from "@/components/layout/marketing-main";
-import { FloatingBookCta } from "@/components/layout/floating-book-cta";
+import { MobileHomeBar, MobileHomeSpacer } from "@/components/layout/mobile-home-bar";
 import { ScrollProgress } from "@/components/layout/scroll-progress";
 
 export default function MarketingLayout({
@@ -15,7 +15,8 @@ export default function MarketingLayout({
       <SiteHeader />
       <MarketingMain>{children}</MarketingMain>
       <SiteFooter />
-      <FloatingBookCta />
+      <MobileHomeSpacer />
+      <MobileHomeBar />
     </>
   );
 }

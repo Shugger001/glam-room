@@ -53,7 +53,7 @@ export function SectionHeader({
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="heading-display text-4xl text-balance sm:text-5xl lg:text-6xl">{title}</h2>
+      <h2 className="heading-display text-3xl text-balance sm:text-4xl lg:text-5xl xl:text-6xl">{title}</h2>
       {description ? (
         <p
           className={cn(

@@ -46,18 +46,23 @@ export function LocationsPreview() {
                   <p className="text-sm text-white/70">{location.address}</p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 p-6">
+              <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <p className="text-sm text-glam-muted">{location.hours}</p>
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <Link
                     href={location.mapUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm font-medium text-glam-accent hover:underline"
+                    className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-glam-border px-4 text-sm font-medium text-glam-primary transition hover:border-glam-accent hover:text-glam-accent"
                   >
                     Directions
                   </Link>
-                  <ButtonLink href={`/book?location=${location.id}`} size="sm" variant="accent">
+                  <ButtonLink
+                    href={`/book?location=${location.id}`}
+                    size="sm"
+                    variant="accent"
+                    className="min-h-11 flex-1 justify-center"
+                  >
                     Reserve
                   </ButtonLink>
                 </div>

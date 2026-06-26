@@ -27,7 +27,7 @@ export function SalonOpenStatus({ variant = "stat", className }: SalonOpenStatus
     if (variant === "stat") {
       return (
         <div className={cn("text-center", className)}>
-          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">{salonHoursLabel()}</p>
+          <p className="heading-display text-balance text-2xl text-glam-accent sm:text-4xl lg:text-5xl">{salonHoursLabel()}</p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
             Mon–Sun
           </p>
@@ -57,7 +57,7 @@ export function SalonOpenStatus({ variant = "stat", className }: SalonOpenStatus
 
   return (
     <div className={cn("text-center", className)}>
-      <p className="heading-display text-4xl text-glam-accent sm:text-5xl">{message}</p>
+      <p className="heading-display text-balance text-2xl text-glam-accent sm:text-4xl lg:text-5xl">{message}</p>
       <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
         {open ? "Walk-ins welcome · Mon–Sun" : salonHoursLabel()}
       </p>

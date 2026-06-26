@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BookingForm } from "@/components/booking/booking-form";
+import { BookPageShell } from "@/components/booking/book-page-shell";
 import { BRAND } from "@/lib/constants/brand";
 import { getSalonServices } from "@/lib/data/live-services";
 import { getLiveStaff } from "@/lib/data/live-staff";
@@ -19,15 +20,13 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   const leadStaffId = staff[0]?.id ?? "";
 
   return (
-    <div className="section-padding !pt-10">
-      <div className="container-wide">
-        <BookingForm
-          services={services}
-          staffId={leadStaffId}
-          initialServiceId={params.service}
-          initialLocationId={params.location}
-        />
-      </div>
-    </div>
+    <BookPageShell>
+      <BookingForm
+        services={services}
+        staffId={leadStaffId}
+        initialServiceId={params.service}
+        initialLocationId={params.location}
+      />
+    </BookPageShell>
   );
 }

@@ -182,7 +182,7 @@ export function BookingForm({
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-glam-border bg-glam-secondary p-8 text-center shadow-soft sm:p-10">
+      <div className="rounded-2xl border border-white/20 bg-glam-secondary/95 p-8 text-center shadow-premium backdrop-blur-md sm:p-10">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-glam-accent">
           Request received
         </p>
@@ -204,36 +204,54 @@ export function BookingForm({
   }
 
   const inputClass =
-    "mt-2 w-full rounded-xl border border-glam-border bg-glam-secondary px-4 py-3 text-sm text-glam-primary outline-none focus:border-glam-accent focus:ring-1 focus:ring-glam-accent";
+    "mt-2 w-full rounded-xl border border-glam-border bg-glam-secondary px-4 py-3 text-sm text-glam-primary outline-none focus:border-glam-accent focus:ring-1 focus:ring-glam-accent touch-manipulation";
+
+  const locationsPanel = (
+    <>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
+        Locations
+      </p>
+      <ul className="mt-4 space-y-4 text-sm text-glam-muted">
+        {SALON_LOCATIONS.map((loc) => (
+          <li key={loc.id}>
+            <p className="font-medium text-glam-primary">
+              {loc.area}
+              {loc.badge ? (
+                <span className="ml-2 rounded-full bg-glam-accent/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-glam-accent">
+                  {loc.badge}
+                </span>
+              ) : null}
+            </p>
+            <p className="text-glam-muted">{loc.address}</p>
+          </li>
+        ))}
+        <li className="border-t border-glam-border pt-4">
+          <p className="font-medium text-glam-primary">Opening hours</p>
+          <p className="text-glam-muted">Mon to Sun: 8am to 8pm</p>
+        </li>
+      </ul>
+    </>
+  );
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,280px)_1fr] lg:gap-12">
-      <aside className="rounded-2xl border border-glam-border bg-glam-secondary/80 p-6 shadow-soft">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
-          Locations
-        </p>
-        <ul className="mt-4 space-y-4 text-sm text-glam-muted">
-          {SALON_LOCATIONS.map((loc) => (
-            <li key={loc.id}>
-              <p className="font-medium text-glam-primary">
-                {loc.area}
-                {loc.badge ? (
-                  <span className="ml-2 rounded-full bg-glam-accent/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-glam-accent">
-                    {loc.badge}
-                  </span>
-                ) : null}
-              </p>
-              <p className="text-glam-muted">{loc.address}</p>
-            </li>
-          ))}
-          <li className="border-t border-glam-border pt-4">
-            <p className="font-medium text-glam-primary">Opening hours</p>
-            <p className="text-glam-muted">Mon to Sun: 8am to 8pm</p>
-          </li>
-        </ul>
+      <details className="group rounded-2xl border border-white/20 bg-glam-secondary/95 p-5 shadow-premium backdrop-blur-md lg:hidden">
+        <summary className="cursor-pointer list-none text-sm font-semibold text-glam-primary marker:content-none [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center justify-between gap-3">
+            Salon locations & hours
+            <span className="text-glam-accent transition group-open:rotate-180" aria-hidden>
+              ▾
+            </span>
+          </span>
+        </summary>
+        <div className="mt-4 border-t border-glam-border pt-4">{locationsPanel}</div>
+      </details>
+
+      <aside className="hidden rounded-2xl border border-white/20 bg-glam-secondary/95 p-6 shadow-premium backdrop-blur-md lg:block">
+        {locationsPanel}
       </aside>
 
-      <div className="rounded-2xl border border-glam-border bg-glam-secondary p-6 shadow-soft sm:p-8">
+      <div className="rounded-2xl border border-white/20 bg-glam-secondary/95 p-6 shadow-premium backdrop-blur-md sm:p-8">
         <h1 className="heading-display text-3xl text-glam-primary">Book appointment</h1>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-5">
