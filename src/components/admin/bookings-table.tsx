@@ -25,15 +25,16 @@ const statusOptions = [
   "completed",
 ] as const;
 
-const tableWrapClass = "overflow-x-auto rounded-2xl border border-white/10 bg-black/20";
-const tableClass = "w-full min-w-[1080px] border-collapse text-sm";
+const tableWrapClass =
+  "overflow-x-auto rounded-2xl border border-white/10 bg-black/20 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]";
+const tableClass = "w-full border-collapse text-sm";
 const thClass =
   "border-b border-white/10 px-4 py-3 text-left text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-white/45";
 const tdClass = "border-b border-white/10 px-4 py-3 align-top text-white/85";
 const inputClass =
-  "w-full min-w-[160px] rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white";
+  "w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white";
 const selectClass =
-  "w-full min-w-[140px] rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white";
+  "w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white";
 
 type BookingsTableProps = {
   bookings: AdminBookingRow[];

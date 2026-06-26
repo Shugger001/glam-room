@@ -145,7 +145,7 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 w-full max-w-none">
       <AdminPageHeader
         title="At-a-glance"
         description="Live operational metrics from Supabase. Use this as your daily command center."
@@ -155,7 +155,7 @@ export default async function AdminOverviewPage() {
           <AdminKpi key={k.label} {...k} />
         ))}
       </div>
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
         <h2 className="font-display text-2xl">Appointment operations</h2>
         <p className="mt-2 text-sm text-white/55">
           Confirm, reschedule, or cancel recent booking requests from the salon website.

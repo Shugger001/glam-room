@@ -56,8 +56,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <AdminDashboardShell>
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col lg:flex-row">
-        <aside className="border-b border-white/10 bg-glam-primary/60 backdrop-blur-xl lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
+      <div className="flex min-h-screen w-full flex-col lg:flex-row">
+        <aside className="border-b border-white/10 bg-glam-primary/70 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:overflow-y-auto lg:border-b-0 lg:border-r xl:w-64">
           <div className="px-5 py-5 lg:px-4 lg:py-6">
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-glam-accent">
               {access.isSuperAdmin ? "Super admin" : "Staff"}
@@ -98,7 +98,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </button>
             </form>
           </div>
-          <main className="flex-1 px-5 py-8 sm:px-8">{children}</main>
+          <main className="w-full flex-1 px-5 py-8 sm:px-8 lg:px-10 xl:px-12">{children}</main>
         </div>
       </div>
     </AdminDashboardShell>
