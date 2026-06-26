@@ -73,17 +73,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/auth"
-              className={cn(
-                "hidden rounded-full px-3 py-1.5 text-sm font-medium transition md:inline-flex",
-                showSolidHeader
-                  ? "text-glam-primary/75 hover:bg-glam-accent/15 hover:text-glam-primary"
-                  : "text-white/80 hover:bg-white/10 hover:text-white",
-              )}
-            >
-              Account
-            </Link>
             <ButtonLink
               href="/book"
               size="sm"
@@ -184,13 +173,6 @@ export function SiteHeader() {
                 ))}
               </ul>
               <div className="mt-auto flex flex-col gap-3 border-t border-glam-border pt-6">
-                <Link
-                  href="/auth"
-                  className="flex min-h-12 items-center justify-center rounded-xl border border-glam-border text-base font-semibold text-glam-primary"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Account
-                </Link>
                 <ButtonLink
                   href="/book"
                   size="lg"

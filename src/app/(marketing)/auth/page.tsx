@@ -10,7 +10,7 @@ import { Reveal } from "@/components/motion/reveal";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [nextPath, setNextPath] = useState("/account");
+  const [nextPath, setNextPath] = useState("/admin");
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,7 +37,7 @@ export default function AuthPage() {
     try {
       if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth?next=/account`,
+          redirectTo: `${window.location.origin}/auth?next=/admin`,
         });
         if (error) {
           toast.error(error.message);
@@ -103,13 +103,18 @@ export default function AuthPage() {
         <Reveal>
           <div className="rounded-2xl border border-glam-border bg-glam-secondary p-8 shadow-soft sm:p-10">
             <SectionHeader
-              eyebrow="Account"
+              eyebrow="Staff"
               title={
                 mode === "signin"
-                  ? "Welcome Back"
+                  ? "Staff Sign In"
                   : mode === "signup"
-                    ? "Create Account"
+                    ? "Create Staff Account"
                     : "Reset Password"
+              }
+              description={
+                mode === "signin"
+                  ? "For Glam Room team and admin only. Clients book without an account."
+                  : undefined
               }
             />
 
