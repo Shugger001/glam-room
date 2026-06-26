@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isValidGhanaPhone } from "@/lib/booking/phone";
 
-export { DEPOSIT_PERCENT, computeDepositAmount } from "@/lib/booking/deposit";
+export { BOOKING_DEPOSIT_GHS, computeDepositAmount } from "@/lib/booking/deposit";
 
 export const guestBookingSchema = z.object({
   locationId: z.string().min(1, "Select a location"),

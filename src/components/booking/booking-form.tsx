@@ -14,7 +14,7 @@ import {
   type ServiceCategory,
 } from "@/lib/constants/services";
 import { isSlotAvailable } from "@/lib/booking/availability";
-import { computeDepositAmount, DEPOSIT_PERCENT } from "@/lib/booking/deposit";
+import { computeDepositAmount } from "@/lib/booking/deposit";
 import { formatShopPrice } from "@/lib/format/money";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -117,11 +117,7 @@ export function BookingForm({
       bookingTime,
   );
 
-  const depositAmount = useMemo(
-    () => (selectedService ? computeDepositAmount(selectedService.price) : 0),
-    [selectedService],
-  );
-
+  const depositAmount = computeDepositAmount();
   const requiresDeposit = paystackEnabled && depositAmount > 0;
 
   async function onSubmit(values: GuestBookingValues) {
@@ -163,9 +159,7 @@ export function BookingForm({
         return;
       }
 
-      const depositForRecord = selectedService
-        ? computeDepositAmount(selectedService.price)
-        : 0;
+      const depositForRecord = computeDepositAmount();
 
       const { error } = await supabase.from("bookings").insert({
         user_id: null,
@@ -189,7 +183,7 @@ export function BookingForm({
         ]
           .filter(Boolean)
           .join("\n"),
-        add_ons: { deposit_percent: DEPOSIT_PERCENT },
+        add_ons: { deposit_flat_ghs: depositForRecord },
       });
 
       if (error) {
@@ -452,10 +446,9 @@ export function BookingForm({
                 </p>
                 {requiresDeposit ? (
                   <p className="mt-3 border-t border-glam-accent/20 pt-3 text-glam-primary">
-                    Deposit due now ({Math.round(DEPOSIT_PERCENT * 100)}%):{" "}
-                    <strong>{formatShopPrice(depositAmount)}</strong>
+                    Booking deposit due now: <strong>{formatShopPrice(depositAmount)}</strong>
                     <span className="mt-1 block text-xs font-normal text-glam-muted">
-                      Balance paid at the salon · secure checkout via Paystack
+                      Remaining balance paid at the salon · secure checkout via Paystack
                     </span>
                   </p>
                 ) : null}

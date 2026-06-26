@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isSlotAvailable } from "@/lib/booking/availability";
-import { computeDepositAmount, DEPOSIT_PERCENT } from "@/lib/booking/deposit";
+import { BOOKING_DEPOSIT_GHS, computeDepositAmount } from "@/lib/booking/deposit";
 import type { GuestBookingValues } from "@/lib/validation/booking";
 
 export type GuestBookingInsertInput = {
@@ -58,7 +58,7 @@ export async function insertGuestBooking(
       ]
         .filter(Boolean)
         .join("\n"),
-      add_ons: { deposit_percent: DEPOSIT_PERCENT },
+      add_ons: { deposit_flat_ghs: BOOKING_DEPOSIT_GHS },
     })
     .select("id, deposit_amount")
     .single();
