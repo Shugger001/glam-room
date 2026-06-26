@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAdminAccess, getAdminNav } from "@/lib/admin/access";
+import { getAdminAccess, getAdminNav, isClientSession } from "@/lib/admin/access";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -20,7 +20,12 @@ async function signOut() {
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const access = await getAdminAccess();
-  if (!access) redirect("/auth?next=/admin");
+  if (!access) {
+    if (await isClientSession()) {
+      redirect("/book");
+    }
+    redirect("/auth?next=/admin");
+  }
 
   if (!access.isSuperAdmin && !access.assignedLocationId) {
     return (

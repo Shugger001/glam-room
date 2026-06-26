@@ -22,6 +22,50 @@ export default function AuthPage() {
     if (p?.startsWith("/admin")) setNextPath(p);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function guardExistingSession() {
+      let supabase: ReturnType<typeof createClient>;
+      try {
+        supabase = createClient();
+      } catch {
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (profile?.role === "admin" || profile?.role === "staff") {
+        const destination =
+          profile.role === "staff" && (nextPath === "/admin" || nextPath === "/admin/")
+            ? "/admin/appointments"
+            : nextPath;
+        router.replace(destination);
+        return;
+      }
+
+      await supabase.auth.signOut();
+      toast.error("This login is for Glam Room staff only.");
+    }
+
+    void guardExistingSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [nextPath, router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     let supabase: ReturnType<typeof createClient>;

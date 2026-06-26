@@ -55,10 +55,32 @@ export async function getAdminAccess(): Promise<AdminAccess | null> {
   };
 }
 
+/** Whether the current session is a signed-in client (not staff/admin). */
+export async function isClientSession(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return !profile || profile.role === "client";
+}
+
 export async function requireAdminAccess(): Promise<AdminAccess> {
   const access = await getAdminAccess();
-  if (!access) redirect("/auth?next=/admin");
-  return access;
+  if (access) return access;
+
+  if (await isClientSession()) {
+    redirect("/book");
+  }
+
+  redirect("/auth?next=/admin");
 }
 
 export async function requireSuperAdmin(): Promise<AdminAccess> {

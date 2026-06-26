@@ -9,6 +9,11 @@ export const dynamic = "force-dynamic";
 const roleOptions: ProfileRole[] = ["client", "staff", "admin"];
 const pageSize = 20;
 
+function shopAccessDefaultValue(role: ProfileRole, assignedLocationId: string | null) {
+  if (role === "admin") return "all";
+  return assignedLocationId ?? "";
+}
+
 function roleLabel(role: ProfileRole) {
   if (role === "admin") return "Super admin";
   if (role === "staff") return "Staff";
@@ -53,7 +58,11 @@ async function updateCustomer(formData: FormData) {
 
   const validLocationIds = SALON_LOCATIONS.map((l) => l.id);
   const nextAssignedLocationId =
-    role === "staff" && validLocationIds.includes(assignedLocationId) ? assignedLocationId : null;
+    role === "admin" || assignedLocationId === "all"
+      ? null
+      : role === "staff" && validLocationIds.includes(assignedLocationId)
+        ? assignedLocationId
+        : null;
 
   const crmTags = tagsRaw
     .split(",")
@@ -282,9 +291,13 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   <p className="text-xs text-white/55">{c.id}</p>
                   <p className="mt-1 text-xs text-white/40">
                     {roleLabel(c.role)}
-                    {c.role === "staff" && c.assigned_location_id
-                      ? ` · ${locationLabelFromId(c.assigned_location_id)}`
-                      : ""}
+                    {c.role === "admin"
+                      ? " · All shops"
+                      : c.role === "staff" && c.assigned_location_id
+                        ? ` · ${locationLabelFromId(c.assigned_location_id)}`
+                        : c.role === "staff"
+                          ? " · Not assigned"
+                          : ""}
                     {" · "}
                     Joined {new Date(c.created_at).toLocaleDateString()}
                     {c.phone ? ` · ${c.phone}` : ""}
@@ -305,12 +318,15 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   </select>
                 </label>
                 <label className="text-xs text-white/60">
-                  Shop (staff only)
+                  Shop access
                   <select
                     name="assigned_location_id"
-                    defaultValue={c.assigned_location_id ?? ""}
+                    defaultValue={shopAccessDefaultValue(c.role, c.assigned_location_id)}
                     className="mt-1 rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
                   >
+                    <option value="all" className="bg-glam-primary">
+                      All
+                    </option>
                     <option value="" className="bg-glam-primary">
                       Not assigned
                     </option>
