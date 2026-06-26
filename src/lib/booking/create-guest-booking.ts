@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { hasClientDuplicateBooking, isSlotAvailable } from "@/lib/booking/availability";
+import {
+  hasClientDuplicateBooking,
+  validateBookingCapacity,
+} from "@/lib/booking/availability";
 import { BOOKING_DEPOSIT_GHS, computeDepositAmount } from "@/lib/booking/deposit";
 import type { GuestBookingValues } from "@/lib/validation/booking";
 
@@ -26,9 +29,13 @@ export async function insertGuestBooking(
     new Date(startAt).getTime() + service.durationMinutes * 60_000,
   ).toISOString();
 
-  const slotCheck = await isSlotAvailable(supabase, startAt, values.locationId);
-  if (!slotCheck.available) {
-    return { ok: false as const, error: slotCheck.error ?? "That time slot is full." };
+  const capacityCheck = await validateBookingCapacity(supabase, {
+    startAt,
+    locationId: values.locationId,
+    bookingDate: values.bookingDate,
+  });
+  if (!capacityCheck.available) {
+    return { ok: false as const, error: capacityCheck.error ?? "That time slot is full." };
   }
 
   const duplicateCheck = await hasClientDuplicateBooking(

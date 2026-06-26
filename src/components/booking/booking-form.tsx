@@ -13,7 +13,10 @@ import {
   type SalonService,
   type ServiceCategory,
 } from "@/lib/constants/services";
-import { computeDepositAmount } from "@/lib/booking/deposit";
+import {
+  MAX_BOOKINGS_PER_SHOP_PER_DAY,
+  MAX_BOOKINGS_PER_SLOT,
+} from "@/lib/booking/availability";
 import { formatShopPrice } from "@/lib/format/money";
 import {
   BOOKING_TIME_SLOTS,
@@ -366,6 +369,10 @@ export function BookingForm({
                   {form.formState.errors.bookingTime.message}
                 </p>
               ) : null}
+              <p className="mt-2 text-xs text-glam-muted">
+                Up to {MAX_BOOKINGS_PER_SLOT} clients per time · {MAX_BOOKINGS_PER_SHOP_PER_DAY} per
+                shop per day
+              </p>
             </label>
           </div>
 
