@@ -19,9 +19,10 @@ function extensionForType(type: string) {
   }
 }
 
-export async function uploadGalleryImage(
+export async function uploadSiteMediaImage(
   admin: SupabaseClient,
   file: File,
+  folder: string,
 ): Promise<{ ok: true; src: string } | { ok: false; error: string }> {
   if (!ALLOWED_TYPES.has(file.type)) {
     return { ok: false, error: "Use JPG, PNG, WebP, or GIF images only." };
@@ -33,7 +34,7 @@ export async function uploadGalleryImage(
 
   const bucket = getMediaBucketName();
   const ext = extensionForType(file.type);
-  const objectPath = `gallery/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+  const objectPath = `${folder.replace(/\/+$/, "")}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await admin.storage.from(bucket).upload(objectPath, buffer, {
@@ -58,4 +59,8 @@ export async function uploadGalleryImage(
   }
 
   return { ok: true, src };
+}
+
+export async function uploadGalleryImage(admin: SupabaseClient, file: File) {
+  return uploadSiteMediaImage(admin, file, "gallery");
 }

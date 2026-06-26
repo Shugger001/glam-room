@@ -15,7 +15,8 @@ export default async function AdminAnalyticsPage() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const [recentBookings, completedBookings, newClients] = await Promise.all([
+  const [recentBookings, completedBookings, newClients, depositsPaid, awaitingApproval] =
+    await Promise.all([
     admin
       .from("bookings")
       .select("id", { count: "exact", head: true })
@@ -29,7 +30,21 @@ export default async function AdminAnalyticsPage() {
       .from("profiles")
       .select("id", { count: "exact", head: true })
       .gte("created_at", thirtyDaysAgo.toISOString()),
+    admin
+      .from("bookings")
+      .select("deposit_amount")
+      .eq("deposit_paid", true)
+      .gte("created_at", thirtyDaysAgo.toISOString()),
+    admin
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "awaiting_approval"),
   ]);
+
+  const depositTotal = (depositsPaid.data ?? []).reduce(
+    (sum, row) => sum + Number(row.deposit_amount ?? 0),
+    0,
+  );
 
   return (
     <div className="space-y-10">
@@ -37,10 +52,16 @@ export default async function AdminAnalyticsPage() {
         title="Analytics"
         description="30-day performance overview for The Glam Room."
       />
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
         <AdminKpi label="Bookings (30d)" value={`${recentBookings.count ?? 0}`} />
         <AdminKpi label="New clients (30d)" value={`${newClients.count ?? 0}`} />
         <AdminKpi label="Completed (30d)" value={`${completedBookings.count ?? 0}`} />
+        <AdminKpi label="Deposits collected (30d)" value={`₵${depositTotal.toLocaleString()}`} />
+        <AdminKpi
+          label="Awaiting approval"
+          value={`${awaitingApproval.count ?? 0}`}
+          hint="needs confirmation"
+        />
       </div>
     </div>
   );
