@@ -50,22 +50,26 @@ export function ServicesInteractiveGrid({ services }: ServicesInteractiveGridPro
         ))}
       </div>
 
-      <m.div layout className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <AnimatePresence mode="popLayout">
-          {filtered.map((service, i) => (
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {filtered.map((service) => (
             <m.div
               key={service.id}
-              layout
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: -8 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: i * 0.03 }}
+              layout="position"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
-              <ServiceCard service={service} index={0} disableReveal />
+              <ServiceCard service={service} disableReveal />
             </m.div>
           ))}
         </AnimatePresence>
-      </m.div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="mt-6 text-center text-sm text-glam-muted">No services in this category yet.</p>
+      ) : null}
     </>
   );
 }

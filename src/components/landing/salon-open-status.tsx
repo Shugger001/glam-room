@@ -24,11 +24,17 @@ export function SalonOpenStatus({ variant = "stat", className }: SalonOpenStatus
   }, []);
 
   if (open === null) {
-    return variant === "stat" ? (
-      <span className={cn("heading-display text-4xl text-glam-accent sm:text-5xl", className)}>
-        {salonHoursLabel()}
-      </span>
-    ) : null;
+    if (variant === "stat") {
+      return (
+        <div className={cn("text-center", className)}>
+          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">{salonHoursLabel()}</p>
+          <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
+            Mon–Sun
+          </p>
+        </div>
+      );
+    }
+    return null;
   }
 
   if (variant === "badge") {

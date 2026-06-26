@@ -21,15 +21,15 @@ export function HeroRotator() {
   }, []);
 
   return (
-    <div className="relative mt-6 h-[4.5rem] max-w-lg sm:h-[3.5rem]">
+    <div className="relative mx-auto mt-6 min-h-[5rem] w-full max-w-xl px-2 sm:min-h-[3.5rem]">
       <AnimatePresence mode="wait">
         <m.p
           key={ROTATING_LINES[index]}
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -14 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-x-0 text-base leading-relaxed text-white/70 sm:text-lg"
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-x-2 top-1/2 -translate-y-1/2 text-center text-base leading-relaxed text-white/70 sm:text-lg"
         >
           {ROTATING_LINES[index]}
         </m.p>
