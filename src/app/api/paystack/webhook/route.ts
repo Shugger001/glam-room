@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { applyPaystackVerification } from "@/lib/payments/paystack-order-state";
+import { applyPaystackBookingVerification } from "@/lib/payments/paystack-booking-state";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { captureServerException } from "@/lib/observability/capture-exception";
 
@@ -94,7 +95,23 @@ export async function POST(request: Request) {
   }
 
   if (!result.ok && result.reason === "Order not found for reference.") {
-    return NextResponse.json({ ok: true, ignored: true, reason: result.reason });
+    const bookingResult = await applyPaystackBookingVerification(admin, {
+      reference,
+      amountMinor: typeof tx?.amount === "number" ? tx.amount : null,
+      currency: tx?.currency ?? null,
+      paid: event === "charge.success" && tx?.status === "success",
+      eventType: event === "charge.success" ? "webhook_charge_success" : "webhook_charge_failed",
+    });
+
+    if (bookingResult.reason === "Booking not found for reference.") {
+      return NextResponse.json({ ok: true, ignored: true, reason: result.reason });
+    }
+
+    if (!bookingResult.ok && bookingResult.reason) {
+      return NextResponse.json({ ok: false, error: bookingResult.reason }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, booking: true });
   }
   if (!result.ok && result.reason) {
     return NextResponse.json({ ok: false, error: result.reason }, { status: 400 });

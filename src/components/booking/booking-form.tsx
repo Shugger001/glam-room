@@ -14,11 +14,11 @@ import {
   type ServiceCategory,
 } from "@/lib/constants/services";
 import { isSlotAvailable } from "@/lib/booking/availability";
+import { computeDepositAmount, DEPOSIT_PERCENT } from "@/lib/booking/deposit";
 import { formatShopPrice } from "@/lib/format/money";
 import { createClient } from "@/lib/supabase/client";
 import {
   BOOKING_TIME_SLOTS,
-  DEPOSIT_PERCENT,
   guestBookingSchema,
   type GuestBookingValues,
 } from "@/lib/validation/booking";
@@ -29,6 +29,7 @@ type BookingFormProps = {
   staffId: string;
   initialServiceId?: string;
   initialLocationId?: string;
+  paystackEnabled?: boolean;
 };
 
 const CATEGORY_ORDER: ServiceCategory[] = ["hair-reset", "hair-installation", "braids"];
@@ -47,6 +48,7 @@ export function BookingForm({
   staffId,
   initialServiceId,
   initialLocationId,
+  paystackEnabled = false,
 }: BookingFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -115,9 +117,34 @@ export function BookingForm({
       bookingTime,
   );
 
+  const depositAmount = useMemo(
+    () => (selectedService ? computeDepositAmount(selectedService.price) : 0),
+    [selectedService],
+  );
+
+  const requiresDeposit = paystackEnabled && depositAmount > 0;
+
   async function onSubmit(values: GuestBookingValues) {
     setSubmitting(true);
     try {
+      if (requiresDeposit) {
+        const res = await fetch("/api/paystack/booking/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...values, staffId }),
+        });
+        const data = (await res.json()) as {
+          authorization_url?: string;
+          error?: string;
+        };
+        if (!res.ok || !data.authorization_url) {
+          toast.error(data.error ?? "Could not start payment. Please try again or WhatsApp us.");
+          return;
+        }
+        window.location.href = data.authorization_url;
+        return;
+      }
+
       let supabase: ReturnType<typeof createClient>;
       try {
         supabase = createClient();
@@ -136,8 +163,8 @@ export function BookingForm({
         return;
       }
 
-      const depositAmount = selectedService
-        ? Math.round(selectedService.price * DEPOSIT_PERCENT)
+      const depositForRecord = selectedService
+        ? computeDepositAmount(selectedService.price)
         : 0;
 
       const { error } = await supabase.from("bookings").insert({
@@ -148,7 +175,7 @@ export function BookingForm({
         end_at: end.toISOString(),
         status: "awaiting_approval",
         location_type: "studio",
-        deposit_amount: depositAmount,
+        deposit_amount: depositForRecord,
         deposit_paid: false,
         client_name: values.clientName.trim(),
         client_phone: values.clientPhone.trim(),
@@ -423,6 +450,15 @@ export function BookingForm({
                   {selectedLocation.area} · {bookingDate} at{" "}
                   {BOOKING_TIME_SLOTS.find((s) => s.value === bookingTime)?.label ?? bookingTime}
                 </p>
+                {requiresDeposit ? (
+                  <p className="mt-3 border-t border-glam-accent/20 pt-3 text-glam-primary">
+                    Deposit due now ({Math.round(DEPOSIT_PERCENT * 100)}%):{" "}
+                    <strong>{formatShopPrice(depositAmount)}</strong>
+                    <span className="mt-1 block text-xs font-normal text-glam-muted">
+                      Balance paid at the salon · secure checkout via Paystack
+                    </span>
+                  </p>
+                ) : null}
               </>
             ) : selectedService && selectedLocation ? (
               "Pick a date and time to finish."
@@ -432,7 +468,13 @@ export function BookingForm({
           </div>
 
           <Button type="submit" variant="accent" className="w-full" disabled={submitting}>
-            {submitting ? "Booking…" : "Book appointment"}
+            {submitting
+              ? requiresDeposit
+                ? "Redirecting to Paystack…"
+                : "Booking…"
+              : requiresDeposit
+                ? `Pay ${formatShopPrice(depositAmount)} deposit`
+                : "Book appointment"}
           </Button>
 
           <p className="text-center text-sm text-glam-muted">

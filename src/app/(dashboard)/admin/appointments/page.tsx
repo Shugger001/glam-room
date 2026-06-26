@@ -128,7 +128,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   let query = admin
     .from("bookings")
     .select(
-      "id, start_at, status, location_type, location_id, client_name, client_phone, client_notes, profiles(full_name,phone), services(name), staff(name)",
+      "id, start_at, status, location_type, location_id, client_name, client_phone, client_notes, deposit_paid, deposit_amount, profiles(full_name,phone), services(name), staff(name)",
     )
     .order("start_at", { ascending: false });
   if (locationScope) query = query.eq("location_id", locationScope);
@@ -212,6 +212,16 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
                   {loc ? ` · ${loc}` : ""}
                   {staffName ? ` · ${staffName}` : ""}
                   {clientPhone ? ` · ${clientPhone}` : ""}
+                  {typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0 ? (
+                    <>
+                      {" · "}
+                      {b.deposit_paid ? (
+                        <span className="text-glam-accent">Deposit paid</span>
+                      ) : (
+                        <span className="text-amber-200/90">Deposit pending</span>
+                      )}
+                    </>
+                  ) : null}
                 </p>
                 {b.client_notes ? (
                   <p className="mt-2 line-clamp-2 text-xs text-white/45">{b.client_notes}</p>

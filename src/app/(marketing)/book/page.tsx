@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BookingForm } from "@/components/booking/booking-form";
 import { BookPageShell } from "@/components/booking/book-page-shell";
+import { isPaystackConfigured } from "@/lib/booking/deposit";
 import { BRAND } from "@/lib/constants/brand";
 import { getSalonServices } from "@/lib/data/live-services";
 import { getLiveStaff } from "@/lib/data/live-staff";
@@ -18,6 +19,7 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   const params = await searchParams;
   const [services, staff] = await Promise.all([getSalonServices(), getLiveStaff()]);
   const leadStaffId = staff[0]?.id ?? "";
+  const paystackEnabled = isPaystackConfigured();
 
   return (
     <BookPageShell>
@@ -26,6 +28,7 @@ export default async function BookPage({ searchParams }: BookPageProps) {
         staffId={leadStaffId}
         initialServiceId={params.service}
         initialLocationId={params.location}
+        paystackEnabled={paystackEnabled}
       />
     </BookPageShell>
   );

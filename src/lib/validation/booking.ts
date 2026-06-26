@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { isValidGhanaPhone } from "@/lib/booking/phone";
 
+export { DEPOSIT_PERCENT, computeDepositAmount } from "@/lib/booking/deposit";
+
 export const guestBookingSchema = z.object({
   locationId: z.string().min(1, "Select a location"),
   category: z.string().min(1, "Select a category"),
@@ -33,4 +35,3 @@ export const bookingFormSchema = guestBookingSchema.extend({
 });
 
 export type BookingFormValues = z.infer<typeof bookingFormSchema>;
-export const DEPOSIT_PERCENT = 0;
