@@ -211,23 +211,23 @@ export function BookingForm({
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
         Locations
       </p>
-      <ul className="mt-4 space-y-4 text-sm text-glam-muted">
+      <ul className="mt-4 space-y-4 text-sm text-white/70">
         {SALON_LOCATIONS.map((loc) => (
           <li key={loc.id}>
-            <p className="font-medium text-glam-primary">
+            <p className="font-medium text-white">
               {loc.area}
               {loc.badge ? (
-                <span className="ml-2 rounded-full bg-glam-accent/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-glam-accent">
+                <span className="ml-2 rounded-full bg-glam-accent/20 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-glam-accent">
                   {loc.badge}
                 </span>
               ) : null}
             </p>
-            <p className="text-glam-muted">{loc.address}</p>
+            <p className="text-white/60">{loc.address}</p>
           </li>
         ))}
-        <li className="border-t border-glam-border pt-4">
-          <p className="font-medium text-glam-primary">Opening hours</p>
-          <p className="text-glam-muted">Mon to Sun: 8am to 8pm</p>
+        <li className="border-t border-white/20 pt-4">
+          <p className="font-medium text-white">Opening hours</p>
+          <p className="text-white/60">Mon to Sun: 8am to 8pm</p>
         </li>
       </ul>
     </>
@@ -235,8 +235,8 @@ export function BookingForm({
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,280px)_1fr] lg:gap-12">
-      <details className="group rounded-2xl border border-white/20 bg-glam-secondary/95 p-5 shadow-premium backdrop-blur-md lg:hidden">
-        <summary className="cursor-pointer list-none text-sm font-semibold text-glam-primary marker:content-none [&::-webkit-details-marker]:hidden">
+      <details className="group rounded-2xl border border-white/20 bg-transparent p-5 lg:hidden">
+        <summary className="cursor-pointer list-none text-sm font-semibold text-white marker:content-none [&::-webkit-details-marker]:hidden">
           <span className="flex items-center justify-between gap-3">
             Salon locations & hours
             <span className="text-glam-accent transition group-open:rotate-180" aria-hidden>
@@ -244,10 +244,10 @@ export function BookingForm({
             </span>
           </span>
         </summary>
-        <div className="mt-4 border-t border-glam-border pt-4">{locationsPanel}</div>
+        <div className="mt-4 border-t border-white/20 pt-4">{locationsPanel}</div>
       </details>
 
-      <aside className="hidden rounded-2xl border border-white/20 bg-glam-secondary/95 p-6 shadow-premium backdrop-blur-md lg:block">
+      <aside className="hidden rounded-2xl border border-white/20 bg-transparent p-6 lg:block">
         {locationsPanel}
       </aside>
 
