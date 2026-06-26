@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { locationLabelFromId, requireSuperAdmin } from "@/lib/admin/access";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import type { ProfileRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -8,19 +9,10 @@ export const dynamic = "force-dynamic";
 const roleOptions: ProfileRole[] = ["client", "staff", "admin"];
 const pageSize = 20;
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: currentProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (currentProfile?.role !== "admin") return null;
-  return { userId: user.id };
+function roleLabel(role: ProfileRole) {
+  if (role === "admin") return "Super admin";
+  if (role === "staff") return "Staff";
+  return "Client";
 }
 
 async function writeRoleAudit(
@@ -53,11 +45,15 @@ async function updateCustomer(formData: FormData) {
   const reason = String(formData.get("role_reason") ?? "");
   const adminNotes = String(formData.get("admin_notes") ?? "");
   const tagsRaw = String(formData.get("crm_tags") ?? "");
+  const assignedLocationId = String(formData.get("assigned_location_id") ?? "").trim();
   if (!id || !roleOptions.includes(role as (typeof roleOptions)[number])) return;
 
-  const auth = await requireAdmin();
-  if (!auth) return;
+  const auth = await requireSuperAdmin();
   if (id === auth.userId && role !== "admin") return;
+
+  const validLocationIds = SALON_LOCATIONS.map((l) => l.id);
+  const nextAssignedLocationId =
+    role === "staff" && validLocationIds.includes(assignedLocationId) ? assignedLocationId : null;
 
   const crmTags = tagsRaw
     .split(",")
@@ -71,6 +67,7 @@ async function updateCustomer(formData: FormData) {
     .from("profiles")
     .update({
       role,
+      assigned_location_id: nextAssignedLocationId,
       admin_notes: adminNotes.length > 0 ? adminNotes : null,
       crm_tags: crmTags,
       updated_at: new Date().toISOString(),
@@ -86,8 +83,7 @@ async function updateCustomer(formData: FormData) {
 async function bulkApplyTags(formData: FormData) {
   "use server";
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
-  const auth = await requireAdmin();
-  if (!auth) return;
+  await requireSuperAdmin();
 
   const ids = String(formData.get("ids") ?? "")
     .split(",")
@@ -123,6 +119,7 @@ type ProfileRow = {
   id: string;
   full_name: string | null;
   role: "client" | "staff" | "admin";
+  assigned_location_id: string | null;
   phone: string | null;
   crm_tags: string[] | null;
   admin_notes: string | null;
@@ -155,6 +152,8 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
     );
   }
 
+  await requireSuperAdmin();
+
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const roleFilter =
@@ -169,7 +168,9 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
   const admin = createAdminClient();
   let query = admin
     .from("profiles")
-    .select("id, full_name, role, phone, crm_tags, admin_notes, created_at", { count: "exact" })
+    .select("id, full_name, role, assigned_location_id, phone, crm_tags, admin_notes, created_at", {
+      count: "exact",
+    })
     .order("created_at", { ascending: false });
   if (roleFilter !== "all") query = query.eq("role", roleFilter);
   if (q.length > 0) query = query.ilike("full_name", `%${q}%`);
@@ -200,7 +201,8 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
       <h1 className="font-display text-3xl">CRM</h1>
       <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Manage customer segmentation and role onboarding. Only admins can change roles.
+        Manage customer segmentation and staff shop assignments. Super admins can change roles and assign staff
+        to Adenta, Sowutuom, or Madina.
       </p>
       <div className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-3">
         <form action="/admin/customers" className="space-y-2">
@@ -224,7 +226,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
             </option>
             {roleOptions.map((role) => (
               <option key={role} value={role} className="bg-glam-primary">
-                {role}
+                {roleLabel(role)}
               </option>
             ))}
           </select>
@@ -279,6 +281,11 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   <p className="font-semibold text-white">{c.full_name ?? "Unnamed client"}</p>
                   <p className="text-xs text-white/55">{c.id}</p>
                   <p className="mt-1 text-xs text-white/40">
+                    {roleLabel(c.role)}
+                    {c.role === "staff" && c.assigned_location_id
+                      ? ` · ${locationLabelFromId(c.assigned_location_id)}`
+                      : ""}
+                    {" · "}
                     Joined {new Date(c.created_at).toLocaleDateString()}
                     {c.phone ? ` · ${c.phone}` : ""}
                   </p>
@@ -292,7 +299,24 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   >
                     {roleOptions.map((role) => (
                       <option key={role} value={role} className="bg-glam-primary">
-                        {role}
+                        {roleLabel(role)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs text-white/60">
+                  Shop (staff only)
+                  <select
+                    name="assigned_location_id"
+                    defaultValue={c.assigned_location_id ?? ""}
+                    className="mt-1 rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                  >
+                    <option value="" className="bg-glam-primary">
+                      Not assigned
+                    </option>
+                    {SALON_LOCATIONS.map((loc) => (
+                      <option key={loc.id} value={loc.id} className="bg-glam-primary">
+                        {loc.area}
                       </option>
                     ))}
                   </select>

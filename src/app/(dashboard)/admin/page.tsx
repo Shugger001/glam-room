@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { locationLabelFromId, requireSuperAdmin, requireStaffBookingAccess } from "@/lib/admin/access";
 import {
   AdminBtnPrimary,
   adminFormRowClass,
@@ -22,17 +22,14 @@ const statusOptions = [
   "completed",
 ] as const;
 
-function locationLabel(locationId: string | null) {
-  if (!locationId) return null;
-  return SALON_LOCATIONS.find((l) => l.id === locationId)?.area ?? locationId;
-}
-
 async function updateBookingStatus(formData: FormData) {
   "use server";
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!id || !statusOptions.includes(status as (typeof statusOptions)[number])) return;
+
+  await requireStaffBookingAccess(id);
 
   const admin = createAdminClient();
   const { data: existing } = await admin
@@ -84,6 +81,8 @@ export default async function AdminOverviewPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice />;
   }
+
+  await requireSuperAdmin();
 
   const admin = createAdminClient();
   const [bookingsRes, profilesRes, servicesRes, messagesRes, recentBookingsRes] = await Promise.all([
@@ -156,7 +155,7 @@ export default async function AdminOverviewPage() {
           {(recentBookingsRes.data ?? []).map((b) => {
             const profile = b.profiles as { full_name?: string; phone?: string } | null;
             const clientName = b.client_name ?? profile?.full_name ?? "Guest";
-            const loc = locationLabel(b.location_id);
+            const loc = locationLabelFromId(b.location_id);
 
             return (
               <form key={b.id} action={updateBookingStatus} className={adminFormRowClass}>

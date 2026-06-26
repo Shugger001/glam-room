@@ -25,6 +25,7 @@ export interface Profile {
   avatar_url: string | null;
   phone: string | null;
   role: ProfileRole;
+  assigned_location_id: string | null;
   crm_tags: string[] | null;
   admin_notes: string | null;
   created_at: string;

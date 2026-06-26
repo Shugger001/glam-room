@@ -1,7 +1,12 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import {
+  bookingLocationScope,
+  locationLabelFromId,
+  requireAdminAccess,
+  requireStaffBookingAccess,
+} from "@/lib/admin/access";
 import {
   AdminBtnPrimary,
   adminBtnOutline,
@@ -23,16 +28,14 @@ const statusOptions = [
 
 const statusTabs = ["all", ...statusOptions] as const;
 
-function locationLabel(locationId: string | null) {
-  if (!locationId) return null;
-  return SALON_LOCATIONS.find((l) => l.id === locationId)?.area ?? locationId;
-}
-
 async function updateBookingStatus(formData: FormData) {
   "use server";
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!id || !statusOptions.includes(status as (typeof statusOptions)[number])) return;
+
+  await requireStaffBookingAccess(id);
+
   const admin = createAdminClient();
   const requestedStartAt = String(formData.get("start_at") ?? "").trim();
 
@@ -100,6 +103,7 @@ async function updateBookingStatus(formData: FormData) {
   }
 
   revalidatePath("/admin/appointments");
+  revalidatePath("/admin");
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -108,6 +112,9 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice title="Appointments" />;
   }
+
+  const access = await requireAdminAccess();
+  const locationScope = bookingLocationScope(access);
 
   const params = await searchParams;
   const statusParam = typeof params.status === "string" ? params.status : "all";
@@ -124,6 +131,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       "id, start_at, status, location_type, location_id, client_name, client_phone, client_notes, profiles(full_name,phone), services(name), staff(name)",
     )
     .order("start_at", { ascending: false });
+  if (locationScope) query = query.eq("location_id", locationScope);
   if (statusFilter !== "all") query = query.eq("status", statusFilter);
   if (fromDate) query = query.gte("start_at", new Date(fromDate).toISOString());
   if (toDate) {
@@ -145,6 +153,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   return (
     <AdminPanel>
       <h1 className="font-display text-3xl">Appointments</h1>
+      {!access.isSuperAdmin && access.assignedLocationLabel ? (
+        <p className="mt-2 text-sm text-white/55">
+          Showing bookings for <span className="text-glam-accent">{access.assignedLocationLabel}</span> only
+        </p>
+      ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
         {statusTabs.map((tab) => (
           <a key={tab} href={tabHref(tab)} className={adminTabClass(statusFilter === tab)}>
@@ -184,7 +197,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           const profile = b.profiles as { full_name?: string; phone?: string } | null;
           const clientName = b.client_name ?? profile?.full_name ?? "Guest";
           const clientPhone = b.client_phone ?? profile?.phone ?? null;
-          const loc = locationLabel(b.location_id);
+          const loc = locationLabelFromId(b.location_id);
           const staffName = (b.staff as { name?: string } | null)?.name;
 
           return (

@@ -1,6 +1,11 @@
+import { requireSuperAdmin } from "@/lib/admin/access";
 import { AdminPanel } from "@/components/admin/admin-ui";
 
-export default function AdminSettingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminSettingsPage() {
+  await requireSuperAdmin();
+
   return (
     <AdminPanel>
       <h1 className="font-display text-3xl">Settings</h1>

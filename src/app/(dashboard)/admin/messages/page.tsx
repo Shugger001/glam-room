@@ -1,11 +1,13 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireSuperAdmin } from "@/lib/admin/access";
 import { AdminPanel, adminTabClass, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
 async function markMessageRead(formData: FormData) {
   "use server";
+  await requireSuperAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const admin = createAdminClient();
@@ -23,6 +25,8 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice title="Messages" />;
   }
+
+  await requireSuperAdmin();
 
   const params = await searchParams;
   const filter = params.filter === "unread" ? "unread" : "all";

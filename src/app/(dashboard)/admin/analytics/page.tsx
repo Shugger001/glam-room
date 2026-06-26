@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireSuperAdmin } from "@/lib/admin/access";
 import { AdminKpi, AdminPageHeader, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,8 @@ export default async function AdminAnalyticsPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice title="Analytics" />;
   }
+
+  await requireSuperAdmin();
 
   const admin = createAdminClient();
   const thirtyDaysAgo = new Date();

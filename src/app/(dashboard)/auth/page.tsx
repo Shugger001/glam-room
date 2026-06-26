@@ -73,7 +73,11 @@ export default function AuthPage() {
 
       await fetch("/api/auth/bootstrap-profile", { method: "POST" });
       toast.success("Signed in");
-      router.push(nextPath);
+      const destination =
+        profile?.role === "staff" && (nextPath === "/admin" || nextPath === "/admin/")
+          ? "/admin/appointments"
+          : nextPath;
+      router.push(destination);
       router.refresh();
     } finally {
       setLoading(false);

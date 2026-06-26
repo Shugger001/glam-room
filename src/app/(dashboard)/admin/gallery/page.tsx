@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireSuperAdmin } from "@/lib/admin/access";
 import { AdminPanel, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,8 @@ export default async function AdminGalleryPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice title="Gallery" />;
   }
+
+  await requireSuperAdmin();
   const admin = createAdminClient();
   const { data: items } = await admin
     .from("gallery")
