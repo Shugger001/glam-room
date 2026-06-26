@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
 export const adminPanelClass =
-  "rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10";
+  "rounded-3xl border border-white/15 bg-glam-primary/55 p-6 backdrop-blur-md sm:p-10";
 
 export const adminKpiClass =
-  "rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]";
+  "rounded-3xl border border-white/15 bg-glam-primary/55 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)] backdrop-blur-md";
 
 export const adminFormRowClass =
-  "grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 sm:grid-cols-[1fr_auto_auto]";
+  "grid gap-3 rounded-2xl border border-white/15 bg-glam-primary/45 p-4 backdrop-blur-sm sm:grid-cols-[1fr_auto_auto]";
 
 export const adminBtnPrimary =
   "rounded-full bg-glam-accent px-4 py-2 text-xs font-semibold uppercase tracking-wider text-glam-primary";
@@ -58,7 +58,7 @@ export function AdminCard({
   return (
     <div
       className={cn(
-        "rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)]",
+        "rounded-3xl border border-white/15 bg-glam-primary/55 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)] backdrop-blur-md",
         className,
       )}
     >

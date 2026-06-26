@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
 import { getAdminAccess, getAdminNav, isClientSession } from "@/lib/admin/access";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,31 +30,33 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!access.isSuperAdmin && !access.assignedLocationId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-glam-primary px-5 text-white">
-        <div className="max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
-          <h1 className="font-display text-2xl">Shop not assigned</h1>
-          <p className="mt-3 text-sm text-white/60">
-            Your staff account needs a shop assignment. Ask a super admin to assign you to Adenta,
-            Sowutuom, or Madina in CRM.
-          </p>
-          <form action={signOut} className="mt-6">
-            <button
-              type="submit"
-              className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white/75 hover:bg-white/10"
-            >
-              Sign out
-            </button>
-          </form>
+      <AdminDashboardShell>
+        <div className="flex min-h-screen items-center justify-center px-5">
+          <div className="max-w-md rounded-3xl border border-white/15 bg-glam-primary/55 p-8 text-center shadow-[0_20px_60px_-30px_rgba(0,0,0,0.5)] backdrop-blur-md">
+            <h1 className="font-display text-2xl">Shop not assigned</h1>
+            <p className="mt-3 text-sm text-white/60">
+              Your staff account needs a shop assignment. Ask a super admin to assign you to Adenta,
+              Sowutuom, or Madina in CRM.
+            </p>
+            <form action={signOut} className="mt-6">
+              <button
+                type="submit"
+                className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white/75 hover:bg-white/10"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
+      </AdminDashboardShell>
     );
   }
 
   const nav = getAdminNav(access.isSuperAdmin);
 
   return (
-    <div className="min-h-screen bg-glam-primary text-white">
-      <div className="border-b border-white/10 bg-glam-primary/95 backdrop-blur-xl">
+    <AdminDashboardShell>
+      <div className="border-b border-white/10 bg-glam-primary/60 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div>
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-glam-accent">
@@ -94,6 +97,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
       </div>
       <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">{children}</div>
-    </div>
+    </AdminDashboardShell>
   );
 }
