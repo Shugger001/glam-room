@@ -11,6 +11,7 @@ import { FaqPreview } from "@/components/landing/faq-section";
 import { CtaBand } from "@/components/landing/cta-band";
 import { FAQ_ITEMS } from "@/lib/constants/faqs";
 import { LocalBusinessJsonLd } from "@/components/seo/json-ld";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { getSalonPageData } from "@/lib/data/salon-page-data";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,11 @@ export default async function HomePage() {
     <>
       <LocalBusinessJsonLd />
       <LandingHero />
-      <StatsRow />
+      <StatsRow
+        locationCount={SALON_LOCATIONS.length}
+        serviceCount={services.length}
+        testimonialCount={testimonials.length}
+      />
       <LocationsPreview />
       <AboutPreview />
       <ServicesPreview services={services} />

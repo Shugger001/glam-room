@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SalonOpenStatus } from "@/components/landing/salon-open-status";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
@@ -14,6 +15,9 @@ export function LocationsPreview() {
         description="Adenta, Sowutuom, and our newest Madina location — same premium care, wherever you book."
         align="center"
       />
+      <Reveal className="mb-10 flex justify-center">
+        <SalonOpenStatus variant="badge" />
+      </Reveal>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {SALON_LOCATIONS.map((location, i) => (
           <Reveal key={location.id} delay={i * 0.1}>

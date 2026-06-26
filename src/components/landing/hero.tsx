@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useRef } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { MagneticWrap } from "@/components/motion/magnetic-wrap";
+import { HeroRotator } from "@/components/landing/hero-rotator";
 import { track } from "@/lib/analytics/track";
-import { BRAND } from "@/lib/constants/brand";
 
 const HERO_IMAGE = "/images/glam-braids-studio.png";
 
@@ -63,14 +63,7 @@ export function LandingHero() {
           <span className="text-glam-accent">Your Glow.</span>
         </m.h1>
 
-        <m.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 max-w-lg text-base leading-relaxed text-white/70 sm:text-lg"
-        >
-          {BRAND.copy.heroSubtitle}
-        </m.p>
+        <HeroRotator />
 
         <m.div
           initial={{ opacity: 0, y: 24 }}

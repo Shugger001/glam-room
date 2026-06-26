@@ -14,7 +14,7 @@ export function GalleryPreview({ items }: { items: GalleryItem[] }) {
         />
       </div>
       <div className="container-wide px-5 sm:px-8">
-        <MasonryGallery items={items} showFilters={false} />
+        <MasonryGallery items={items} showFilters />
       </div>
     </Section>
   );

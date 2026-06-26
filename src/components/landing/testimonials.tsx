@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Reveal } from "@/components/motion/reveal";
 import { Section, SectionHeader } from "@/components/ui/section";
@@ -25,10 +25,22 @@ function StarRating({ rating }: { rating: number }) {
 
 export function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
   const current = testimonials[active];
+
+  useEffect(() => {
+    if (testimonials.length <= 1 || paused) return;
+    const id = window.setInterval(() => {
+      setActive((currentIndex) => (currentIndex + 1) % testimonials.length);
+    }, 6000);
+    return () => window.clearInterval(id);
+  }, [paused, testimonials.length]);
+
+  if (!current) return null;
 
   return (
     <Section id="testimonials" background="dark">
+      <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <SectionHeader
         eyebrow="Love Notes"
         title="What the Girls Are Saying"
@@ -61,7 +73,18 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
           </m.blockquote>
         </AnimatePresence>
 
-        <div className="mt-10 flex justify-center gap-2">
+        <div className="mt-10 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() =>
+              setActive((currentIndex) => (currentIndex - 1 + testimonials.length) % testimonials.length)
+            }
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent"
+            aria-label="Previous testimonial"
+          >
+            ←
+          </button>
+          <div className="flex gap-2">
           {testimonials.map((t, i) => (
             <button
               key={t.id}
@@ -75,8 +98,18 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
               aria-current={i === active ? "true" : undefined}
             />
           ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setActive((currentIndex) => (currentIndex + 1) % testimonials.length)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent"
+            aria-label="Next testimonial"
+          >
+            →
+          </button>
         </div>
       </Reveal>
+      </div>
     </Section>
   );
 }

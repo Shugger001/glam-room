@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
+import { ServicesInteractiveGrid } from "@/components/services/services-interactive-grid";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { formatShopPrice } from "@/lib/format/money";
 import type { SalonService } from "@/lib/constants/services";
@@ -9,12 +9,12 @@ import type { SalonService } from "@/lib/constants/services";
 type ServiceCardProps = {
   service: SalonService;
   index?: number;
+  disableReveal?: boolean;
 };
 
-export function ServiceCard({ service, index = 0 }: ServiceCardProps) {
-  return (
-    <Reveal delay={index * 0.08} className="group">
-      <article className="flex h-full flex-col overflow-hidden rounded-2xl bg-glam-secondary shadow-soft transition-shadow duration-500 hover:shadow-premium">
+export function ServiceCard({ service, index = 0, disableReveal = false }: ServiceCardProps) {
+  const card = (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl bg-glam-secondary shadow-soft transition-shadow duration-500 hover:shadow-premium">
         <div className="relative aspect-[4/3] overflow-hidden">
           <Image
             src={service.image}
@@ -43,6 +43,13 @@ export function ServiceCard({ service, index = 0 }: ServiceCardProps) {
           </div>
         </div>
       </article>
+  );
+
+  if (disableReveal) return card;
+
+  return (
+    <Reveal delay={index * 0.08} className="group">
+      {card}
     </Reveal>
   );
 }
@@ -72,7 +79,7 @@ export function ServicesPreview({ services }: { services: SalonService[] }) {
         description="Pick your vibe and let us work our magic. Every service comes with main character energy included."
         align="center"
       />
-      <ServicesGrid services={services} />
+      <ServicesInteractiveGrid services={services} />
       <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-glam-muted" role="note">
         Please note that all Braids prices do not include hair extensions. You can either come along
         with your own extensions or purchase from our salon.

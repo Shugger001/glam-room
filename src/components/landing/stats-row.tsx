@@ -1,25 +1,45 @@
+import { CountUp } from "@/components/motion/count-up";
 import { Reveal } from "@/components/motion/reveal";
+import { SalonOpenStatus } from "@/components/landing/salon-open-status";
 import { Section } from "@/components/ui/section";
 
-const STATS = [
-  { value: "2", label: "Salon Locations" },
-  { value: "15", label: "Services" },
-  { value: "7", label: "Days Open Weekly" },
-  { value: "8am–8pm", label: "Daily Hours" },
-];
+type StatsRowProps = {
+  locationCount: number;
+  serviceCount: number;
+  testimonialCount: number;
+};
 
-export function StatsRow() {
+export function StatsRow({ locationCount, serviceCount, testimonialCount }: StatsRowProps) {
   return (
     <Section className="!py-12 sm:!py-16" background="white">
       <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
-        {STATS.map((stat, i) => (
-          <Reveal key={stat.label} delay={i * 0.08} className="text-center">
-            <p className="heading-display text-4xl text-glam-accent sm:text-5xl">{stat.value}</p>
-            <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
-              {stat.label}
-            </p>
-          </Reveal>
-        ))}
+        <Reveal delay={0} className="text-center">
+          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">
+            <CountUp value={locationCount} />
+          </p>
+          <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
+            Salon Locations
+          </p>
+        </Reveal>
+        <Reveal delay={0.08} className="text-center">
+          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">
+            <CountUp value={serviceCount} />
+          </p>
+          <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
+            Live Services
+          </p>
+        </Reveal>
+        <Reveal delay={0.16} className="text-center">
+          <p className="heading-display text-4xl text-glam-accent sm:text-5xl">
+            <CountUp value={testimonialCount} />
+          </p>
+          <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
+            Client Love Notes
+          </p>
+        </Reveal>
+        <Reveal delay={0.24}>
+          <SalonOpenStatus variant="stat" />
+        </Reveal>
       </div>
     </Section>
   );
