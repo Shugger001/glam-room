@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { isSlotAvailable } from "@/lib/booking/availability";
+import { hasClientDuplicateBooking, isSlotAvailable } from "@/lib/booking/availability";
 import { BOOKING_DEPOSIT_GHS, computeDepositAmount } from "@/lib/booking/deposit";
 import type { GuestBookingValues } from "@/lib/validation/booking";
 
@@ -29,6 +29,22 @@ export async function insertGuestBooking(
   const slotCheck = await isSlotAvailable(supabase, startAt, values.locationId);
   if (!slotCheck.available) {
     return { ok: false as const, error: slotCheck.error ?? "That time slot is full." };
+  }
+
+  const duplicateCheck = await hasClientDuplicateBooking(
+    supabase,
+    startAt,
+    values.clientPhone.trim(),
+  );
+  if (duplicateCheck.error) {
+    return { ok: false as const, error: duplicateCheck.error };
+  }
+  if (duplicateCheck.duplicate) {
+    return {
+      ok: false as const,
+      error:
+        "You already have a booking at this date and time. Choose another slot or use Find My Booking.",
+    };
   }
 
   const depositAmount = computeDepositAmount(service.price);
