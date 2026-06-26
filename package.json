@@ -1,0 +1,47 @@
+{
+  "name": "the-glam-room",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bash scripts/dev-with-open.sh",
+    "dev:server": "node scripts/print-dev-link.mjs && next dev --webpack --hostname 127.0.0.1 --port 3100",
+    "open:dev": "open http://127.0.0.1:3100",
+    "build": "next build --webpack",
+    "perf:budget": "node scripts/perf-budget.mjs",
+    "build:logo": "node scripts/build-logo-assets.mjs",
+    "start": "next start",
+    "lint": "eslint",
+    "deploy:vercel": "vercel deploy --prod --yes",
+    "deploy:vercel:preview": "vercel deploy --yes"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@sentry/node": "^10.47.0",
+    "@supabase/ssr": "^0.10.0",
+    "@supabase/supabase-js": "^2.101.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "next": "16.2.2",
+    "posthog-js": "^1.365.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.72.1",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.2",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vercel": "^50.42.0"
+  }
+}

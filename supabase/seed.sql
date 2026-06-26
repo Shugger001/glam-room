@@ -1,0 +1,2 @@
+-- Salon seed data is in migrations/00007_glam_room_seed_data.sql
+-- Apply with Supabase CLI (`supabase db push`) or run that migration in the SQL Editor.

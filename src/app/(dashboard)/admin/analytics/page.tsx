@@ -1,0 +1,50 @@
+import { createAdminClient } from "@/lib/supabase/admin";
+import { formatShopPrice } from "@/lib/format/money";
+import { AdminPageHeader, AdminSetupNotice, AdminKpi } from "@/components/admin/admin-ui";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminAnalyticsPage() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return <AdminSetupNotice />;
+  }
+
+  const admin = createAdminClient();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const [recentBookings, completedBookings, newClients] = await Promise.all([
+    admin
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", thirtyDaysAgo.toISOString()),
+    admin
+      .from("bookings")
+      .select("deposit_amount")
+      .eq("status", "completed")
+      .gte("created_at", thirtyDaysAgo.toISOString()),
+    admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", thirtyDaysAgo.toISOString()),
+  ]);
+
+  const completedRevenue = (completedBookings.data ?? []).reduce(
+    (sum, b) => sum + Number(b.deposit_amount ?? 0),
+    0,
+  );
+
+  return (
+    <div className="space-y-10">
+      <AdminPageHeader
+        title="Analytics"
+        description="30-day performance overview for The Glam Room."
+      />
+      <div className="grid gap-5 sm:grid-cols-3">
+        <AdminKpi label="Bookings (30d)" value={`${recentBookings.count ?? 0}`} />
+        <AdminKpi label="New Clients (30d)" value={`${newClients.count ?? 0}`} />
+        <AdminKpi label="Deposit Revenue (30d)" value={formatShopPrice(completedRevenue)} />
+      </div>
+    </div>
+  );
+}

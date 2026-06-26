@@ -1,0 +1,13 @@
+---
+description: Ship completed work to Vercel via Git push or CLI deploy
+alwaysApply: true
+---
+
+# Deploy changes to Vercel
+
+When a task changes application code, config, or infra and the user expects it **live on Vercel**, do not stop at local edits only.
+
+1. **Git integration (default):** Commit the relevant changes, then `git push` to the branch the Vercel project is connected to (usually `main`). That triggers a production deployment on Vercel. Resolve push failures (auth, conflicts) and retry or tell the user what blocked the deploy.
+2. **CLI:** If Git is not wired to Vercel or the user prefers CLI, run `npm run deploy:vercel` from the repo root. Requires prior `vercel link` and authentication (`vercel login` or `VERCEL_TOKEN` in the environment for non-interactive use).
+
+Treat “done” as **deployed or pushed**, not only “files saved locally,” unless the user explicitly asked for local-only work.

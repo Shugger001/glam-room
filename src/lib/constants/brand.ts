@@ -1,0 +1,42 @@
+export const BRAND = {
+  name: "The Glam Room",
+  tagline: "Luxury Hair & Beauty",
+  fullName: "The Glam Room",
+  logo: {
+    src: "/brand/glam-room-logo.svg",
+    alt: "The Glam Room — Luxury Hair & Beauty Salon",
+    width: 280,
+    height: 48,
+  },
+  colors: {
+    primary: "#0F0F0F",
+    secondary: "#FFFFFF",
+    accent: "#C8A86B",
+    background: "#F8F5F2",
+  },
+  links: {
+    instagram: "https://instagram.com/theglamroom",
+    facebook: "https://facebook.com/theglamroom",
+    whatsapp: "https://wa.me/233200000000",
+    email: "hello@theglamroom.com",
+    phone: "+233 20 000 0000",
+  },
+  address: {
+    street: "14 Osu Badu Street",
+    city: "Accra",
+    region: "Greater Accra",
+    country: "Ghana",
+    postalCode: "",
+    lat: 5.6037,
+    lng: -0.187,
+  },
+  hours: [
+    { day: "Monday", open: "09:00", close: "19:00", closed: false },
+    { day: "Tuesday", open: "09:00", close: "19:00", closed: false },
+    { day: "Wednesday", open: "09:00", close: "19:00", closed: false },
+    { day: "Thursday", open: "09:00", close: "20:00", closed: false },
+    { day: "Friday", open: "09:00", close: "20:00", closed: false },
+    { day: "Saturday", open: "08:00", close: "18:00", closed: false },
+    { day: "Sunday", open: "", close: "", closed: true },
+  ],
+} as const;
