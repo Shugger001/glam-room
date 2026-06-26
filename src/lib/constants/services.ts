@@ -1,13 +1,4 @@
-export type ServiceCategory =
-  | "hair-styling"
-  | "wig-installation"
-  | "wig-revamp"
-  | "hair-coloring"
-  | "hair-treatment"
-  | "braids"
-  | "makeup"
-  | "lashes"
-  | "bridal";
+export type ServiceCategory = "hair-reset" | "hair-installation" | "braids";
 
 export type SalonService = {
   id: string;
@@ -19,123 +10,193 @@ export type SalonService = {
   price: number;
   image: string;
   featured?: boolean;
+  badge?: string | null;
 };
 
 export const SERVICE_CATEGORIES: Record<ServiceCategory, string> = {
-  "hair-styling": "Hair Styling",
-  "wig-installation": "Wig Installation",
-  "wig-revamp": "Wig Revamp",
-  "hair-coloring": "Hair Coloring",
-  "hair-treatment": "Hair Treatment",
-  braids: "Braids",
-  makeup: "Makeup",
-  lashes: "Lashes",
-  bridal: "Bridal",
+  "hair-reset": "Hair Reset",
+  "hair-installation": "Hair Installation",
+  braids: "Braids (Workmanship Only)",
+};
+
+export const SERVICE_CATEGORY_DESCRIPTIONS: Record<ServiceCategory, string> = {
+  "hair-reset":
+    "Fresh start energy: wash, unwind, touch-ups, and quick styles to reset your crown.",
+  "hair-installation":
+    "Closure and frontal installs: secure, natural, and styled to slay.",
+  braids:
+    "Expert braiding by length. You bring the hair, we bring the hands. Workmanship only.",
 };
 
 export const SALON_SERVICES: SalonService[] = [
   {
     id: "a1000001-0001-4000-8000-000000000001",
-    slug: "signature-blowout",
-    name: "Signature Blowout & Styling",
-    description:
-      "Precision cut consultation, luxury wash, and a flawless blowout tailored to your hair texture and occasion.",
-    category: "hair-styling",
-    durationMinutes: 90,
-    price: 350,
-    image: "https://images.unsplash.com/photo-1560066984-138d9834a973?w=800&q=80",
+    slug: "hair-wash",
+    name: "Hair Wash",
+    description: "Cleanse and refresh your hair.",
+    category: "hair-reset",
+    durationMinutes: 30,
+    price: 35,
+    image: "/images/glam-adenta-portrait.png",
     featured: true,
+    badge: "Popular",
   },
   {
     id: "a1000001-0001-4000-8000-000000000002",
-    slug: "lace-front-installation",
-    name: "Lace Front Wig Installation",
-    description:
-      "Seamless lace melt, custom tinting, and secure installation for a natural, undetectable hairline.",
-    category: "wig-installation",
-    durationMinutes: 180,
-    price: 1200,
-    image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80",
-    featured: true,
+    slug: "hair-wash-cornrows",
+    name: "Hair Wash + Cornrows",
+    description: "Wash plus cornrow styling.",
+    category: "hair-reset",
+    durationMinutes: 90,
+    price: 55,
+    image: "/images/glam-braids-studio.png",
   },
   {
     id: "a1000001-0001-4000-8000-000000000003",
-    slug: "wig-revamp-restoration",
-    name: "Wig Revamp & Restoration",
-    description:
-      "Deep cleanse, re-styling, lace repair, and colour refresh to restore your unit to salon-fresh condition.",
-    category: "wig-revamp",
-    durationMinutes: 120,
-    price: 450,
-    image: "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=800&q=80",
+    slug: "unbraid-hair-wash",
+    name: "Unbraiding & Hair Wash",
+    description: "Take down braids and wash your hair.",
+    category: "hair-reset",
+    durationMinutes: 90,
+    price: 50,
+    image: "/images/glam-braids-portrait.png",
   },
   {
     id: "a1000001-0001-4000-8000-000000000004",
-    slug: "custom-hair-colouring",
-    name: "Custom Hair Colouring",
-    description:
-      "From subtle balayage to bold transformations — premium colour formulas with scalp-safe application.",
-    category: "hair-coloring",
-    durationMinutes: 150,
-    price: 800,
-    image: "https://images.unsplash.com/photo-1522336572468-97b06e8ef143?w=800&q=80",
-    featured: true,
+    slug: "touch-up-salon-relaxer",
+    name: "Touch Up with Salon's Relaxer",
+    description: "New growth touch-up using Glam Room relaxer.",
+    category: "hair-reset",
+    durationMinutes: 90,
+    price: 70,
+    image: "/images/glam-gallery-waves-front.png",
   },
   {
     id: "a1000001-0001-4000-8000-000000000005",
-    slug: "luxury-hair-treatment",
-    name: "Luxury Hair Treatment",
-    description:
-      "Intensive keratin, protein, or moisture therapy to repair damage and restore luminous shine.",
-    category: "hair-treatment",
-    durationMinutes: 60,
-    price: 280,
-    image: "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=800&q=80",
+    slug: "touch-up-client-relaxer",
+    name: "Touch Up with Client's Relaxer",
+    description: "New growth touch-up using your own relaxer.",
+    category: "hair-reset",
+    durationMinutes: 90,
+    price: 50,
+    image: "/images/glam-gallery-waves-profile.png",
   },
   {
     id: "a1000001-0001-4000-8000-000000000006",
-    slug: "designer-braids",
-    name: "Designer Braids",
-    description:
-      "Knotless, feed-in, and protective styles crafted with precision for lasting beauty and comfort.",
-    category: "braids",
-    durationMinutes: 240,
-    price: 600,
-    image: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=800&q=80",
-    featured: true,
+    slug: "normal-ponytail",
+    name: "Normal Ponytail",
+    description: "Sleek, styled ponytail finish.",
+    category: "hair-reset",
+    durationMinutes: 60,
+    price: 80,
+    image: "/images/glam-red-outdoor.png",
   },
   {
     id: "a1000001-0001-4000-8000-000000000007",
-    slug: "glam-makeup-application",
-    name: "Glam Makeup Application",
-    description:
-      "Flawless complexion, sculpted features, and long-wear artistry for events, photoshoots, and evenings out.",
-    category: "makeup",
-    durationMinutes: 75,
-    price: 400,
-    image: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&q=80",
+    slug: "closure-install",
+    name: "Closure Hair Install",
+    description: "Closure unit installed and styled.",
+    category: "hair-installation",
+    durationMinutes: 90,
+    price: 50,
+    image: "/images/glam-red-studio.png",
+    featured: true,
+    badge: "Hot",
   },
   {
     id: "a1000001-0001-4000-8000-000000000008",
-    slug: "luxury-lash-extensions",
-    name: "Luxury Lash Extensions",
-    description:
-      "Classic, hybrid, or volume sets applied with meticulous technique for captivating, natural-looking lashes.",
-    category: "lashes",
-    durationMinutes: 120,
-    price: 350,
-    image: "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
+    slug: "frontal-install",
+    name: "Frontal Hair Install",
+    description: "Frontal unit installed with a natural hairline.",
+    category: "hair-installation",
+    durationMinutes: 105,
+    price: 100,
+    image: "/images/glam-red-indoor.png",
   },
   {
     id: "a1000001-0001-4000-8000-000000000009",
-    slug: "bridal-beauty-package",
-    name: "Bridal Beauty Package",
-    description:
-      "Complete bridal hair and makeup with trial session, touch-up kit, and dedicated day-of coordination.",
-    category: "bridal",
-    durationMinutes: 180,
-    price: 2500,
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80",
+    slug: "frontal-ponytail",
+    name: "Frontal Ponytail",
+    description: "Frontal install finished in a sleek ponytail style.",
+    category: "hair-installation",
+    durationMinutes: 105,
+    price: 150,
+    image: "/images/glam-frontal-ponytail.png",
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000010",
+    slug: "shoulder-length-braids",
+    name: "Shoulder Length Braids",
+    description: "Braiding service to shoulder length. Hair not included.",
+    category: "braids",
+    durationMinutes: 210,
+    price: 150,
+    image: "/images/glam-braids-studio.png",
     featured: true,
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000011",
+    slug: "bra-length-braids",
+    name: "Bra Length Braids",
+    description: "Braiding service to bra strap length. Hair not included.",
+    category: "braids",
+    durationMinutes: 270,
+    price: 200,
+    image: "/images/glam-bra-length.png",
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000012",
+    slug: "waist-length-braids",
+    name: "Waist Length Braids",
+    description: "Braiding service to waist length. Hair not included.",
+    category: "braids",
+    durationMinutes: 270,
+    price: 220,
+    image: "/images/glam-braids-studio.png",
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000013",
+    slug: "hip-length-braids",
+    name: "Hip Length Braids",
+    description: "Braiding service to hip length. Hair not included.",
+    category: "braids",
+    durationMinutes: 330,
+    price: 250,
+    image: "/images/glam-braids-studio.png",
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000014",
+    slug: "butt-length-braids",
+    name: "Butt Length Braids",
+    description: "Braiding service to butt length. Hair not included.",
+    category: "braids",
+    durationMinutes: 390,
+    price: 300,
+    image: "/images/glam-braids-portrait.png",
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000015",
+    slug: "under-butt-braids",
+    name: "Under Butt Braids",
+    description: "Braiding service past butt length. Hair not included.",
+    category: "braids",
+    durationMinutes: 450,
+    price: 400,
+    image: "/images/glam-braids-portrait.png",
+  },
+];
+
+export const SIGNATURE_SERVICES = [
+  {
+    number: "01",
+    title: "Luxury Hair Installation",
+    description: "Premier installation service. Every strand, intentional.",
+    category: "hair-installation" as const,
+  },
+  {
+    number: "02",
+    title: "Custom Wig Styling & Maintenance",
+    description: "Bespoke shaping and care. Built for your identity.",
+    category: "hair-reset" as const,
   },
 ];

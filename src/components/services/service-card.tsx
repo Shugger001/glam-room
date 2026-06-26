@@ -68,9 +68,9 @@ export function ServicesPreview({ services }: { services: SalonService[] }) {
   return (
     <Section id="services" background="white">
       <SectionHeader
-        eyebrow="Our Services"
-        title="Crafted for Every Occasion"
-        description="From everyday elegance to once-in-a-lifetime celebrations — discover our curated menu of luxury hair and beauty services."
+        eyebrow="What We Do"
+        title="Services That Slay"
+        description="Pick your vibe and let us work our magic. Every service comes with main character energy included."
         align="center"
       />
       <ServicesGrid services={featured.length > 0 ? featured : services.slice(0, 3)} />

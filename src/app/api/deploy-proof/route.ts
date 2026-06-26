@@ -43,7 +43,7 @@ export async function GET() {
           ...base,
           supabase: false,
           error: errors[0],
-          hint: "Run migrations 00006 and 00007, then refresh.",
+          hint: "Run migrations 00006 through 00009, then refresh.",
         },
         { headers: { "Cache-Control": "no-store" } },
       );
@@ -62,10 +62,10 @@ export async function GET() {
         supabase: true,
         counts,
         seeded:
-          counts.services >= 9 &&
-          counts.staff >= 4 &&
-          counts.gallery >= 12 &&
-          counts.testimonials >= 6,
+          counts.services >= 15 &&
+          counts.staff >= 1 &&
+          counts.gallery >= 9 &&
+          counts.testimonials >= 4,
       },
       { headers: { "Cache-Control": "no-store" } },
     );

@@ -12,17 +12,7 @@ export type LiveService = {
   price: number;
 };
 
-const SERVICE_CATEGORIES = new Set<string>([
-  "hair-styling",
-  "wig-installation",
-  "wig-revamp",
-  "hair-coloring",
-  "hair-treatment",
-  "braids",
-  "makeup",
-  "lashes",
-  "bridal",
-]);
+const SERVICE_CATEGORIES = new Set<string>(["hair-reset", "hair-installation", "braids"]);
 
 function isServiceCategory(value: string): value is ServiceCategory {
   return SERVICE_CATEGORIES.has(value);
@@ -33,8 +23,8 @@ function mapServiceRow(row: Record<string, unknown>): SalonService | null {
   const name = typeof row.name === "string" ? row.name : null;
   const description = typeof row.description === "string" ? row.description : "";
   const slug = typeof row.slug === "string" ? row.slug : id ?? "service";
-  const categoryRaw = typeof row.category === "string" ? row.category : "makeup";
-  const category = isServiceCategory(categoryRaw) ? categoryRaw : "makeup";
+  const categoryRaw = typeof row.category === "string" ? row.category : "hair-reset";
+  const category = isServiceCategory(categoryRaw) ? categoryRaw : "hair-reset";
   const duration =
     typeof row.duration_minutes === "number"
       ? row.duration_minutes
@@ -43,7 +33,7 @@ function mapServiceRow(row: Record<string, unknown>): SalonService | null {
   const image =
     typeof row.image_url === "string" && row.image_url.length > 0
       ? row.image_url
-      : "https://images.unsplash.com/photo-1560066984-138d9834a973?w=800&q=80";
+      : "/images/glam-braids-studio.png";
   const featured = row.featured === true;
 
   if (!id || !name || Number.isNaN(duration) || Number.isNaN(price)) return null;

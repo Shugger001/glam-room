@@ -2,9 +2,9 @@ import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
+import { BRAND } from "@/lib/constants/brand";
 
-const ABOUT_IMAGE =
-  "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=1200&q=80";
+const ABOUT_IMAGE = "/images/asantewaa-gown-smile.png";
 
 export function AboutPreview() {
   return (
@@ -13,7 +13,7 @@ export function AboutPreview() {
         <Reveal className="relative aspect-[4/5] overflow-hidden rounded-2xl">
           <Image
             src={ABOUT_IMAGE}
-            alt="The Glam Room salon experience"
+            alt="Asantewaa at Glam Room by Asantewaa"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
@@ -22,20 +22,20 @@ export function AboutPreview() {
         </Reveal>
         <div>
           <SectionHeader
-            eyebrow="About Us"
-            title="A Sanctuary of Beauty"
-            description="The Glam Room was born from a vision to create Accra's most refined hair and beauty destination — a space where exceptional artistry, premium products, and genuine care converge."
+            eyebrow="The Glam Room"
+            title="The Art of Transformation"
+            description={BRAND.copy.aboutIntro[0]}
           />
           <Reveal delay={0.15}>
             <p className="mb-4 text-base leading-relaxed text-glam-muted">
-              Our team of master stylists and beauty experts bring decades of combined experience
-              across hair styling, wig artistry, protective styles, makeup, and bridal beauty.
-              Every service is delivered with meticulous attention to detail.
+              {BRAND.copy.aboutIntro[1]}
             </p>
-            <p className="mb-8 text-base leading-relaxed text-glam-muted">
-              Step inside and experience the difference that luxury makes — from our serene salon
-              atmosphere to the confidence you carry when you leave.
-            </p>
+            <blockquote className="mb-8 border-l-2 border-glam-accent pl-4 text-base italic leading-relaxed text-glam-primary">
+              &ldquo;{BRAND.copy.quote}&rdquo;
+              <footer className="mt-2 text-sm font-semibold not-italic text-glam-accent">
+                — {BRAND.copy.quoteAuthor}
+              </footer>
+            </blockquote>
             <ButtonLink href="/about" variant="outline">
               Our Story
             </ButtonLink>

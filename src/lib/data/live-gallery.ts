@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { GALLERY_ITEMS, type GalleryCategory, type GalleryItem } from "@/lib/constants/gallery";
 
-const GALLERY_CATEGORIES = new Set<string>(["hair", "wigs", "bridal", "transformation", "braids"]);
+const GALLERY_CATEGORIES = new Set<string>(["hair", "wigs", "braids", "glam"]);
 
 function isGalleryCategory(value: string): value is GalleryCategory {
   return GALLERY_CATEGORIES.has(value);

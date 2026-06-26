@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface BookingDraft {
+  locationId: string | null;
   serviceId: string | null;
   staffId: string | null;
   startAt: string | null;
@@ -18,6 +19,7 @@ interface BookingDraftState extends BookingDraft {
 }
 
 const initial: BookingDraft = {
+  locationId: null,
   serviceId: null,
   staffId: null,
   startAt: null,

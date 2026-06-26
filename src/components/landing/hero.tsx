@@ -2,14 +2,13 @@
 
 import { m, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 import { useRef } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { MagneticWrap } from "@/components/motion/magnetic-wrap";
 import { track } from "@/lib/analytics/track";
+import { BRAND } from "@/lib/constants/brand";
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1920&q=85";
+const HERO_IMAGE = "/images/glam-braids-studio.png";
 
 export function LandingHero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -30,7 +29,7 @@ export function LandingHero() {
       <m.div className="pointer-events-none absolute inset-0" style={{ y: bgY }}>
         <Image
           src={HERO_IMAGE}
-          alt="The Glam Room luxury salon interior"
+          alt="Glam Room by Asantewaa salon"
           fill
           priority
           sizes="100vw"
@@ -50,7 +49,7 @@ export function LandingHero() {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-glam-accent"
         >
-          Accra&apos;s Premier Salon
+          🇬🇭 2 Locations · Accra
         </m.p>
 
         <m.h1
@@ -59,8 +58,9 @@ export function LandingHero() {
           transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="heading-display max-w-4xl text-5xl leading-[1.05] text-glam-secondary sm:text-6xl md:text-7xl lg:text-8xl"
         >
-          Luxury Hair &<br />
-          <span className="text-glam-accent">Beauty Experience</span>
+          Your Crown.
+          <br />
+          <span className="text-glam-accent">Your Glow.</span>
         </m.h1>
 
         <m.p
@@ -69,7 +69,7 @@ export function LandingHero() {
           transition={{ duration: 0.9, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="mt-6 max-w-lg text-base leading-relaxed text-white/70 sm:text-lg"
         >
-          Where beauty meets confidence.
+          {BRAND.copy.heroSubtitle}
         </m.p>
 
         <m.div
@@ -85,7 +85,7 @@ export function LandingHero() {
               size="lg"
               onClick={() => track("hero_cta_book")}
             >
-              Book Appointment
+              Book Your Glow Up
             </ButtonLink>
           </MagneticWrap>
           <MagneticWrap>
@@ -96,7 +96,7 @@ export function LandingHero() {
               className="border-white/30 text-glam-secondary hover:border-glam-accent hover:text-glam-accent"
               onClick={() => track("hero_cta_services")}
             >
-              Explore Services
+              View Services
             </ButtonLink>
           </MagneticWrap>
         </m.div>

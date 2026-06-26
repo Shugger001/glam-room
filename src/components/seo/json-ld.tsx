@@ -33,7 +33,7 @@ export function LocalBusinessJsonLd() {
         opens: h.open,
         closes: h.close,
       })),
-    sameAs: [BRAND.links.instagram, BRAND.links.facebook],
+    sameAs: [BRAND.links.instagram, BRAND.links.tiktok, BRAND.links.youtube],
   };
 
   return (

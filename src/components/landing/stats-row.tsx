@@ -2,10 +2,10 @@ import { Reveal } from "@/components/motion/reveal";
 import { Section } from "@/components/ui/section";
 
 const STATS = [
-  { value: "2,500+", label: "Happy Clients" },
-  { value: "12+", label: "Years Experience" },
-  { value: "9", label: "Expert Services" },
-  { value: "4.9", label: "Average Rating" },
+  { value: "2", label: "Salon Locations" },
+  { value: "15", label: "Services" },
+  { value: "7", label: "Days Open Weekly" },
+  { value: "8am–8pm", label: "Daily Hours" },
 ];
 
 export function StatsRow() {

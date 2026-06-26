@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Reveal } from "@/components/motion/reveal";
 import { BRAND } from "@/lib/constants/brand";
 
 export const metadata: Metadata = {
   title: "About Us",
-  description: `Learn about ${BRAND.fullName} — Accra's premier luxury hair and beauty salon.`,
+  description: `Learn about ${BRAND.fullName} — Accra's premier hair destination with locations in Adenta and Sowutuom.`,
 };
 
 export default function AboutPage() {
@@ -13,59 +14,48 @@ export default function AboutPage() {
     <>
       <Section className="!pt-12">
         <SectionHeader
-          eyebrow="About Us"
-          title="Our Story"
-          description="A sanctuary where luxury meets artistry."
+          eyebrow="The Glam Room"
+          title="The Art of Transformation"
+          description={BRAND.copy.heroTagline}
           align="center"
         />
-        <div className="mx-auto max-w-3xl space-y-6 text-base leading-relaxed text-glam-muted">
-          <Reveal>
-            <p>
-              The Glam Room was founded with a singular vision: to create Accra&apos;s most refined
-              destination for hair and beauty. We believed that every client deserves an experience
-              that feels as exceptional as the results they receive.
-            </p>
+        <div className="mx-auto grid max-w-5xl items-center gap-12 lg:grid-cols-2">
+          <Reveal className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+            <Image
+              src="/images/asantewaa-gown-smile.png"
+              alt="Asantewaa at Glam Room"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+            />
           </Reveal>
-          <Reveal delay={0.1}>
-            <p>
-              From our carefully curated salon atmosphere to our team of master stylists, every
-              detail has been considered. We source premium products, invest in continuous
-              education, and maintain the highest standards of hygiene and professionalism.
-            </p>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <p>
-              Whether you&apos;re preparing for your wedding day, refreshing your everyday look, or
-              transforming with a bold new style — The Glam Room is where your beauty journey
-              begins.
-            </p>
-          </Reveal>
+          <div className="space-y-6 text-base leading-relaxed text-glam-muted">
+            {BRAND.copy.aboutIntro.map((paragraph, i) => (
+              <Reveal key={paragraph.slice(0, 24)} delay={i * 0.1}>
+                <p>{paragraph}</p>
+              </Reveal>
+            ))}
+            <Reveal delay={0.2}>
+              <blockquote className="border-l-2 border-glam-accent pl-4 italic text-glam-primary">
+                &ldquo;{BRAND.copy.quote}&rdquo;
+                <footer className="mt-2 text-sm font-semibold not-italic text-glam-accent">
+                  — {BRAND.copy.quoteAuthor}
+                </footer>
+              </blockquote>
+            </Reveal>
+          </div>
         </div>
       </Section>
 
       <Section background="white">
-        <SectionHeader eyebrow="Our Values" title="What We Stand For" align="center" />
-        <div className="grid gap-8 sm:grid-cols-3">
-          {[
-            {
-              title: "Excellence",
-              text: "Uncompromising quality in every service, every time.",
-            },
-            {
-              title: "Care",
-              text: "Your comfort, confidence, and hair health come first.",
-            },
-            {
-              title: "Artistry",
-              text: "Creative vision paired with technical mastery.",
-            },
-          ].map((value, i) => (
-            <Reveal key={value.title} delay={i * 0.1} className="text-center">
-              <h3 className="heading-display text-2xl text-glam-primary">{value.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-glam-muted">{value.text}</p>
-            </Reveal>
-          ))}
-        </div>
+        <SectionHeader eyebrow="The Queen Behind the Chair" title="Meet Asantewaa" align="center" />
+        <Reveal className="mx-auto max-w-3xl text-center text-base leading-relaxed text-glam-muted">
+          <p>
+            Glam Room is her love letter to Accra: warm vibes, expert hands, and zero tolerance for
+            bad hair days. Whether you&apos;re coming for a silk press or a full transformation,
+            you&apos;re family here.
+          </p>
+        </Reveal>
       </Section>
     </>
   );

@@ -1,84 +1,72 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { ContactForm } from "@/components/contact/contact-form";
 import { BRAND } from "@/lib/constants/brand";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { Reveal } from "@/components/motion/reveal";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Get in touch with ${BRAND.fullName}. Book, enquire, or visit us in ${BRAND.address.city}.`,
+  description: `Get in touch with ${BRAND.fullName}. Book or visit us in Adenta or Sowutuom, Accra.`,
 };
-
-const mapEmbedUrl = `https://maps.google.com/maps?q=${BRAND.address.lat},${BRAND.address.lng}&z=15&output=embed`;
 
 export default function ContactPage() {
   return (
     <Section className="!pt-10">
       <SectionHeader
-        eyebrow="Contact"
-        title="Get in Touch"
-        description="We'd love to hear from you. Reach out for bookings, enquiries, or just to say hello."
+        eyebrow="Get In Touch"
+        title="Come Through, Sis"
+        description="Two Glam Room spots in Accra. Pick your location when you book."
         align="center"
       />
 
       <div className="grid gap-12 lg:grid-cols-2">
         <div className="space-y-8">
-          <Reveal>
-            <div className="rounded-2xl border border-glam-border bg-glam-secondary p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-glam-accent">
-                Visit Us
-              </h3>
-              <p className="mt-3 text-glam-primary">
-                {BRAND.address.street}
-                <br />
-                {BRAND.address.city}, {BRAND.address.country}
-              </p>
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(`${BRAND.address.street}, ${BRAND.address.city}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-block text-sm font-medium text-glam-accent hover:underline"
-              >
-                Get Directions →
-              </a>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <div className="rounded-2xl border border-glam-border bg-glam-secondary p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-glam-accent">
-                Business Hours
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm text-glam-muted">
-                {BRAND.hours.map((h) => (
-                  <li key={h.day} className="flex justify-between gap-4">
-                    <span>{h.day}</span>
-                    <span>{h.closed ? "Closed" : `${h.open} – ${h.close}`}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Reveal>
+          {SALON_LOCATIONS.map((location, i) => (
+            <Reveal key={location.id} delay={i * 0.1}>
+              <div className="overflow-hidden rounded-2xl border border-glam-border bg-glam-secondary">
+                <div className="relative aspect-[16/9]">
+                  <Image
+                    src={location.image}
+                    alt={`Glam Room ${location.area}`}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-glam-accent">
+                    Glam Room · {location.area}
+                  </h3>
+                  <p className="mt-2 text-glam-primary">{location.address}</p>
+                  <p className="mt-2 text-sm text-glam-muted">{location.hours}</p>
+                  <Link
+                    href={location.mapUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block text-sm font-medium text-glam-accent hover:underline"
+                  >
+                    View on Google Maps →
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
+          ))}
 
           <Reveal delay={0.2}>
             <div className="rounded-2xl border border-glam-border bg-glam-secondary p-6">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-glam-accent">
-                Connect
+                Follow Asantewaa
               </h3>
-              <ul className="mt-3 space-y-2 text-sm">
-                <li>
-                  <a href={`mailto:${BRAND.links.email}`} className="text-glam-primary hover:text-glam-accent">
-                    {BRAND.links.email}
-                  </a>
-                </li>
-                <li>
-                  <a href={`tel:${BRAND.links.phone.replace(/\s/g, "")}`} className="text-glam-primary hover:text-glam-accent">
-                    {BRAND.links.phone}
-                  </a>
-                </li>
+              <p className="mt-2 text-sm text-glam-muted">
+                Stay connected for daily slay inspiration and salon updates.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm">
                 <li>
                   <a href={BRAND.links.whatsapp} target="_blank" rel="noreferrer" className="text-glam-primary hover:text-glam-accent">
-                    WhatsApp
+                    WhatsApp: {BRAND.links.phone}
                   </a>
                 </li>
                 <li>
@@ -87,22 +75,17 @@ export default function ContactPage() {
                   </a>
                 </li>
                 <li>
-                  <a href={BRAND.links.facebook} target="_blank" rel="noreferrer" className="text-glam-primary hover:text-glam-accent">
-                    Facebook
+                  <a href={BRAND.links.tiktok} target="_blank" rel="noreferrer" className="text-glam-primary hover:text-glam-accent">
+                    TikTok
+                  </a>
+                </li>
+                <li>
+                  <a href={BRAND.links.youtube} target="_blank" rel="noreferrer" className="text-glam-primary hover:text-glam-accent">
+                    YouTube
                   </a>
                 </li>
               </ul>
             </div>
-          </Reveal>
-
-          <Reveal delay={0.3} className="overflow-hidden rounded-2xl">
-            <iframe
-              title="The Glam Room location"
-              src={mapEmbedUrl}
-              className="h-64 w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
           </Reveal>
         </div>
 

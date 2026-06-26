@@ -20,7 +20,7 @@ export default async function GalleryPage() {
         <SectionHeader
           eyebrow="Gallery"
           title="Portfolio"
-          description="A curated collection of our finest work — hair, wigs, braids, bridal, and transformations."
+          description="A peek at the slay. Real client photos from Glam Room by Asantewaa."
           align="center"
         />
       </div>

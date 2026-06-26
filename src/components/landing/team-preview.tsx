@@ -58,19 +58,19 @@ export function TeamPreview({ staff }: { staff: StaffMember[] }) {
   return (
     <Section id="experts" background="white">
       <SectionHeader
-        eyebrow="Our Experts"
-        title="Masters of Their Craft"
-        description="Meet the talented stylists and artists who bring your vision to life with skill, passion, and an unwavering commitment to excellence."
+        eyebrow="The Queen Behind the Chair"
+        title="Meet Asantewaa"
+        description="Glam Room is her love letter to Accra — warm vibes, expert hands, and zero tolerance for bad hair days."
         align="center"
       />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {staff.slice(0, 4).map((member, i) => (
+      <div className="mx-auto grid max-w-md gap-6">
+        {staff.slice(0, 1).map((member, i) => (
           <TeamCard key={member.id} member={member} index={i} />
         ))}
       </div>
       <Reveal className="mt-12 text-center">
         <ButtonLink href="/experts" variant="outline" size="lg">
-          Meet the Team
+          Learn More
         </ButtonLink>
       </Reveal>
     </Section>

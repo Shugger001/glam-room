@@ -2,10 +2,7 @@ import Link from "next/link";
 import { GlamLogo } from "@/components/brand/glam-logo";
 import { BRAND } from "@/lib/constants/brand";
 import { FOOTER_NAV } from "@/lib/constants/navigation";
-
-const googleMapsUrl =
-  process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL?.trim() ||
-  `https://maps.google.com/?q=${encodeURIComponent(`${BRAND.address.street}, ${BRAND.address.city}, ${BRAND.address.country}`)}`;
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 export function SiteFooter() {
   return (
@@ -14,34 +11,38 @@ export function SiteFooter() {
         <div className="space-y-4">
           <GlamLogo variant="onDark" asLink={false} />
           <p className="max-w-xs text-sm leading-relaxed text-white/60">
-            Accra&apos;s premier luxury hair and beauty destination. Where artistry meets
-            elegance, and every visit leaves you feeling extraordinary.
+            {BRAND.copy.heroTagline}
           </p>
-          <div className="flex gap-4 pt-2">
+          <div className="flex flex-wrap gap-4 pt-2">
             <a
               href={BRAND.links.instagram}
               target="_blank"
               rel="noreferrer"
               className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
-              aria-label="Instagram"
             >
               Instagram
             </a>
             <a
-              href={BRAND.links.facebook}
+              href={BRAND.links.tiktok}
               target="_blank"
               rel="noreferrer"
               className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
-              aria-label="Facebook"
             >
-              Facebook
+              TikTok
+            </a>
+            <a
+              href={BRAND.links.youtube}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
+            >
+              YouTube
             </a>
             <a
               href={BRAND.links.whatsapp}
               target="_blank"
               rel="noreferrer"
               className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
-              aria-label="WhatsApp"
             >
               WhatsApp
             </a>
@@ -85,34 +86,32 @@ export function SiteFooter() {
             Contact
           </p>
           <a
-            href={`mailto:${BRAND.links.email}`}
-            className="block text-sm text-white/70 transition hover:text-white"
-          >
-            {BRAND.links.email}
-          </a>
-          <a
-            href={`tel:${BRAND.links.phone.replace(/\s/g, "")}`}
-            className="mt-2 block text-sm text-white/70 transition hover:text-white"
-          >
-            {BRAND.links.phone}
-          </a>
-          <p className="mt-3 text-sm text-white/50">
-            {BRAND.address.street}
-            <br />
-            {BRAND.address.city}, {BRAND.address.country}
-          </p>
-          <a
-            href={googleMapsUrl}
+            href={BRAND.links.whatsapp}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-block text-sm text-glam-accent transition hover:text-white"
+            className="block text-sm text-white/70 transition hover:text-white"
           >
-            Get Directions
+            WhatsApp: {BRAND.links.phone}
           </a>
+          {SALON_LOCATIONS.map((loc) => (
+            <div key={loc.id} className="mt-4">
+              <p className="text-sm font-medium text-white/80">Glam Room · {loc.area}</p>
+              <p className="text-sm text-white/50">{loc.address}</p>
+              <a
+                href={loc.mapUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 inline-block text-sm text-glam-accent transition hover:text-white"
+              >
+                Get Directions
+              </a>
+            </div>
+          ))}
         </div>
       </div>
       <div className="border-t border-white/10 py-6 text-center text-xs text-white/40">
-        © {new Date().getFullYear()} {BRAND.fullName}. All rights reserved.
+        <p>© {new Date().getFullYear()} {BRAND.fullName}. All rights reserved.</p>
+        <p className="mt-1">{BRAND.copy.footerTagline}</p>
       </div>
     </footer>
   );

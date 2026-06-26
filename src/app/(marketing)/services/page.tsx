@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Services",
-  description: `Explore luxury hair and beauty services at ${BRAND.fullName} — styling, wigs, braids, makeup, lashes, and bridal.`,
+  description: `Explore hair services at ${BRAND.fullName} — hair reset, installs, and braids in Adenta and Sowutuom.`,
 };
 
 export default async function ServicesPage() {
@@ -18,11 +18,14 @@ export default async function ServicesPage() {
     <Section className="!pt-10">
       <SectionHeader
         eyebrow="Services"
-        title="Our Menu"
-        description="Every service is delivered with premium products, expert technique, and the personalised attention you deserve."
+        title="Services That Slay"
+        description="Pick your vibe and let us work our magic. Every service comes with main character energy included."
         align="center"
       />
       <ServicesGrid services={services} />
+      <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-glam-muted" role="note">
+        {BRAND.copy.braidsNotice}
+      </p>
     </Section>
   );
 }

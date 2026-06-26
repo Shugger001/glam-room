@@ -30,9 +30,9 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
   return (
     <Section id="testimonials" background="dark">
       <SectionHeader
-        eyebrow="Testimonials"
-        title="What Our Clients Say"
-        description="The trust of our clients is our greatest achievement. Here's what they have to say about their Glam Room experience."
+        eyebrow="Love Notes"
+        title="What the Girls Are Saying"
+        description="Don't just take our word for it. Hear from the queens who've sat in our chair."
         align="center"
         className="[&_h2]:text-glam-secondary [&_p]:text-white/60 [&_span]:text-glam-accent"
       />

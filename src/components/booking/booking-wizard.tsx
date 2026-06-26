@@ -5,9 +5,12 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import {
   bookingFormSchema,
+  BOOKING_TIME_SLOTS,
   DEPOSIT_PERCENT,
   type BookingFormValues,
 } from "@/lib/validation/booking";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { BRAND } from "@/lib/constants/brand";
 import { createClient } from "@/lib/supabase/client";
 import { useBookingDraftStore } from "@/stores/booking-draft-store";
 import { formatShopPrice } from "@/lib/format/money";
@@ -26,7 +29,7 @@ type BookingWizardProps = {
   initialServiceId?: string;
 };
 
-const STEPS = ["Service", "Stylist", "Schedule", "Details", "Confirm"] as const;
+const STEPS = ["Location", "Service", "Schedule", "Details", "Confirm"] as const;
 
 function buildDatetime(date: string, time: string) {
   return new Date(`${date}T${time}:00`).toISOString();
@@ -40,19 +43,20 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
+      locationId: draft.locationId ?? "",
       serviceId: initialServiceId ?? draft.serviceId ?? "",
-      staffId: draft.staffId ?? "",
+      staffId: draft.staffId ?? staff[0]?.id ?? "",
       startAt: draft.startAt ?? "",
       clientName: draft.clientName,
       clientEmail: draft.clientEmail,
       clientPhone: draft.clientPhone,
       clientNotes: draft.clientNotes,
-      acceptDeposit: draft.acceptDeposit,
+      acceptDeposit: true,
     },
   });
 
   const [scheduleDate, setScheduleDate] = useState("");
-  const [scheduleTime, setScheduleTime] = useState("10:00");
+  const [scheduleTime, setScheduleTime] = useState("09:00");
 
   useEffect(() => {
     if (initialServiceId) form.setValue("serviceId", initialServiceId);
@@ -63,8 +67,14 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
   }, [step]);
 
   const serviceIdW = useWatch({ control: form.control, name: "serviceId" });
+  const locationIdW = useWatch({ control: form.control, name: "locationId" });
   const staffIdW = useWatch({ control: form.control, name: "staffId" });
+
+  useEffect(() => {
+    if (!staffIdW && staff[0]?.id) form.setValue("staffId", staff[0].id);
+  }, [staff, staffIdW, form]);
   const acceptDepositW = useWatch({ control: form.control, name: "acceptDeposit" });
+  void acceptDepositW;
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceIdW),
@@ -72,11 +82,16 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
   );
   const selectedStaff = useMemo(() => staff.find((s) => s.id === staffIdW), [staff, staffIdW]);
 
+  const selectedLocation = useMemo(
+    () => SALON_LOCATIONS.find((l) => l.id === locationIdW),
+    [locationIdW],
+  );
+
   const depositAmount = selectedService
     ? Math.round(selectedService.price * DEPOSIT_PERCENT)
     : 0;
 
-  const timeSlots = ["09:00", "10:00", "11:30", "13:00", "14:30", "16:00", "17:30"];
+  const timeSlots = BOOKING_TIME_SLOTS;
 
   async function onSubmit(values: BookingFormValues) {
     let supabase: ReturnType<typeof createClient>;
@@ -105,10 +120,14 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
       location_type: "studio" as const,
       deposit_amount: depositAmount,
       deposit_paid: false,
+      client_name: values.clientName,
+      client_phone: values.clientPhone,
+      location_id: values.locationId,
       client_notes: [
+        `Location: ${selectedLocation?.area ?? values.locationId}`,
         values.clientNotes,
         `Name: ${values.clientName}`,
-        `Email: ${values.clientEmail}`,
+        values.clientEmail ? `Email: ${values.clientEmail}` : null,
         `Phone: ${values.clientPhone}`,
       ]
         .filter(Boolean)
@@ -132,12 +151,12 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
   }
 
   function nextStep() {
-    if (step === 0 && !serviceIdW) {
-      toast.error("Please select a service");
+    if (step === 0 && !locationIdW) {
+      toast.error("Please select a location");
       return;
     }
-    if (step === 1 && !staffIdW) {
-      toast.error("Please select a stylist");
+    if (step === 1 && !serviceIdW) {
+      toast.error("Please select a service");
       return;
     }
     if (step === 2) {
@@ -155,7 +174,7 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
   }
 
   async function awaitValidateDetails() {
-    const fields = ["clientName", "clientEmail", "clientPhone"] as const;
+    const fields = ["clientName", "clientPhone"] as const;
     const results = await Promise.all(fields.map((f) => form.trigger(f)));
     return results.every(Boolean);
   }
@@ -172,7 +191,7 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
         </p>
         <h3 className="heading-display mt-4 text-3xl text-glam-primary">Thank You</h3>
         <p className="mt-4 text-glam-muted">
-          Your appointment request has been received. We&apos;ll send a confirmation email shortly.
+          Your appointment request has been received. We&apos;ll confirm via WhatsApp shortly.
         </p>
         <ButtonLink href="/" variant="outline" className="mt-8">
           Return Home
@@ -208,6 +227,37 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
       <form onSubmit={form.handleSubmit(onSubmit)} className="rounded-2xl border border-glam-border bg-glam-secondary p-6 shadow-soft sm:p-8">
         {step === 0 && (
           <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <h3 className="heading-display text-2xl">Select Location</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {SALON_LOCATIONS.map((location) => (
+                <label
+                  key={location.id}
+                  className={cn(
+                    "flex cursor-pointer flex-col rounded-xl border p-4 transition",
+                    locationIdW === location.id
+                      ? "border-glam-accent bg-glam-accent/10"
+                      : "border-glam-border hover:border-glam-accent/50",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={location.id}
+                    className="sr-only"
+                    {...form.register("locationId")}
+                  />
+                  <p className="text-xs font-semibold uppercase tracking-wider text-glam-accent">
+                    Glam Room
+                  </p>
+                  <p className="font-medium">{location.area}</p>
+                  <p className="text-sm text-glam-muted">{location.address}</p>
+                </label>
+              ))}
+            </div>
+          </m.div>
+        )}
+
+        {step === 1 && (
+          <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             <h3 className="heading-display text-2xl">Select Service</h3>
             <div className="grid gap-3">
               {services.map((s) => (
@@ -239,41 +289,6 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
           </m.div>
         )}
 
-        {step === 1 && (
-          <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <h3 className="heading-display text-2xl">Choose Stylist</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {staff.map((s) => (
-                <label
-                  key={s.id}
-                  className={cn(
-                    "flex cursor-pointer flex-col rounded-xl border p-4 transition",
-                    staffIdW === s.id
-                      ? "border-glam-accent bg-glam-accent/10"
-                      : "border-glam-border hover:border-glam-accent/50",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    value={s.id}
-                    className="sr-only"
-                    {...form.register("staffId")}
-                  />
-                  <p className="font-medium">{s.name}</p>
-                  <p className="text-sm text-glam-muted">{s.role}</p>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {s.specialty.slice(0, 2).map((sp) => (
-                      <span key={sp} className="rounded-full bg-glam-background px-2 py-0.5 text-xs">
-                        {sp}
-                      </span>
-                    ))}
-                  </div>
-                </label>
-              ))}
-            </div>
-          </m.div>
-        )}
-
         {step === 2 && (
           <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <h3 className="heading-display text-2xl">Date & Time</h3>
@@ -293,19 +308,19 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
             <div>
               <p className="mb-2 text-sm font-medium">Time</p>
               <div className="flex flex-wrap gap-2">
-                {timeSlots.map((t) => (
+                {timeSlots.map((slot) => (
                   <button
-                    key={t}
+                    key={slot.value}
                     type="button"
-                    onClick={() => setScheduleTime(t)}
+                    onClick={() => setScheduleTime(slot.value)}
                     className={cn(
                       "rounded-full border px-4 py-2 text-sm transition",
-                      scheduleTime === t
+                      scheduleTime === slot.value
                         ? "border-glam-primary bg-glam-primary text-glam-secondary"
                         : "border-glam-border hover:border-glam-accent",
                     )}
                   >
-                    {t}
+                    {slot.label}
                   </button>
                 ))}
               </div>
@@ -318,9 +333,9 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
             <h3 className="heading-display text-2xl">Your Details</h3>
             {(
               [
-                { id: "clientName", label: "Full Name", type: "text" },
-                { id: "clientEmail", label: "Email", type: "email" },
-                { id: "clientPhone", label: "Phone", type: "tel" },
+                { id: "clientName", label: "Full Name", type: "text", required: true },
+                { id: "clientPhone", label: "WhatsApp / Phone", type: "tel", required: true },
+                { id: "clientEmail", label: "Email (optional)", type: "email", required: false },
               ] as const
             ).map(({ id, label, type }) => (
               <div key={id}>
@@ -356,8 +371,12 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
 
         {step === 4 && (
           <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <h3 className="heading-display text-2xl">Review & Deposit</h3>
+            <h3 className="heading-display text-2xl">Review Booking</h3>
             <dl className="space-y-3 rounded-xl bg-glam-background p-5 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-glam-muted">Location</dt>
+                <dd className="font-medium">{selectedLocation?.area}</dd>
+              </div>
               <div className="flex justify-between">
                 <dt className="text-glam-muted">Service</dt>
                 <dd className="font-medium">{selectedService?.name}</dd>
@@ -369,7 +388,7 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
               <div className="flex justify-between">
                 <dt className="text-glam-muted">Date & Time</dt>
                 <dd className="font-medium">
-                  {scheduleDate} at {scheduleTime}
+                  {scheduleDate} at {timeSlots.find((s) => s.value === scheduleTime)?.label ?? scheduleTime}
                 </dd>
               </div>
               <div className="flex justify-between border-t border-glam-border pt-3">
@@ -378,27 +397,8 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
                   {selectedService ? formatShopPrice(selectedService.price) : "—"}
                 </dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-glam-muted">Deposit (30%)</dt>
-                <dd className="font-semibold text-glam-accent">
-                  {formatShopPrice(depositAmount)}
-                </dd>
-              </div>
             </dl>
-            <label className="flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                className="mt-1 accent-glam-accent"
-                {...form.register("acceptDeposit")}
-              />
-              <span className="text-sm text-glam-muted">
-                I understand a {formatShopPrice(depositAmount)} deposit is required to secure my
-                appointment. The deposit will be applied to my total service cost.
-              </span>
-            </label>
-            {form.formState.errors.acceptDeposit ? (
-              <p className="text-xs text-red-600">{form.formState.errors.acceptDeposit.message}</p>
-            ) : null}
+            <p className="text-sm text-glam-muted">{BRAND.copy.braidsNotice}</p>
           </m.div>
         )}
 
@@ -415,8 +415,8 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
               Continue
             </Button>
           ) : (
-            <Button type="submit" variant="accent" disabled={!acceptDepositW}>
-              Confirm Booking
+            <Button type="submit" variant="accent">
+              Book Appointment
             </Button>
           )}
         </div>
