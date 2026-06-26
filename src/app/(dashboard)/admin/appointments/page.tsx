@@ -1,6 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { AdminPageHeader, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +16,11 @@ const statusOptions = [
 
 const statusTabs = ["all", ...statusOptions] as const;
 
+function locationLabel(locationId: string | null) {
+  if (!locationId) return null;
+  return SALON_LOCATIONS.find((l) => l.id === locationId)?.area ?? locationId;
+}
+
 async function updateBookingStatus(formData: FormData) {
   "use server";
   const id = String(formData.get("id") ?? "");
@@ -24,7 +31,7 @@ async function updateBookingStatus(formData: FormData) {
 
   const { data: existing } = await admin
     .from("bookings")
-    .select("status, start_at, end_at, user_id")
+    .select("status, start_at, end_at, user_id, client_name, client_phone")
     .eq("id", id)
     .maybeSingle();
   if (!existing) return;
@@ -53,46 +60,46 @@ async function updateBookingStatus(formData: FormData) {
     .eq("id", id);
 
   if (existing.status !== status || existing.start_at !== nextStartAt) {
-    let body = `Your booking is now ${status.replaceAll("_", " ")}.`;
+    let body = `Your Glam Room booking is now ${status.replaceAll("_", " ")}.`;
     if (existing.start_at !== nextStartAt) {
       body += ` New schedule: ${new Date(nextStartAt).toLocaleString()}.`;
     }
-    await admin.from("notifications").insert({
-      user_id: existing.user_id,
-      title: "Booking update",
-      body,
-      type: "booking_status",
-    });
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("phone")
-      .eq("id", existing.user_id)
-      .maybeSingle();
+
+    if (existing.user_id) {
+      await admin.from("notifications").insert({
+        user_id: existing.user_id,
+        title: "Booking update",
+        body,
+        type: "booking_status",
+      });
+    }
+
+    let notifyPhone = existing.client_phone;
+    if (!notifyPhone && existing.user_id) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("phone")
+        .eq("id", existing.user_id)
+        .maybeSingle();
+      notifyPhone = profile?.phone ?? null;
+    }
+
     await sendTransactionalMessage({
-      toPhone: profile?.phone ?? null,
-      subject: "Booking update",
+      toPhone: notifyPhone,
+      subject: "Glam Room booking update",
       html: `<p>${body}</p>`,
       smsText: body,
     });
   }
 
-  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/appointments");
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-export default async function AdminBookingsPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function AdminAppointmentsPage({ searchParams }: { searchParams: SearchParams }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return (
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
-        <h1 className="heading-display text-3xl">Bookings</h1>
-        <p className="mt-3 text-sm text-white/60">
-          Configure <code className="text-glam-accent">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-          <code className="text-glam-accent">SUPABASE_SERVICE_ROLE_KEY</code> in your deployment
-          environment to load admin booking data.
-        </p>
-      </div>
-    );
+    return <AdminSetupNotice />;
   }
 
   const params = await searchParams;
@@ -106,7 +113,9 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
   const admin = createAdminClient();
   let query = admin
     .from("bookings")
-    .select("id, start_at, status, location_type, address, profiles(full_name,phone), services(name)")
+    .select(
+      "id, start_at, status, location_type, location_id, client_name, client_phone, client_notes, profiles(full_name,phone), services(name), staff(name)",
+    )
     .order("start_at", { ascending: false });
   if (statusFilter !== "all") query = query.eq("status", statusFilter);
   if (fromDate) query = query.gte("start_at", new Date(fromDate).toISOString());
@@ -122,13 +131,18 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
     if (nextStatus !== "all") qs.set("status", nextStatus);
     if (fromDate) qs.set("from", fromDate);
     if (toDate) qs.set("to", toDate);
-    return `/admin/bookings?${qs.toString()}`;
+    const q = qs.toString();
+    return q ? `/admin/appointments?${q}` : "/admin/appointments";
   }
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
-      <h1 className="heading-display text-3xl">Bookings</h1>
-      <div className="mt-4 flex flex-wrap gap-2">
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Appointments"
+        description="Review, confirm, and reschedule Glam Room bookings."
+      />
+
+      <div className="flex flex-wrap gap-2">
         {statusTabs.map((tab) => (
           <a
             key={tab}
@@ -143,7 +157,8 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
           </a>
         ))}
       </div>
-      <form action="/admin/bookings" className="mt-4 flex flex-wrap items-end gap-3 text-xs text-white/65">
+
+      <form action="/admin/appointments" className="flex flex-wrap items-end gap-3 text-xs text-white/65">
         <input type="hidden" name="status" value={statusFilter} />
         <label>
           From
@@ -170,52 +185,68 @@ export default async function AdminBookingsPage({ searchParams }: { searchParams
           Apply range
         </button>
       </form>
-      <div className="mt-6 space-y-3">
-        {(data ?? []).map((b) => (
-          <form
-            key={b.id}
-            action={updateBookingStatus}
-            className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 sm:grid-cols-[1fr_auto_auto]"
-          >
-            <input type="hidden" name="id" value={b.id} />
-            <div>
-              <p className="font-semibold text-white">
-                {(b.services as { name?: string } | null)?.name ?? "Service"} ·{" "}
-                {(b.profiles as { full_name?: string } | null)?.full_name ?? "Client"}
-              </p>
-              <p className="text-xs text-white/55">
-                {new Date(b.start_at).toLocaleString()} · {b.location_type}
-                {b.address ? ` · ${b.address}` : ""}
-              </p>
-              <label className="mt-2 block text-xs text-white/55">
-                Reschedule (optional)
-                <input
-                  type="datetime-local"
-                  name="start_at"
-                  defaultValue={new Date(b.start_at).toISOString().slice(0, 16)}
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
-                />
-              </label>
-            </div>
-            <select
-              name="status"
-              defaultValue={b.status}
-              className="rounded-xl border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+
+      <div className="space-y-3">
+        {(data ?? []).length === 0 ? (
+          <p className="text-sm text-white/55">No appointments match this filter.</p>
+        ) : null}
+        {(data ?? []).map((b) => {
+          const profile = b.profiles as { full_name?: string; phone?: string } | null;
+          const clientName = b.client_name ?? profile?.full_name ?? "Guest";
+          const clientPhone = b.client_phone ?? profile?.phone ?? null;
+          const loc = locationLabel(b.location_id);
+          const staffName = (b.staff as { name?: string } | null)?.name;
+
+          return (
+            <form
+              key={b.id}
+              action={updateBookingStatus}
+              className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-[1fr_auto_auto]"
             >
-              {statusOptions.map((s) => (
-                <option key={s} value={s} className="bg-glam-primary">
-                  {s}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="rounded-full bg-glam-accent px-4 py-2 text-xs font-semibold uppercase tracking-wider text-glam-primary"
-            >
-              Update
-            </button>
-          </form>
-        ))}
+              <input type="hidden" name="id" value={b.id} />
+              <div>
+                <p className="font-semibold text-white">
+                  {(b.services as { name?: string } | null)?.name ?? "Service"} · {clientName}
+                </p>
+                <p className="text-xs text-white/55">
+                  {new Date(b.start_at).toLocaleString()}
+                  {loc ? ` · ${loc}` : ""}
+                  {staffName ? ` · ${staffName}` : ""}
+                  {clientPhone ? ` · ${clientPhone}` : ""}
+                </p>
+                {b.client_notes ? (
+                  <p className="mt-2 line-clamp-2 text-xs text-white/45">{b.client_notes}</p>
+                ) : null}
+                <label className="mt-2 block text-xs text-white/55">
+                  Reschedule (optional)
+                  <input
+                    type="datetime-local"
+                    name="start_at"
+                    defaultValue={new Date(b.start_at).toISOString().slice(0, 16)}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                  />
+                </label>
+              </div>
+              <select
+                name="status"
+                defaultValue={b.status}
+                className="rounded-xl border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+              >
+                {statusOptions.map((s) => (
+                  <option key={s} value={s} className="bg-glam-primary">
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="rounded-full bg-glam-accent px-4 py-2 text-xs font-semibold uppercase tracking-wider text-glam-primary"
+              >
+                Update
+              </button>
+            </form>
+          );
+        })}
       </div>
     </div>
   );

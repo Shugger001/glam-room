@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { formatShopPrice } from "@/lib/format/money";
 import { AdminKpi, AdminPageHeader, AdminSetupNotice, AdminCard } from "@/components/admin/admin-ui";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -15,7 +14,7 @@ export default async function AdminDashboardPage() {
   const [bookingsRes, profilesRes, servicesRes, messagesRes, testimonialsRes] = await Promise.all([
     admin
       .from("bookings")
-      .select("id, deposit_amount, deposit_paid", { count: "exact" })
+      .select("id", { count: "exact", head: true })
       .in("status", ["pending", "awaiting_approval", "confirmed"]),
     admin.from("profiles").select("id", { count: "exact", head: true }),
     admin.from("services").select("id", { count: "exact", head: true }).eq("active", true),
@@ -26,26 +25,32 @@ export default async function AdminDashboardPage() {
     admin.from("testimonials").select("id", { count: "exact", head: true }).eq("published", true),
   ]);
 
-  const pendingDeposits = (bookingsRes.data ?? []).filter((b) => !b.deposit_paid).length;
-  const depositRevenue = (bookingsRes.data ?? [])
-    .filter((b) => b.deposit_paid)
-    .reduce((sum, b) => sum + Number(b.deposit_amount ?? 0), 0);
-
   const kpis = [
-    { label: "Open Appointments", value: `${bookingsRes.count ?? 0}`, hint: "Pending & confirmed" },
+    {
+      label: "Open Appointments",
+      value: `${bookingsRes.count ?? 0}`,
+      hint: "Pending & confirmed",
+      href: "/admin/appointments",
+    },
     { label: "Total Clients", value: `${profilesRes.count ?? 0}` },
-    { label: "Active Services", value: `${servicesRes.count ?? 0}` },
-    { label: "Unread Messages", value: `${messagesRes.count ?? 0}` },
-    { label: "Deposits Collected", value: formatShopPrice(depositRevenue) },
-    { label: "Pending Deposits", value: `${pendingDeposits}` },
-    { label: "Published Reviews", value: `${testimonialsRes.count ?? 0}` },
+    { label: "Active Services", value: `${servicesRes.count ?? 0}`, href: "/admin/services" },
+    {
+      label: "Unread Messages",
+      value: `${messagesRes.count ?? 0}`,
+      href: "/admin/messages",
+    },
+    {
+      label: "Published Reviews",
+      value: `${testimonialsRes.count ?? 0}`,
+      href: "/admin/testimonials",
+    },
   ];
 
   return (
     <div className="space-y-10">
       <AdminPageHeader
         title="Dashboard"
-        description="Salon operations at a glance — appointments, clients, and revenue."
+        description="Salon operations at a glance — appointments, clients, and messages."
       />
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((k) => (
@@ -55,10 +60,30 @@ export default async function AdminDashboardPage() {
       <AdminCard>
         <h2 className="heading-display text-2xl text-white">Quick Actions</h2>
         <ul className="mt-4 space-y-2 text-sm text-white/70">
-          <li>→ Review pending appointments in Appointments</li>
-          <li>→ Respond to contact form submissions</li>
-          <li>→ Update services and pricing as needed</li>
-          <li>→ Manage gallery and testimonials content</li>
+          <li>
+            →{" "}
+            <a href="/admin/appointments" className="text-glam-accent hover:underline">
+              Review pending appointments
+            </a>
+          </li>
+          <li>
+            →{" "}
+            <a href="/admin/messages" className="text-glam-accent hover:underline">
+              Respond to contact form submissions
+            </a>
+          </li>
+          <li>
+            →{" "}
+            <a href="/admin/services" className="text-glam-accent hover:underline">
+              Update services and pricing
+            </a>
+          </li>
+          <li>
+            →{" "}
+            <a href="/admin/gallery" className="text-glam-accent hover:underline">
+              Manage gallery and testimonials
+            </a>
+          </li>
         </ul>
       </AdminCard>
     </div>

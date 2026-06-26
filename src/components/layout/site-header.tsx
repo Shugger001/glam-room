@@ -88,6 +88,14 @@ export function SiteHeader() {
               href="/book"
               size="sm"
               variant={showSolidHeader ? "primary" : "accent"}
+              className="flex min-h-9 items-center sm:hidden"
+            >
+              Book
+            </ButtonLink>
+            <ButtonLink
+              href="/book"
+              size="sm"
+              variant={showSolidHeader ? "primary" : "accent"}
               className="hidden sm:inline-flex"
             >
               Book

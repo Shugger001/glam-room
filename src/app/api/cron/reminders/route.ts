@@ -26,7 +26,9 @@ export async function GET(request: Request) {
   const admin = createAdminClient();
   const { data: bookings } = await admin
     .from("bookings")
-    .select("id, user_id, start_at, end_at, status, reminder_state, follow_up_sent_at, profiles(phone)")
+    .select(
+      "id, user_id, start_at, end_at, status, reminder_state, follow_up_sent_at, client_phone, profiles(phone)",
+    )
     .in("status", ["confirmed", "completed"]);
 
   let reminders24 = 0;
@@ -46,7 +48,10 @@ export async function GET(request: Request) {
 
   for (const b of bookings ?? []) {
     const state = (b.reminder_state as Record<string, boolean> | null) ?? {};
-    const phone = (b.profiles as { phone?: string | null } | null)?.phone ?? null;
+    const phone =
+      (b.profiles as { phone?: string | null } | null)?.phone ??
+      (b as { client_phone?: string | null }).client_phone ??
+      null;
 
     if (b.status === "confirmed" && b.start_at) {
       if (!state.h24 && inWindow(b.start_at, h20, h30) && phone) {

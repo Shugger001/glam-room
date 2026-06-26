@@ -13,20 +13,25 @@ export const metadata: Metadata = {
 
 export default async function ExpertsPage() {
   const staff = await getStaffMembers();
+  const lead = staff[0];
 
   return (
     <Section className="!pt-10">
       <SectionHeader
-        eyebrow="Our Experts"
-        title="The Team"
-        description="Passionate professionals dedicated to making you look and feel extraordinary."
+        eyebrow="The Queen Behind the Chair"
+        title="Meet Asantewaa"
+        description="Founder of Glam Room and The House of Asantewaa — expert hands, warm vibes, and zero tolerance for bad hair days."
         align="center"
       />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {staff.map((member, i) => (
-          <TeamCard key={member.id} member={member} index={i} />
-        ))}
-      </div>
+      {lead ? (
+        <div className="mx-auto max-w-lg">
+          <TeamCard member={lead} index={0} />
+        </div>
+      ) : null}
+      <p className="mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-glam-muted">
+        Every appointment at Glam Room is personally led by Asantewaa. From silk presses to braids
+        and wig installs, you get the same premium care at our Adenta and Sowutuom studios.
+      </p>
     </Section>
   );
 }

@@ -4,10 +4,21 @@ import { m } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function FloatingBookCta() {
-  const isHome = usePathname() === "/";
+const MARKETING_PATHS = new Set([
+  "/",
+  "/about",
+  "/services",
+  "/gallery",
+  "/experts",
+  "/testimonials",
+  "/faq",
+  "/contact",
+]);
 
-  if (!isHome) return null;
+export function FloatingBookCta() {
+  const pathname = usePathname();
+
+  if (!MARKETING_PATHS.has(pathname)) return null;
 
   return (
     <m.div

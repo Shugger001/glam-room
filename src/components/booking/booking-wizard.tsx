@@ -10,6 +10,7 @@ import {
   type BookingFormValues,
 } from "@/lib/validation/booking";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { isSlotAvailable } from "@/lib/booking/availability";
 import { BRAND } from "@/lib/constants/brand";
 import { createClient } from "@/lib/supabase/client";
 import { useBookingDraftStore } from "@/stores/booking-draft-store";
@@ -110,6 +111,12 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
     const durationMin = selectedService?.duration ?? 60;
     const end = new Date(start.getTime() + durationMin * 60_000);
 
+    const slotCheck = await isSlotAvailable(supabase, start.toISOString(), values.locationId);
+    if (!slotCheck.available) {
+      toast.error(slotCheck.error ?? "That time slot is fully booked. Please choose another time.");
+      return;
+    }
+
     const bookingPayload = {
       user_id: user?.id ?? null,
       service_id: values.serviceId,
@@ -145,8 +152,8 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
     setSubmitted(true);
     draft.reset();
     form.reset();
-    toast.success("Appointment requested", {
-      description: "We'll confirm your booking shortly.",
+    toast.success("Booking request sent", {
+      description: "We'll confirm your appointment via WhatsApp shortly.",
     });
   }
 
@@ -187,15 +194,21 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
         className="rounded-2xl border border-glam-border bg-glam-secondary p-10 text-center shadow-soft"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-glam-accent">
-          Confirmed
+          Request received
         </p>
-        <h3 className="heading-display mt-4 text-3xl text-glam-primary">Thank You</h3>
+        <h3 className="heading-display mt-4 text-3xl text-glam-primary">You&apos;re on the list</h3>
         <p className="mt-4 text-glam-muted">
-          Your appointment request has been received. We&apos;ll confirm via WhatsApp shortly.
+          Your booking request has been received. We&apos;ll confirm via WhatsApp at{" "}
+          {BRAND.links.phone}.
         </p>
-        <ButtonLink href="/" variant="outline" className="mt-8">
-          Return Home
-        </ButtonLink>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <ButtonLink href={BRAND.links.whatsapp} variant="accent">
+            Chat on WhatsApp
+          </ButtonLink>
+          <ButtonLink href="/" variant="outline">
+            Return Home
+          </ButtonLink>
+        </div>
       </m.div>
     );
   }
@@ -416,7 +429,7 @@ export function BookingWizard({ services, staff, initialServiceId }: BookingWiza
             </Button>
           ) : (
             <Button type="submit" variant="accent">
-              Book Appointment
+              Request Appointment
             </Button>
           )}
         </div>

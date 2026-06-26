@@ -11,7 +11,7 @@ export function GalleryPreview({ items }: { items: GalleryItem[] }) {
         <SectionHeader
           eyebrow="Portfolio"
           title="The Glam Gallery"
-          description="A peek at the slay. Real client photos coming soon. For now, imagine the glow."
+          description="Real client transformations from Adenta and Sowutuom — silk presses, braids, installs, and glow-ups."
           align="center"
         />
       </div>

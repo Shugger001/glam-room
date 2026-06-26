@@ -25,8 +25,8 @@ export default async function BookPage({ searchParams }: BookPageProps) {
         <Reveal>
           <SectionHeader
             eyebrow="Booking"
-            title="Reserve Your Experience"
-            description="Select your service, choose your stylist, and secure your appointment with a deposit."
+            title="Book Your Glow Up"
+            description="Pick your location, choose your service, and select a time. We'll confirm via WhatsApp."
             align="center"
           />
         </Reveal>

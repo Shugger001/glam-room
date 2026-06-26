@@ -27,6 +27,7 @@ export const FOOTER_NAV = {
 export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/appointments", label: "Appointments" },
+  { href: "/admin/messages", label: "Messages" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/services", label: "Services" },
   { href: "/admin/gallery", label: "Gallery" },

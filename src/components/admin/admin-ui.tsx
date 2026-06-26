@@ -24,18 +24,30 @@ export function AdminKpi({
   label,
   value,
   hint,
+  href,
 }: {
   label: string;
   value: string;
   hint?: string;
+  href?: string;
 }) {
-  return (
-    <AdminCard>
+  const card = (
+    <>
       <p className="text-xs font-semibold uppercase tracking-wider text-glam-accent">{label}</p>
       <p className="heading-display mt-4 text-4xl text-white">{value}</p>
       {hint ? <p className="mt-3 text-xs text-white/45">{hint}</p> : null}
-    </AdminCard>
+    </>
   );
+
+  if (href) {
+    return (
+      <a href={href} className="block transition hover:opacity-90">
+        <AdminCard>{card}</AdminCard>
+      </a>
+    );
+  }
+
+  return <AdminCard>{card}</AdminCard>;
 }
 
 export function AdminPageHeader({
