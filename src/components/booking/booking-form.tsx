@@ -17,6 +17,7 @@ import {
   MAX_BOOKINGS_PER_SHOP_PER_DAY,
   MAX_BOOKINGS_PER_SLOT,
 } from "@/lib/booking/availability";
+import { computeDepositAmount } from "@/lib/booking/deposit";
 import { formatShopPrice } from "@/lib/format/money";
 import {
   BOOKING_TIME_SLOTS,
