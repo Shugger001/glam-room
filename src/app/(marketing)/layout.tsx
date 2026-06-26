@@ -4,6 +4,7 @@ import { MarketingMain } from "@/components/layout/marketing-main";
 import { MobileHomeBar, MobileHomeSpacer } from "@/components/layout/mobile-home-bar";
 import { PremiumGrain } from "@/components/layout/premium-grain";
 import { ScrollProgress } from "@/components/layout/scroll-progress";
+import { LuxuryCursor } from "@/components/motion/luxury-cursor";
 
 export default function MarketingLayout({
   children,
@@ -13,6 +14,7 @@ export default function MarketingLayout({
   return (
     <>
       <PremiumGrain />
+      <LuxuryCursor />
       <ScrollProgress />
       <SiteHeader />
       <MarketingMain>{children}</MarketingMain>

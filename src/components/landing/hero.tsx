@@ -16,9 +16,10 @@ export function LandingHero() {
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.06, 1.14]);
+  const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "24%"]);
 
   return (
     <section
@@ -26,7 +27,7 @@ export function LandingHero() {
       className="relative -mt-[var(--header-height)] min-h-[100svh] overflow-hidden bg-glam-primary"
       aria-label="Hero"
     >
-      <m.div className="pointer-events-none absolute inset-0" style={{ y: bgY }}>
+      <m.div className="pointer-events-none absolute inset-0 origin-center" style={{ y: bgY, scale: bgScale }}>
         <Image
           src={HERO_IMAGE}
           alt="Glam Room by Asantewaa salon"
