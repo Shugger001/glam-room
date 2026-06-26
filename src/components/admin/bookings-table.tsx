@@ -57,6 +57,13 @@ export function BookingsTable({
 
   return (
     <div className={tableWrapClass}>
+      <div className="hidden" aria-hidden>
+        {bookings.map((b) => (
+          <form key={`form-${b.id}`} id={`booking-form-${b.id}`} action={updateBookingStatus}>
+            <input type="hidden" name="id" value={b.id} />
+          </form>
+        ))}
+      </div>
       <table className={tableClass}>
         <thead>
           <tr>
@@ -95,9 +102,6 @@ export function BookingsTable({
 
             return (
               <tr key={b.id} className="hover:bg-white/[0.03]">
-                <form id={formId} action={updateBookingStatus} hidden aria-hidden>
-                  <input type="hidden" name="id" value={b.id} />
-                </form>
                 <td className={tdClass}>{new Date(b.start_at).toLocaleString()}</td>
                 <td className={tdClass}>
                   <span className="font-medium text-white">{clientName}</span>
