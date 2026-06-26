@@ -16,6 +16,7 @@ export const guestBookingSchema = z.object({
     .min(8, "WhatsApp / phone number is required")
     .refine(isValidGhanaPhone, "Enter a valid Ghana number (e.g. 024XXXXXXX)"),
   clientNotes: z.string().max(800).optional(),
+  promoCode: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
 export type GuestBookingValues = z.infer<typeof guestBookingSchema>;

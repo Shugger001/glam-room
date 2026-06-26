@@ -3,6 +3,7 @@ import { insertGuestBooking } from "@/lib/booking/create-guest-booking";
 import { computeDepositAmount, isPaystackConfigured } from "@/lib/booking/deposit";
 import { MARKET } from "@/lib/constants/market";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { resolvePromoForBooking } from "@/lib/promotions/validate-promo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { bookingPaystackInitializeSchema } from "@/lib/validation/booking-payment";
@@ -65,10 +66,17 @@ export async function POST(request: Request) {
   }
 
   const servicePrice = Number(serviceRow.base_price);
-  const depositAmount = computeDepositAmount(servicePrice);
-  if (depositAmount <= 0) {
+  const baseDeposit = computeDepositAmount(servicePrice);
+  if (baseDeposit <= 0) {
     return NextResponse.json({ error: "No deposit required for this service." }, { status: 400 });
   }
+
+  const promoResult = await resolvePromoForBooking(admin, values.promoCode, baseDeposit);
+  if (!promoResult.ok) {
+    return NextResponse.json({ error: promoResult.error }, { status: 400 });
+  }
+
+  const depositAmount = promoResult.promo?.depositAmount ?? baseDeposit;
 
   const locationLabel =
     SALON_LOCATIONS.find((l) => l.id === values.locationId)?.area ?? values.locationId;
@@ -86,6 +94,9 @@ export async function POST(request: Request) {
     locationLabel,
     paystackReference: reference,
     depositPaid: false,
+    depositAmount,
+    promotionCode: promoResult.promo?.promotionCode ?? null,
+    promoMeta: promoResult.promo?.promoMeta ?? null,
   });
 
   if (!created.ok) {
@@ -137,6 +148,8 @@ export async function POST(request: Request) {
     authorization_url: data.data.authorization_url,
     reference: data.data.reference ?? reference,
     deposit_amount: depositAmount,
+    base_deposit: baseDeposit,
+    promo_savings: promoResult.promo ? baseDeposit - depositAmount : 0,
     booking_id: created.bookingId,
   });
 }

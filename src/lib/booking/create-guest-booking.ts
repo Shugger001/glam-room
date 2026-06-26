@@ -13,6 +13,9 @@ export type GuestBookingInsertInput = {
   locationLabel: string;
   paystackReference?: string | null;
   depositPaid?: boolean;
+  depositAmount?: number;
+  promotionCode?: string | null;
+  promoMeta?: Record<string, unknown> | null;
 };
 
 function buildDatetime(date: string, time: string) {
@@ -54,7 +57,10 @@ export async function insertGuestBooking(
     };
   }
 
-  const depositAmount = computeDepositAmount(service.price);
+  const depositAmount = input.depositAmount ?? computeDepositAmount(service.price);
+
+  const addOns: Record<string, unknown> = { deposit_flat_ghs: BOOKING_DEPOSIT_GHS };
+  if (input.promoMeta) addOns.promo = input.promoMeta;
 
   const { data, error } = await supabase
     .from("bookings")
@@ -69,6 +75,7 @@ export async function insertGuestBooking(
       deposit_amount: depositAmount,
       deposit_paid: input.depositPaid ?? false,
       paystack_reference: input.paystackReference ?? null,
+      promotion_code: input.promotionCode ?? null,
       client_name: values.clientName.trim(),
       client_phone: values.clientPhone.trim(),
       location_id: values.locationId,
@@ -78,10 +85,11 @@ export async function insertGuestBooking(
         `Name: ${values.clientName.trim()}`,
         values.clientEmail ? `Email: ${values.clientEmail}` : null,
         `Phone: ${values.clientPhone.trim()}`,
+        input.promotionCode ? `Promo: ${input.promotionCode}` : null,
       ]
         .filter(Boolean)
         .join("\n"),
-      add_ons: { deposit_flat_ghs: BOOKING_DEPOSIT_GHS },
+      add_ons: addOns,
     })
     .select("id, deposit_amount")
     .single();

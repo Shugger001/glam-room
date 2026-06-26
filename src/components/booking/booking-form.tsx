@@ -52,6 +52,13 @@ export function BookingForm({
   const [submitting, setSubmitting] = useState(false);
   const [dateFullyBooked, setDateFullyBooked] = useState(false);
   const [checkingDateCapacity, setCheckingDateCapacity] = useState(false);
+  const [validatingPromo, setValidatingPromo] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    deposit_amount: number;
+    savings: number;
+    label: string;
+  } | null>(null);
   const lastCapacityToastKey = useRef("");
 
   const form = useForm<GuestBookingValues>({
@@ -66,6 +73,7 @@ export function BookingForm({
       clientEmail: "",
       clientPhone: "",
       clientNotes: "",
+      promoCode: "",
     },
   });
 
@@ -75,6 +83,7 @@ export function BookingForm({
   const bookingDate = useWatch({ control: form.control, name: "bookingDate" });
   const bookingTime = useWatch({ control: form.control, name: "bookingTime" });
   const clientName = useWatch({ control: form.control, name: "clientName" });
+  const promoCode = useWatch({ control: form.control, name: "promoCode" });
 
   const categoriesInCatalog = useMemo(() => {
     const present = new Set(services.map((s) => s.category));
@@ -175,7 +184,57 @@ export function BookingForm({
   );
 
   const depositAmount = computeDepositAmount();
-  const requiresDeposit = paystackEnabled && depositAmount > 0;
+  const checkoutDeposit = appliedPromo?.deposit_amount ?? depositAmount;
+  const requiresDeposit = paystackEnabled && checkoutDeposit > 0;
+
+  useEffect(() => {
+    if (!appliedPromo) return;
+    const current = promoCode?.trim().toUpperCase() ?? "";
+    if (current !== appliedPromo.code.toUpperCase()) setAppliedPromo(null);
+  }, [promoCode, appliedPromo]);
+
+  async function applyPromoCode() {
+    const code = promoCode?.trim();
+    if (!code) {
+      toast.error("Enter a promo code first.");
+      return;
+    }
+
+    setValidatingPromo(true);
+    try {
+      const res = await fetch("/api/promotions/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = (await res.json()) as {
+        valid?: boolean;
+        code?: string;
+        deposit_amount?: number;
+        savings?: number;
+        label?: string;
+        error?: string;
+      };
+
+      if (!res.ok || !data.valid || data.deposit_amount == null) {
+        setAppliedPromo(null);
+        toast.error(data.error ?? "Invalid promo code.");
+        return;
+      }
+
+      setAppliedPromo({
+        code: data.code ?? code.toUpperCase(),
+        deposit_amount: data.deposit_amount,
+        savings: data.savings ?? 0,
+        label: data.label ?? "Promo applied",
+      });
+      toast.success(data.label ?? "Promo code applied!");
+    } catch {
+      toast.error("Could not validate promo code. Please try again.");
+    } finally {
+      setValidatingPromo(false);
+    }
+  }
 
   async function onSubmit(values: GuestBookingValues) {
     if (dateFullyBooked) {
@@ -466,6 +525,36 @@ export function BookingForm({
             />
           </label>
 
+          <div className="space-y-2">
+            <p className="text-sm font-medium">
+              Promo code <span className="font-normal text-glam-muted">optional</span>
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g. GLAM10"
+                autoComplete="off"
+                className={cn(inputClass, "mt-0 flex-1 uppercase")}
+                {...form.register("promoCode")}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="shrink-0 self-start"
+                disabled={validatingPromo || !promoCode?.trim()}
+                onClick={() => void applyPromoCode()}
+              >
+                {validatingPromo ? "Checking…" : "Apply"}
+              </Button>
+            </div>
+            {appliedPromo ? (
+              <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+                {appliedPromo.label} — you save {formatShopPrice(appliedPromo.savings)} on the
+                deposit
+              </p>
+            ) : null}
+          </div>
+
           <div
             className={cn(
               "rounded-xl border px-4 py-3 text-sm",
@@ -488,7 +577,13 @@ export function BookingForm({
                 </p>
                 {requiresDeposit ? (
                   <p className="mt-3 border-t border-glam-accent/20 pt-3 text-glam-primary">
-                    Booking deposit due now: <strong>{formatShopPrice(depositAmount)}</strong>
+                    Booking deposit due now:{" "}
+                    <strong>{formatShopPrice(checkoutDeposit)}</strong>
+                    {appliedPromo && appliedPromo.savings > 0 ? (
+                      <span className="ml-2 text-xs font-normal text-glam-muted line-through">
+                        {formatShopPrice(depositAmount)}
+                      </span>
+                    ) : null}
                     <span className="mt-1 block text-xs font-normal text-glam-muted">
                       Remaining balance paid at the salon · secure checkout via Paystack
                     </span>
@@ -513,7 +608,7 @@ export function BookingForm({
                 ? "Redirecting to Paystack…"
                 : "Booking…"
               : requiresDeposit
-                ? `Pay ${formatShopPrice(depositAmount)} deposit`
+                ? `Pay ${formatShopPrice(checkoutDeposit)} deposit`
                 : "Book appointment"}
           </Button>
 

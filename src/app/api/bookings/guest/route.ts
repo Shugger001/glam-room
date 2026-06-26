@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { insertGuestBooking } from "@/lib/booking/create-guest-booking";
-import { isPaystackConfigured } from "@/lib/booking/deposit";
+import { computeDepositAmount, isPaystackConfigured } from "@/lib/booking/deposit";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import {
   notifyClientBookingUpdate,
   notifySalonBookingRequest,
 } from "@/lib/notifications/booking-notifications";
+import { resolvePromoForBooking } from "@/lib/promotions/validate-promo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { guestBookingSchema } from "@/lib/validation/booking";
@@ -66,16 +67,28 @@ export async function POST(request: Request) {
   const locationLabel =
     SALON_LOCATIONS.find((l) => l.id === values.locationId)?.area ?? values.locationId;
 
+  const servicePrice = Number(serviceRow.base_price);
+  const baseDeposit = computeDepositAmount(servicePrice);
+  const promoResult = await resolvePromoForBooking(admin, values.promoCode, baseDeposit);
+  if (!promoResult.ok) {
+    return NextResponse.json({ error: promoResult.error }, { status: 400 });
+  }
+
+  const depositAmount = promoResult.promo?.depositAmount ?? baseDeposit;
+
   const created = await insertGuestBooking(admin, {
     values,
     staffId,
     service: {
       id: serviceRow.id as string,
       durationMinutes: Number(serviceRow.duration_minutes),
-      price: Number(serviceRow.base_price),
+      price: servicePrice,
     },
     locationLabel,
     depositPaid: false,
+    depositAmount,
+    promotionCode: promoResult.promo?.promotionCode ?? null,
+    promoMeta: promoResult.promo?.promoMeta ?? null,
   });
 
   if (!created.ok) {
