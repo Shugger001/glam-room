@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchPaystackTransaction } from "@/lib/payments/paystack-transaction";
+import {
+  notifyClientBookingUpdate,
+  notifySalonBookingRequest,
+} from "@/lib/notifications/booking-notifications";
 
 export type BookingPaymentEvent =
   | "redirect_verify"
@@ -92,6 +96,11 @@ export async function applyPaystackBookingVerification(
       updated_at: new Date().toISOString(),
     })
     .eq("id", booking.id);
+
+  await Promise.allSettled([
+    notifySalonBookingRequest(admin, booking.id, "deposit_paid"),
+    notifyClientBookingUpdate(admin, booking.id, "deposit_paid"),
+  ]);
 
   return { ok: true, bookingId: booking.id };
 }

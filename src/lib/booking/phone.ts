@@ -26,7 +26,10 @@ export function nameSuffixMatches(fullName: string, suffix: string) {
   return letters.slice(-4).toLowerCase() === expected;
 }
 
-export function parseClientNotesField(notes: string | null, field: "Name" | "Phone" | "Location") {
+export function parseClientNotesField(
+  notes: string | null,
+  field: "Name" | "Phone" | "Location" | "Email",
+) {
   if (!notes) return null;
   const prefix = `${field}:`;
   for (const line of notes.split("\n")) {

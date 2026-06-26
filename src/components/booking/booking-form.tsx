@@ -13,10 +13,8 @@ import {
   type SalonService,
   type ServiceCategory,
 } from "@/lib/constants/services";
-import { isSlotAvailable } from "@/lib/booking/availability";
 import { computeDepositAmount } from "@/lib/booking/deposit";
 import { formatShopPrice } from "@/lib/format/money";
-import { createClient } from "@/lib/supabase/client";
 import {
   BOOKING_TIME_SLOTS,
   guestBookingSchema,
@@ -33,10 +31,6 @@ type BookingFormProps = {
 };
 
 const CATEGORY_ORDER: ServiceCategory[] = ["hair-reset", "hair-installation", "braids"];
-
-function buildDatetime(date: string, time: string) {
-  return new Date(`${date}T${time}:00`).toISOString();
-}
 
 function findCategoryForService(services: SalonService[], serviceId?: string) {
   if (!serviceId) return "";
@@ -141,53 +135,14 @@ export function BookingForm({
         return;
       }
 
-      let supabase: ReturnType<typeof createClient>;
-      try {
-        supabase = createClient();
-      } catch {
-        toast.error("Booking is being configured. Please WhatsApp us to book.");
-        return;
-      }
-
-      const startAt = buildDatetime(values.bookingDate, values.bookingTime);
-      const durationMin = selectedService?.durationMinutes ?? 60;
-      const end = new Date(new Date(startAt).getTime() + durationMin * 60_000);
-
-      const slotCheck = await isSlotAvailable(supabase, startAt, values.locationId);
-      if (!slotCheck.available) {
-        toast.error(slotCheck.error ?? "That time slot is full. Please choose another time.");
-        return;
-      }
-
-      const depositForRecord = computeDepositAmount();
-
-      const { error } = await supabase.from("bookings").insert({
-        user_id: null,
-        service_id: values.serviceId,
-        staff_id: staffId,
-        start_at: startAt,
-        end_at: end.toISOString(),
-        status: "awaiting_approval",
-        location_type: "studio",
-        deposit_amount: depositForRecord,
-        deposit_paid: false,
-        client_name: values.clientName.trim(),
-        client_phone: values.clientPhone.trim(),
-        location_id: values.locationId,
-        client_notes: [
-          `Location: ${selectedLocation?.area ?? values.locationId}`,
-          values.clientNotes?.trim(),
-          `Name: ${values.clientName.trim()}`,
-          values.clientEmail ? `Email: ${values.clientEmail}` : null,
-          `Phone: ${values.clientPhone.trim()}`,
-        ]
-          .filter(Boolean)
-          .join("\n"),
-        add_ons: { deposit_flat_ghs: depositForRecord },
+      const res = await fetch("/api/bookings/guest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, staffId }),
       });
-
-      if (error) {
-        toast.error(error.message);
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Could not save booking. Please try again or WhatsApp us.");
         return;
       }
 

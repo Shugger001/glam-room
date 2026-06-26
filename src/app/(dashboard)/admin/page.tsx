@@ -85,7 +85,8 @@ export default async function AdminOverviewPage() {
   await requireSuperAdmin();
 
   const admin = createAdminClient();
-  const [bookingsRes, profilesRes, servicesRes, messagesRes, recentBookingsRes] = await Promise.all([
+  const [bookingsRes, profilesRes, servicesRes, messagesRes, pendingDepositsRes, recentBookingsRes] =
+    await Promise.all([
     admin
       .from("bookings")
       .select("id", { count: "exact", head: true })
@@ -98,8 +99,14 @@ export default async function AdminOverviewPage() {
       .is("read_at", null),
     admin
       .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("deposit_paid", false)
+      .gt("deposit_amount", 0)
+      .in("status", ["awaiting_approval", "confirmed"]),
+    admin
+      .from("bookings")
       .select(
-        "id, start_at, status, location_id, client_name, client_phone, profiles(full_name,phone), services(name)",
+        "id, start_at, status, location_id, client_name, client_phone, deposit_paid, deposit_amount, profiles(full_name,phone), services(name)",
       )
       .order("created_at", { ascending: false })
       .limit(10),
@@ -130,6 +137,12 @@ export default async function AdminOverviewPage() {
       hint: "contact form inbox",
       href: "/admin/messages",
     },
+    {
+      label: "Unpaid deposits",
+      value: `${pendingDepositsRes.count ?? 0}`,
+      hint: "awaiting Paystack deposit",
+      href: "/admin/appointments?status=awaiting_approval",
+    },
   ];
 
   return (
@@ -138,7 +151,7 @@ export default async function AdminOverviewPage() {
         title="At-a-glance"
         description="Live operational metrics from Supabase. Use this as your daily command center."
       />
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
         {kpis.map((k) => (
           <AdminKpi key={k.label} {...k} />
         ))}
@@ -168,6 +181,16 @@ export default async function AdminOverviewPage() {
                     {new Date(b.start_at).toLocaleString()}
                     {loc ? ` · ${loc}` : ""}
                     {b.client_phone ?? profile?.phone ? ` · ${b.client_phone ?? profile?.phone}` : ""}
+                    {typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0 ? (
+                      <>
+                        {" · "}
+                        {b.deposit_paid ? (
+                          <span className="text-glam-accent">Deposit paid</span>
+                        ) : (
+                          <span className="text-amber-200/90">Deposit pending</span>
+                        )}
+                      </>
+                    ) : null}
                   </p>
                 </div>
                 <select
