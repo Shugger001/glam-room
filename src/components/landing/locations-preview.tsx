@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { SalonOpenStatus } from "@/components/landing/salon-open-status";
+import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
@@ -23,12 +23,14 @@ export function LocationsPreview() {
           <Reveal key={location.id} delay={i * 0.1}>
             <article className="premium-card group overflow-hidden">
               <div className="relative aspect-[16/10] overflow-hidden">
-                <Image
+                <ParallaxImage
                   src={location.image}
                   alt={`Glam Room ${location.area}`}
-                  fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="absolute inset-0"
+                  imageClassName="transition-transform duration-700 group-hover:scale-105"
+                  yRange={["-5%", "5%"]}
+                  scaleRange={[1.06, 1.1]}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 to-transparent" />
                 {location.badge ? (

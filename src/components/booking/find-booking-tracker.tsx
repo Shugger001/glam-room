@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
@@ -129,12 +129,13 @@ export function FindBookingTracker() {
         </div>
 
         <Reveal className="relative order-2 aspect-[4/3] overflow-hidden rounded-2xl lg:order-1">
-          <Image
+          <ParallaxImage
             src="/images/glam-red-indoor.png"
             alt="Find your Glam Room booking"
-            fill
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
+            className="absolute inset-0"
+            yRange={["-6%", "6%"]}
+            scaleRange={[1.06, 1.12]}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 via-glam-primary/20 to-transparent" />
         </Reveal>
