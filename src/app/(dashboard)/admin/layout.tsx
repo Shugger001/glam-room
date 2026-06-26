@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
-import { getAdminAccess, getAdminNav, isClientSession } from "@/lib/admin/access";
+import { AdminNav } from "@/components/admin/admin-nav";
+import { getAdminAccess, getAdminNavGroups, isClientSession } from "@/lib/admin/access";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -52,25 +52,43 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
 
-  const nav = getAdminNav(access.isSuperAdmin);
+  const navGroups = getAdminNavGroups(access.isSuperAdmin);
 
   return (
     <AdminDashboardShell>
-      <div className="border-b border-white/10 bg-glam-primary/60 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <div>
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col lg:flex-row">
+        <aside className="border-b border-white/10 bg-glam-primary/60 backdrop-blur-xl lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
+          <div className="px-5 py-5 lg:px-4 lg:py-6">
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-glam-accent">
               {access.isSuperAdmin ? "Super admin" : "Staff"}
             </p>
-            <p className="font-display mt-2 text-2xl">Glam Room Admin</p>
+            <p className="font-display mt-2 text-xl lg:text-2xl">Glam Room Admin</p>
             {!access.isSuperAdmin && access.assignedLocationLabel ? (
-              <p className="mt-1 text-sm text-white/55">
-                Viewing bookings for{" "}
-                <span className="text-glam-accent">{access.assignedLocationLabel}</span> only
+              <p className="mt-1 text-xs text-white/55">
+                {access.assignedLocationLabel} bookings only
               </p>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="hidden px-3 pb-6 lg:block">
+            <AdminNav groups={navGroups} />
+            <form action={signOut} className="mt-8 px-3">
+              <button
+                type="submit"
+                className="w-full rounded-xl border border-white/15 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider text-white/70 transition hover:bg-white/5 hover:text-white"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
+
+          <div className="border-t border-white/10 px-5 py-4 lg:hidden">
+            <AdminNav groups={navGroups} orientation="horizontal" />
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-center justify-end border-b border-white/10 bg-glam-primary/40 px-5 py-3 backdrop-blur-md lg:hidden">
             <form action={signOut}>
               <button
                 type="submit"
@@ -80,23 +98,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </button>
             </form>
           </div>
+          <main className="flex-1 px-5 py-8 sm:px-8">{children}</main>
         </div>
-        <nav
-          className="mx-auto flex max-w-7xl flex-wrap gap-2 px-5 pb-4 sm:px-8"
-          aria-label="Admin"
-        >
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/70 transition hover:border-glam-accent/50 hover:bg-white/5 hover:text-white"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
       </div>
-      <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">{children}</div>
     </AdminDashboardShell>
   );
 }

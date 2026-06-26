@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
-import { ADMIN_NAV } from "@/lib/constants/navigation";
+import { ADMIN_NAV_GROUPS, STAFF_ADMIN_NAV_GROUPS } from "@/lib/constants/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ProfileRole } from "@/types/database";
 
@@ -13,15 +13,19 @@ export type AdminAccess = {
   assignedLocationLabel: string | null;
 };
 
-export const STAFF_ADMIN_NAV = [{ href: "/admin/appointments", label: "Appointments" }] as const;
+export const STAFF_ADMIN_NAV = STAFF_ADMIN_NAV_GROUPS.flatMap((g) => g.items);
+
+export function getAdminNavGroups(isSuperAdmin: boolean) {
+  return isSuperAdmin ? ADMIN_NAV_GROUPS : STAFF_ADMIN_NAV_GROUPS;
+}
+
+export function getAdminNav(isSuperAdmin: boolean) {
+  return getAdminNavGroups(isSuperAdmin).flatMap((g) => g.items);
+}
 
 export function locationLabelFromId(locationId: string | null) {
   if (!locationId) return null;
   return SALON_LOCATIONS.find((l) => l.id === locationId)?.area ?? locationId;
-}
-
-export function getAdminNav(isSuperAdmin: boolean) {
-  return isSuperAdmin ? ADMIN_NAV : STAFF_ADMIN_NAV;
 }
 
 /** Location filter for booking queries — null means all shops (super admin). */
