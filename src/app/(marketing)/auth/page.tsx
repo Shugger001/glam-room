@@ -94,7 +94,7 @@ export default function AuthPage() {
     "mt-2 w-full rounded-xl border border-glam-border bg-glam-secondary px-4 py-3 text-glam-primary outline-none focus:border-glam-accent focus:ring-1 focus:ring-glam-accent";
 
   return (
-    <div className="section-padding !pt-28">
+    <div className="section-padding !pt-10">
       <div className="mx-auto max-w-md">
         <Reveal>
           <div className="rounded-2xl border border-glam-border bg-glam-secondary p-8 shadow-soft sm:p-10">

@@ -2,8 +2,13 @@
 
 import { m } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function FloatingBookCta() {
+  const isHome = usePathname() === "/";
+
+  if (!isHome) return null;
+
   return (
     <m.div
       className="fixed bottom-6 right-5 z-40 md:hidden"

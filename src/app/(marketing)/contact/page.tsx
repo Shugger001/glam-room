@@ -13,7 +13,7 @@ const mapEmbedUrl = `https://maps.google.com/maps?q=${BRAND.address.lat},${BRAND
 
 export default function ContactPage() {
   return (
-    <Section className="!pt-28">
+    <Section className="!pt-10">
       <SectionHeader
         eyebrow="Contact"
         title="Get in Touch"

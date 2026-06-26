@@ -1,5 +1,6 @@
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MarketingMain } from "@/components/layout/marketing-main";
 import { FloatingBookCta } from "@/components/layout/floating-book-cta";
 
 export default function MarketingLayout({
@@ -10,7 +11,7 @@ export default function MarketingLayout({
   return (
     <>
       <SiteHeader />
-      <main className="flex flex-1 flex-col pt-[var(--header-height)]">{children}</main>
+      <MarketingMain>{children}</MarketingMain>
       <SiteFooter />
       <FloatingBookCta />
     </>

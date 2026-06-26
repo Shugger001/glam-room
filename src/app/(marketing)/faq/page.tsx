@@ -14,7 +14,7 @@ export default function FaqPage() {
   return (
     <>
       <FaqJsonLd />
-      <Section className="!pt-28">
+      <Section className="!pt-10">
         <SectionHeader
           eyebrow="FAQs"
           title="Common Questions"

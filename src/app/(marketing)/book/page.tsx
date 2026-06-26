@@ -20,7 +20,7 @@ export default async function BookPage({ searchParams }: BookPageProps) {
   const [services, staff] = await Promise.all([getLiveServices(), getLiveStaff()]);
 
   return (
-    <div className="section-padding !pt-28">
+    <div className="section-padding !pt-10">
       <div className="container-narrow">
         <Reveal>
           <SectionHeader

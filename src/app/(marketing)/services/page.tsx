@@ -15,7 +15,7 @@ export default async function ServicesPage() {
   const services = await getSalonServices();
 
   return (
-    <Section className="!pt-28">
+    <Section className="!pt-10">
       <SectionHeader
         eyebrow="Services"
         title="Our Menu"

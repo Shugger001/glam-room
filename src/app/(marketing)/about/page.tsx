@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Reveal } from "@/components/motion/reveal";
 import { BRAND } from "@/lib/constants/brand";
-
-const ABOUT_HERO =
-  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1920&q=80";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -15,25 +11,13 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <section className="relative -mt-[var(--header-height)] flex min-h-[50vh] items-end bg-glam-primary">
-        <Image
-          src={ABOUT_HERO}
-          alt="The Glam Room salon"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover opacity-50"
+      <Section className="!pt-12">
+        <SectionHeader
+          eyebrow="About Us"
+          title="Our Story"
+          description="A sanctuary where luxury meets artistry."
+          align="center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-glam-primary via-glam-primary/60 to-transparent" />
-        <div className="container-narrow relative z-10 px-5 pb-16 pt-32 sm:px-8">
-          <h1 className="heading-display text-5xl text-glam-secondary sm:text-6xl">Our Story</h1>
-          <p className="mt-4 max-w-xl text-lg text-white/70">
-            A sanctuary where luxury meets artistry.
-          </p>
-        </div>
-      </section>
-
-      <Section>
         <div className="mx-auto max-w-3xl space-y-6 text-base leading-relaxed text-glam-muted">
           <Reveal>
             <p>
@@ -60,11 +44,7 @@ export default function AboutPage() {
       </Section>
 
       <Section background="white">
-        <SectionHeader
-          eyebrow="Our Values"
-          title="What We Stand For"
-          align="center"
-        />
+        <SectionHeader eyebrow="Our Values" title="What We Stand For" align="center" />
         <div className="grid gap-8 sm:grid-cols-3">
           {[
             {

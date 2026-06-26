@@ -15,7 +15,7 @@ export default async function ExpertsPage() {
   const staff = await getStaffMembers();
 
   return (
-    <Section className="!pt-28">
+    <Section className="!pt-10">
       <SectionHeader
         eyebrow="Our Experts"
         title="The Team"

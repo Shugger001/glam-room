@@ -16,7 +16,7 @@ export default async function TestimonialsPage() {
 
   return (
     <>
-      <Section className="!pt-28 !pb-8">
+      <Section className="!pt-10 !pb-8">
         <SectionHeader
           eyebrow="Testimonials"
           title="Client Love"

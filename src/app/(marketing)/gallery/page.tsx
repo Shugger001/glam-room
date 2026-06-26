@@ -15,7 +15,7 @@ export default async function GalleryPage() {
   const items = await getLiveGallery();
 
   return (
-    <Section className="!pt-28" narrow={false}>
+    <Section className="!pt-10" narrow={false}>
       <div className="container-narrow px-5 sm:px-8">
         <SectionHeader
           eyebrow="Gallery"
