@@ -30,7 +30,7 @@ export default async function ExpertsPage() {
       ) : null}
       <p className="mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-glam-muted">
         Every appointment at Glam Room is personally led by Asantewaa. From silk presses to braids
-        and wig installs, you get the same premium care at our Adenta and Sowutuom studios.
+        and wig installs, you get the same premium care at our Adenta, Sowutuom, and Madina studios.
       </p>
     </Section>
   );

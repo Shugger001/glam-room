@@ -215,7 +215,14 @@ export function BookingForm({
         <ul className="mt-4 space-y-4 text-sm text-glam-muted">
           {SALON_LOCATIONS.map((loc) => (
             <li key={loc.id}>
-              <p className="font-medium text-glam-primary">{loc.area}</p>
+              <p className="font-medium text-glam-primary">
+                {loc.area}
+                {loc.badge ? (
+                  <span className="ml-2 rounded-full bg-glam-accent/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-glam-accent">
+                    {loc.badge}
+                  </span>
+                ) : null}
+              </p>
               <p className="text-glam-muted">{loc.address}</p>
             </li>
           ))}
@@ -280,6 +287,7 @@ export function BookingForm({
               {SALON_LOCATIONS.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.area}
+                  {loc.badge ? ` (${loc.badge})` : ""}
                 </option>
               ))}
             </select>

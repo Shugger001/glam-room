@@ -9,7 +9,7 @@ import { Reveal } from "@/components/motion/reveal";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Get in touch with ${BRAND.fullName}. Book or visit us in Adenta or Sowutuom, Accra.`,
+  description: `Get in touch with ${BRAND.fullName}. Book or visit us in Adenta, Sowutuom, or Madina, Accra.`,
 };
 
 export default function ContactPage() {
@@ -18,7 +18,7 @@ export default function ContactPage() {
       <SectionHeader
         eyebrow="Get In Touch"
         title="Come Through, Sis"
-        description="Two Glam Room spots in Accra. Pick your location when you book."
+        description="Three Glam Room shops in Accra. Pick your location when you book."
         align="center"
       />
 
@@ -39,6 +39,11 @@ export default function ContactPage() {
                 <div className="p-6">
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-glam-accent">
                     Glam Room · {location.area}
+                    {location.badge ? (
+                      <span className="ml-2 rounded-full bg-glam-accent/15 px-2 py-0.5 text-[0.65rem] text-glam-primary">
+                        {location.badge}
+                      </span>
+                    ) : null}
                   </h3>
                   <p className="mt-2 text-glam-primary">{location.address}</p>
                   <p className="mt-2 text-sm text-glam-muted">{location.hours}</p>

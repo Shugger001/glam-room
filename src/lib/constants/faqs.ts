@@ -11,13 +11,13 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "faq-01",
     question: "How do I book an appointment?",
     answer:
-      "Book online through our Book Appointment page, or message us on WhatsApp. Choose your location (Adenta or Sowutuom), pick your service, and select a time slot.",
+      "Book online through our Book Appointment page, or message us on WhatsApp. Choose your location (Adenta, Sowutuom, or Madina), pick your service, and select a time slot.",
   },
   {
     id: "faq-02",
     question: "Do you have more than one location?",
     answer:
-      "Yes — Glam Room has two spots in Accra: Adenta and Sowutuom. Pick your preferred location when you book.",
+      "Yes — Glam Room has three shops in Accra: Adenta, Sowutuom, and our newest location in Madina (Ritz Junction). Pick your preferred location when you book.",
   },
   {
     id: "faq-03",
@@ -27,7 +27,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     id: "faq-04",
     question: "What are your opening hours?",
-    answer: "We're open Monday to Sunday, 8am to 8pm at both locations.",
+    answer: "We're open Monday to Sunday, 8am to 8pm at all three locations.",
   },
   {
     id: "faq-05",

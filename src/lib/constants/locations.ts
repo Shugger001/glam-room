@@ -8,6 +8,7 @@ export type SalonLocation = {
   mapUrl: string;
   hours: string;
   image: string;
+  badge?: string | null;
 };
 
 export const SALON_LOCATIONS: SalonLocation[] = [
@@ -26,11 +27,24 @@ export const SALON_LOCATIONS: SalonLocation[] = [
     id: "glam-room-sowutuom",
     name: "Glam Room",
     area: "Sowutuom",
-    address: "Sowutuom, Accra",
+    address: "Sowutuom (Ofankor barrier), Accra",
     city: "Accra",
     country: "Ghana",
     mapUrl: "https://share.google/eNIyXIhSW1kZ6rzmF",
     hours: "Mon to Sun: 8am to 8pm",
     image: "/images/glam-braids-studio.png",
+  },
+  {
+    id: "glam-room-madina",
+    name: "Glam Room",
+    area: "Madina",
+    address: "Ritz Junction, opposite Glory Oil, Madina, Accra",
+    city: "Accra",
+    country: "Ghana",
+    mapUrl:
+      "https://www.google.com/maps/search/?api=1&query=Glam+Room+Ritz+Junction+Madina+Accra+Ghana",
+    hours: "Mon to Sun: 8am to 8pm",
+    image: "/images/glam-red-celebration.png",
+    badge: "New",
   },
 ];

@@ -6,7 +6,7 @@ import { BRAND } from "@/lib/constants/brand";
 
 export const metadata: Metadata = {
   title: "About Us",
-  description: `Learn about ${BRAND.fullName} — Accra's premier hair destination with locations in Adenta and Sowutuom.`,
+  description: `Learn about ${BRAND.fullName} — Accra's premier hair destination with locations in Adenta, Sowutuom, and Madina.`,
 };
 
 export default function AboutPage() {

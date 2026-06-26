@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     default: `${BRAND.fullName} — Luxury Hair & Beauty Salon · ${MARKET.city}`,
     template: `%s · ${BRAND.name}`,
   },
-  description: `${BRAND.fullName} — ${BRAND.copy.heroSubtitle}. Hair reset, installs, and braids in Adenta and Sowutuom, Accra.`,
+  description: `${BRAND.fullName} — ${BRAND.copy.heroSubtitle}. Hair reset, installs, and braids in Adenta, Sowutuom, and Madina, Accra.`,
   applicationName: BRAND.fullName,
   keywords: [
     "luxury salon",

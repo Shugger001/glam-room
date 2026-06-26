@@ -25,7 +25,7 @@ export const BRAND = {
     phone: "+233 24 364 6400",
   },
   address: {
-    street: "Adenta & Sowutuom",
+    street: "Adenta, Sowutuom & Madina",
     city: "Accra",
     region: "Greater Accra",
     country: "Ghana",

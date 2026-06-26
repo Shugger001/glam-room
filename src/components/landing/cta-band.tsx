@@ -14,7 +14,7 @@ export function CtaBand() {
           Book Your Glow Up
         </h2>
         <p className="mt-4 max-w-lg text-base text-glam-muted">
-          Two Glam Room spots in Accra. Pick your location, choose your service, and come shine.
+          Three Glam Room shops in Accra. Pick your location, choose your service, and come shine.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <ButtonLink href="/book" variant="primary" size="lg">

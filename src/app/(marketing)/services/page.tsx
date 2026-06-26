@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Services",
-  description: `Explore hair services at ${BRAND.fullName} — hair reset, installs, and braids in Adenta and Sowutuom.`,
+  description: `Explore hair services at ${BRAND.fullName} — hair reset, installs, and braids in Adenta, Sowutuom, and Madina.`,
 };
 
 export default async function ServicesPage() {
