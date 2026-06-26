@@ -49,11 +49,12 @@ export function SectionHeader({
   return (
     <Reveal className={cn(align === "center" && "text-center", "mb-12 sm:mb-16", className)}>
       {eyebrow ? (
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-glam-accent">
-          {eyebrow}
-        </p>
+        <div className={cn("mb-5", align === "center" && "flex flex-col items-center")}>
+          <p className="eyebrow-label">{eyebrow}</p>
+          <span className="gold-rule" aria-hidden />
+        </div>
       ) : null}
-      <h2 className="heading-display text-3xl text-balance sm:text-4xl lg:text-5xl xl:text-6xl">{title}</h2>
+      <h2 className="heading-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl">{title}</h2>
       {description ? (
         <p
           className={cn(

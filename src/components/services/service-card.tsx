@@ -14,7 +14,7 @@ type ServiceCardProps = {
 
 export function ServiceCard({ service, index = 0, disableReveal = false }: ServiceCardProps) {
   const card = (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl bg-glam-secondary shadow-soft transition-shadow duration-500 hover:shadow-premium sm:rounded-2xl">
+    <article className="premium-card group flex h-full flex-col !rounded-xl sm:!rounded-2xl">
         <div className="relative aspect-square overflow-hidden sm:aspect-[4/3]">
           <Image
             src={service.image}

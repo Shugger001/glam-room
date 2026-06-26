@@ -8,7 +8,7 @@ import type { StaffMember } from "@/lib/constants/staff";
 export function TeamCard({ member, index = 0 }: { member: StaffMember; index?: number }) {
   return (
     <Reveal delay={index * 0.1}>
-      <article className="group overflow-hidden rounded-2xl bg-glam-secondary shadow-soft transition-shadow hover:shadow-premium">
+      <article className="premium-card group overflow-hidden">
         <div className="relative aspect-[3/4] overflow-hidden">
           <Image
             src={member.image}

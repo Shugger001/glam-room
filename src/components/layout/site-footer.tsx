@@ -6,7 +6,8 @@ import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-glam-border bg-glam-primary text-glam-secondary">
+    <footer className="relative border-t border-white/10 bg-glam-primary text-glam-secondary">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-glam-accent/60 to-transparent" aria-hidden />
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
         <div className="space-y-4">
           <GlamLogo variant="onDark" asLink={false} />

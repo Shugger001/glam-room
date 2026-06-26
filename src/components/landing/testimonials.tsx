@@ -59,7 +59,8 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             <StarRating rating={current.rating} />
-            <p className="heading-display mt-6 text-2xl leading-relaxed text-glam-secondary sm:text-3xl">
+            <span className="mx-auto mt-4 block h-px w-10 bg-gradient-to-r from-transparent via-glam-accent/70 to-transparent" aria-hidden />
+            <p className="heading-display mt-6 text-2xl leading-relaxed text-glam-secondary sm:text-3xl lg:text-4xl">
               &ldquo;{current.quote}&rdquo;
             </p>
             <footer className="mt-8">

@@ -10,15 +10,16 @@ export function AboutPreview() {
   return (
     <Section id="about">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-        <Reveal className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+        <Reveal className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-premium">
           <Image
             src={ABOUT_IMAGE}
             alt="Asantewaa at Glam Room by Asantewaa"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700 hover:scale-[1.02]"
           />
-          <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-glam-primary/10" />
+          <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
+          <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-glam-accent/20" />
         </Reveal>
         <div>
           <SectionHeader
@@ -30,9 +31,9 @@ export function AboutPreview() {
             <p className="mb-4 text-base leading-relaxed text-glam-muted">
               {BRAND.copy.aboutIntro[1]}
             </p>
-            <blockquote className="mb-8 border-l-2 border-glam-accent pl-4 text-base italic leading-relaxed text-glam-primary">
+            <blockquote className="mb-8 border-l border-glam-accent/60 pl-5 text-lg italic leading-relaxed text-glam-primary">
               &ldquo;{BRAND.copy.quote}&rdquo;
-              <footer className="mt-2 text-sm font-semibold not-italic text-glam-accent">
+              <footer className="mt-3 text-sm font-semibold not-italic tracking-wide text-glam-accent">
                 — {BRAND.copy.quoteAuthor}
               </footer>
             </blockquote>

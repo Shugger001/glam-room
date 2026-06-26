@@ -21,7 +21,7 @@ export function LocationsPreview() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {SALON_LOCATIONS.map((location, i) => (
           <Reveal key={location.id} delay={i * 0.1}>
-            <article className="group overflow-hidden rounded-2xl bg-glam-secondary shadow-soft">
+            <article className="premium-card group overflow-hidden">
               <div className="relative aspect-[16/10] overflow-hidden">
                 <Image
                   src={location.image}

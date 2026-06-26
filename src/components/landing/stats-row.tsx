@@ -17,33 +17,36 @@ export function StatsRow({ locationCount, serviceCount, testimonialCount }: Stat
   const inView = useInView(ref, { once: true, margin: "-5% 0px" });
 
   return (
-    <Section className="!py-12 sm:!py-16" background="white">
-      <div ref={ref} className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
-        <div className="text-center">
-          <p className="heading-display text-3xl text-glam-accent sm:text-4xl lg:text-5xl">
-            <CountUp value={locationCount} active={inView} />
+    <Section className="relative !py-12 sm:!py-16" background="white">
+      <div
+        ref={ref}
+        className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4 lg:divide-x lg:divide-glam-accent/15"
+      >
+        <div className="text-center lg:px-6">
+          <p className="heading-display text-3xl sm:text-4xl lg:text-5xl">
+            <CountUp value={locationCount} active={inView} className="text-gold-gradient" />
           </p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
             Salon Locations
           </p>
         </div>
-        <div className="text-center">
-          <p className="heading-display text-3xl text-glam-accent sm:text-4xl lg:text-5xl">
-            <CountUp value={serviceCount} active={inView} />
+        <div className="text-center lg:px-6">
+          <p className="heading-display text-3xl sm:text-4xl lg:text-5xl">
+            <CountUp value={serviceCount} active={inView} className="text-gold-gradient" />
           </p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
             Live Services
           </p>
         </div>
-        <div className="text-center">
-          <p className="heading-display text-3xl text-glam-accent sm:text-4xl lg:text-5xl">
-            <CountUp value={testimonialCount} active={inView} />
+        <div className="text-center lg:px-6">
+          <p className="heading-display text-3xl sm:text-4xl lg:text-5xl">
+            <CountUp value={testimonialCount} active={inView} className="text-gold-gradient" />
           </p>
           <p className="mt-2 text-sm font-medium uppercase tracking-wider text-glam-muted">
             Client Love Notes
           </p>
         </div>
-        <SalonOpenStatus variant="stat" className="col-span-2 lg:col-span-1" />
+        <SalonOpenStatus variant="stat" className="col-span-2 lg:col-span-1 lg:px-6" />
       </div>
     </Section>
   );

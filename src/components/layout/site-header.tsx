@@ -43,7 +43,7 @@ export function SiteHeader() {
         className={cn(
           "fixed inset-x-0 top-0 z-50 flex h-[calc(var(--header-height)+env(safe-area-inset-top,0px))] overflow-visible border-b pt-[env(safe-area-inset-top,0px)] transition-[border-color,background-color] duration-500",
           showSolidHeader
-            ? "border-glam-border bg-glam-secondary/90 shadow-[var(--shadow-glass)] backdrop-blur-xl"
+            ? "border-glam-border/80 border-b-glam-accent/10 bg-glam-secondary/92 shadow-[var(--shadow-glass)] backdrop-blur-xl"
             : "border-transparent bg-transparent",
         )}
       >
@@ -64,7 +64,7 @@ export function SiteHeader() {
                 key={item.href}
                 href={href}
                 className={cn(
-                  "relative transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-glam-accent after:transition-transform hover:after:scale-x-100",
+                  "relative tracking-wide transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-gradient-to-r after:from-glam-accent-deep after:to-glam-accent-light after:transition-transform hover:after:scale-x-100",
                   showSolidHeader
                     ? "hover:text-glam-primary"
                     : "hover:text-glam-secondary",

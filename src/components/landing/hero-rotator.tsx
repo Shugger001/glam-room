@@ -29,7 +29,7 @@ export function HeroRotator() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-x-2 top-1/2 -translate-y-1/2 text-center text-base leading-relaxed text-white/70 sm:text-lg"
+          className="absolute inset-x-2 top-1/2 -translate-y-1/2 text-center text-base font-light leading-relaxed tracking-wide text-white/75 sm:text-lg"
         >
           {ROTATING_LINES[index]}
         </m.p>

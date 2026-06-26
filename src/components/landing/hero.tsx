@@ -37,6 +37,7 @@ export function LandingHero() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-glam-primary/60 via-glam-primary/40 to-glam-primary/90" />
         <div className="absolute inset-0 bg-gradient-to-r from-glam-primary/50 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(15,15,15,0.35)_100%)]" />
       </m.div>
 
       <m.div
@@ -47,10 +48,11 @@ export function LandingHero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-glam-accent"
+          className="mb-4 eyebrow-label text-glam-accent"
         >
           🇬🇭 3 Locations · Accra
         </m.p>
+        <span className="mb-6 block h-px w-16 bg-gradient-to-r from-transparent via-glam-accent/80 to-transparent" aria-hidden />
 
         <m.h1
           initial={{ opacity: 0, y: 32 }}

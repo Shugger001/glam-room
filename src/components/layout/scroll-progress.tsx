@@ -8,7 +8,7 @@ export function ScrollProgress() {
 
   return (
     <m.div
-      className="pointer-events-none fixed inset-x-0 top-[calc(var(--header-height)+env(safe-area-inset-top,0px))] z-[60] h-0.5 origin-left bg-glam-accent"
+      className="pointer-events-none fixed inset-x-0 top-[calc(var(--header-height)+env(safe-area-inset-top,0px))] z-[60] h-[2px] origin-left bg-gradient-to-r from-glam-accent-deep via-glam-accent-light to-glam-accent-deep"
       style={{ scaleX }}
       aria-hidden
     />
