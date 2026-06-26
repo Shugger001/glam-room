@@ -9,8 +9,7 @@ function trimSlash(s: string) {
  * 1. `NEXT_PUBLIC_MEDIA_CDN_BASE` + path (any CDN mirroring the same keys)
  * 2. `NEXT_PUBLIC_SUPABASE_URL` + `/storage/v1/object/public/` + `NEXT_PUBLIC_MEDIA_BUCKET` + path
  *
- * Upload to Supabase Storage (public bucket) using the same paths as in `editorial-media.ts`
- * (e.g. `editorial/hero.webp`, `editorial/gallery-01.webp`).
+ * Upload to Supabase Storage (public bucket), e.g. `salon/hero.webp`, `gallery/01.webp`.
  *
  * Remote URLs are used only when `NEXT_PUBLIC_MARKETING_MEDIA_USE_STORAGE` is `true`; otherwise
  * callers fall back to Unsplash / local placeholders.

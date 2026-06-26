@@ -8,7 +8,6 @@
     "open:dev": "open http://127.0.0.1:3100",
     "build": "next build --webpack",
     "perf:budget": "node scripts/perf-budget.mjs",
-    "build:logo": "node scripts/build-logo-assets.mjs",
     "start": "next start",
     "lint": "eslint",
     "deploy:vercel": "vercel deploy --prod --yes",
