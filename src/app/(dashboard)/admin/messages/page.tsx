@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { AdminPageHeader, AdminSetupNotice } from "@/components/admin/admin-ui";
+import { AdminPanel, adminTabClass, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function AdminMessagesPage({ searchParams }: { searchParams: SearchParams }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return <AdminSetupNotice />;
+    return <AdminSetupNotice title="Messages" />;
   }
 
   const params = await searchParams;
@@ -39,29 +39,25 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
   const { data: messages } = await query;
 
   return (
-    <div className="space-y-8">
-      <AdminPageHeader
-        title="Contact Messages"
-        description="Inquiries from the contact form on your website."
-      />
+    <AdminPanel>
+      <h1 className="font-display text-3xl">Messages</h1>
+      <p className="mt-3 max-w-2xl text-sm text-white/55">
+        Inquiries from the contact form on your website.
+      </p>
 
-      <div className="flex gap-2">
+      <div className="mt-4 flex gap-2">
         {(["all", "unread"] as const).map((tab) => (
           <a
             key={tab}
             href={tab === "all" ? "/admin/messages" : "/admin/messages?filter=unread"}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-              filter === tab
-                ? "border-glam-accent/60 bg-glam-accent/15 text-glam-accent"
-                : "border-white/20 text-white/65 hover:bg-white/10"
-            }`}
+            className={adminTabClass(filter === tab)}
           >
             {tab}
           </a>
         ))}
       </div>
 
-      <div className="space-y-4">
+      <div className="mt-6 space-y-4">
         {(messages ?? []).length === 0 ? (
           <p className="text-sm text-white/55">No messages yet.</p>
         ) : null}
@@ -109,6 +105,6 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
           </article>
         ))}
       </div>
-    </div>
+    </AdminPanel>
   );
 }

@@ -2,7 +2,14 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
-import { AdminPageHeader, AdminSetupNotice } from "@/components/admin/admin-ui";
+import {
+  AdminBtnPrimary,
+  adminBtnOutline,
+  adminFormRowClass,
+  AdminPanel,
+  adminTabClass,
+  AdminSetupNotice,
+} from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -99,7 +106,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function AdminAppointmentsPage({ searchParams }: { searchParams: SearchParams }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return <AdminSetupNotice />;
+    return <AdminSetupNotice title="Appointments" />;
   }
 
   const params = await searchParams;
@@ -136,29 +143,16 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   }
 
   return (
-    <div className="space-y-8">
-      <AdminPageHeader
-        title="Appointments"
-        description="Review, confirm, and reschedule Glam Room bookings."
-      />
-
-      <div className="flex flex-wrap gap-2">
+    <AdminPanel>
+      <h1 className="font-display text-3xl">Appointments</h1>
+      <div className="mt-4 flex flex-wrap gap-2">
         {statusTabs.map((tab) => (
-          <a
-            key={tab}
-            href={tabHref(tab)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-              statusFilter === tab
-                ? "border-glam-accent/60 bg-glam-accent/15 text-glam-accent"
-                : "border-white/20 text-white/65 hover:bg-white/10"
-            }`}
-          >
+          <a key={tab} href={tabHref(tab)} className={adminTabClass(statusFilter === tab)}>
             {tab}
           </a>
         ))}
       </div>
-
-      <form action="/admin/appointments" className="flex flex-wrap items-end gap-3 text-xs text-white/65">
+      <form action="/admin/appointments" className="mt-4 flex flex-wrap items-end gap-3 text-xs text-white/65">
         <input type="hidden" name="status" value={statusFilter} />
         <label>
           From
@@ -178,15 +172,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
             className="mt-1 rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
           />
         </label>
-        <button
-          type="submit"
-          className="rounded-full border border-white/25 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/75"
-        >
+        <button type="submit" className={adminBtnOutline}>
           Apply range
         </button>
       </form>
-
-      <div className="space-y-3">
+      <div className="mt-6 space-y-3">
         {(data ?? []).length === 0 ? (
           <p className="text-sm text-white/55">No appointments match this filter.</p>
         ) : null}
@@ -198,11 +188,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           const staffName = (b.staff as { name?: string } | null)?.name;
 
           return (
-            <form
-              key={b.id}
-              action={updateBookingStatus}
-              className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-[1fr_auto_auto]"
-            >
+            <form key={b.id} action={updateBookingStatus} className={adminFormRowClass}>
               <input type="hidden" name="id" value={b.id} />
               <div>
                 <p className="font-semibold text-white">
@@ -238,16 +224,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
                   </option>
                 ))}
               </select>
-              <button
-                type="submit"
-                className="rounded-full bg-glam-accent px-4 py-2 text-xs font-semibold uppercase tracking-wider text-glam-primary"
-              >
-                Update
-              </button>
+              <AdminBtnPrimary>Update</AdminBtnPrimary>
             </form>
           );
         })}
       </div>
-    </div>
+    </AdminPanel>
   );
 }

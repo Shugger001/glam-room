@@ -30,21 +30,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen bg-glam-primary text-glam-secondary">
+    <div className="min-h-screen bg-glam-primary text-white">
       <div className="border-b border-white/10 bg-glam-primary/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div>
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-glam-accent">
-              Admin Dashboard
+              Super admin
             </p>
-            <GlamLogo variant="onDark" className="mt-2" asLink={false} />
+            <Link href="/" className="mt-2 inline-block" aria-label="Home">
+              <GlamLogo variant="onDark" className="[&_span]:leading-tight" />
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href="/"
               className="text-sm font-medium text-white/60 transition hover:text-white"
             >
-              View Site
+              View site
             </Link>
             <form action={signOut}>
               <button

@@ -1,11 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { AdminPageHeader, AdminSetupNotice, AdminCard } from "@/components/admin/admin-ui";
+import { AdminPanel, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminStaffPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return <AdminSetupNotice />;
+    return <AdminSetupNotice title="Staff" />;
   }
   const admin = createAdminClient();
   const { data: staff } = await admin
@@ -14,11 +14,14 @@ export default async function AdminStaffPage() {
     .order("sort_order", { ascending: true });
 
   return (
-    <div>
-      <AdminPageHeader title="Staff" description="Manage stylist profiles and specialties." />
-      <div className="grid gap-4 sm:grid-cols-2">
+    <AdminPanel>
+      <h1 className="font-display text-3xl">Staff</h1>
+      <p className="mt-3 max-w-2xl text-sm text-white/55">
+        Manage stylist profiles and specialties.
+      </p>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {(staff ?? []).map((s) => (
-          <AdminCard key={s.id}>
+          <div key={s.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
             <p className="font-medium text-white">{s.name}</p>
             <p className="text-sm text-glam-accent">{s.role}</p>
             <p className="mt-2 text-sm text-white/55">{s.experience}</p>
@@ -31,9 +34,9 @@ export default async function AdminStaffPage() {
                 ))}
               </div>
             ) : null}
-          </AdminCard>
+          </div>
         ))}
       </div>
-    </div>
+    </AdminPanel>
   );
 }

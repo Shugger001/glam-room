@@ -145,7 +145,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-10">
-        <h1 className="heading-display text-3xl">CRM</h1>
+        <h1 className="font-display text-3xl">CRM</h1>
         <p className="mt-3 max-w-2xl text-sm text-white/55">
           Configure <code className="text-glam-accent">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
           <code className="text-glam-accent">SUPABASE_SERVICE_ROLE_KEY</code> to manage customer roles and
@@ -198,7 +198,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
-      <h1 className="heading-display text-3xl">CRM</h1>
+      <h1 className="font-display text-3xl">CRM</h1>
       <p className="mt-3 max-w-2xl text-sm text-white/55">
         Manage customer segmentation and role onboarding. Only admins can change roles.
       </p>

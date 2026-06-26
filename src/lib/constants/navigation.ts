@@ -25,10 +25,10 @@ export const FOOTER_NAV = {
 } as const;
 
 export const ADMIN_NAV = [
-  { href: "/admin", label: "Dashboard" },
+  { href: "/admin", label: "Overview" },
   { href: "/admin/appointments", label: "Appointments" },
   { href: "/admin/messages", label: "Messages" },
-  { href: "/admin/customers", label: "Customers" },
+  { href: "/admin/customers", label: "CRM" },
   { href: "/admin/services", label: "Services" },
   { href: "/admin/gallery", label: "Gallery" },
   { href: "/admin/staff", label: "Staff" },

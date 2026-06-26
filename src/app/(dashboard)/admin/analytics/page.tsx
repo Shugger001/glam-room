@@ -1,11 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { AdminPageHeader, AdminSetupNotice, AdminKpi } from "@/components/admin/admin-ui";
+import { AdminKpi, AdminPageHeader, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return <AdminSetupNotice />;
+    return <AdminSetupNotice title="Analytics" />;
   }
 
   const admin = createAdminClient();
@@ -36,7 +36,7 @@ export default async function AdminAnalyticsPage() {
       />
       <div className="grid gap-5 sm:grid-cols-3">
         <AdminKpi label="Bookings (30d)" value={`${recentBookings.count ?? 0}`} />
-        <AdminKpi label="New Clients (30d)" value={`${newClients.count ?? 0}`} />
+        <AdminKpi label="New clients (30d)" value={`${newClients.count ?? 0}`} />
         <AdminKpi label="Completed (30d)" value={`${completedBookings.count ?? 0}`} />
       </div>
     </div>

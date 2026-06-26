@@ -1,11 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { AdminPageHeader, AdminSetupNotice, AdminCard } from "@/components/admin/admin-ui";
+import { AdminPanel, AdminSetupNotice } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPromotionsPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return <AdminSetupNotice />;
+    return <AdminSetupNotice title="Promotions" />;
   }
   const admin = createAdminClient();
   const { data: promos } = await admin
@@ -14,11 +14,17 @@ export default async function AdminPromotionsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div>
-      <AdminPageHeader title="Promotions" description="Manage discount codes and seasonal offers." />
-      <div className="space-y-3">
+    <AdminPanel>
+      <h1 className="font-display text-3xl">Promotions</h1>
+      <p className="mt-3 max-w-2xl text-sm text-white/55">
+        Manage discount codes and seasonal offers.
+      </p>
+      <div className="mt-6 space-y-3">
         {(promos ?? []).map((p) => (
-          <AdminCard key={p.id} className="flex flex-wrap items-center justify-between gap-4">
+          <div
+            key={p.id}
+            className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 p-4"
+          >
             <div>
               <p className="font-medium text-white">{p.title}</p>
               <p className="text-sm text-white/55">
@@ -30,9 +36,9 @@ export default async function AdminPromotionsPage() {
             <span className={p.active ? "text-green-300" : "text-white/40"}>
               {p.active ? "Active" : "Inactive"}
             </span>
-          </AdminCard>
+          </div>
         ))}
       </div>
-    </div>
+    </AdminPanel>
   );
 }

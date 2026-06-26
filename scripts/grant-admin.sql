@@ -4,5 +4,5 @@
 update public.profiles
 set role = 'admin'
 where id = (
-  select id from auth.users where email = 'YOUR_EMAIL@example.com' limit 1
+  select id from auth.users where email = 'stewardmoore22@gmail.com' limit 1
 );

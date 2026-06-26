@@ -63,7 +63,11 @@ export default function AuthPage() {
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast.error(error.message);
+        const hint =
+          error.message === "Invalid login credentials"
+            ? " No account yet? Tap “Create one” below to register first."
+            : "";
+        toast.error(`${error.message}${hint}`);
         return;
       }
       await fetch("/api/auth/bootstrap-profile", { method: "POST" });
