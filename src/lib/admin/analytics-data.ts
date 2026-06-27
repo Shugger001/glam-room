@@ -9,9 +9,11 @@ export type AnalyticsBreakdown = {
 };
 
 export type SalonAnalytics = {
-  bookings30d: number;
-  newClients30d: number;
-  completed30d: number;
+  since: string;
+  until: string;
+  bookingsTotal: number;
+  newClientsTotal: number;
+  completedTotal: number;
   awaitingApproval: number;
   depositTotal: number;
   depositsPaidCount: number;
@@ -22,7 +24,54 @@ export type SalonAnalytics = {
   byService: AnalyticsBreakdown[];
   byPromo: AnalyticsBreakdown[];
   byStatus: AnalyticsBreakdown[];
+  rawRows: AnalyticsBookingRow[];
 };
+
+export type AnalyticsBookingRow = {
+  id?: string;
+  status?: string;
+  location_id?: string | null;
+  promotion_code?: string | null;
+  deposit_amount?: number | null;
+  deposit_paid?: boolean | null;
+  add_ons?: unknown;
+  services?: { name?: string } | { name?: string }[] | null;
+  created_at?: string;
+  client_name?: string | null;
+  start_at?: string;
+};
+
+export type AnalyticsRange = {
+  since: Date;
+  until: Date;
+};
+
+export function parseAnalyticsRange(fromParam?: string, toParam?: string): AnalyticsRange {
+  let until = toParam ? new Date(`${toParam}T23:59:59.999`) : new Date();
+  if (Number.isNaN(until.getTime())) {
+    until = new Date();
+  }
+
+  let since: Date;
+  if (fromParam) {
+    since = new Date(`${fromParam}T00:00:00`);
+    if (Number.isNaN(since.getTime())) {
+      since = new Date(until);
+      since.setDate(since.getDate() - 30);
+    }
+  } else {
+    since = new Date(until);
+    since.setDate(since.getDate() - 30);
+  }
+
+  if (since > until) {
+    const tmp = new Date(since);
+    since = new Date(until);
+    until = tmp;
+  }
+
+  return { since, until };
+}
 
 function countByKey<T>(
   rows: T[],
@@ -43,10 +92,13 @@ function countByKey<T>(
     .sort((a, b) => b.count - a.count);
 }
 
-export async function loadSalonAnalytics(admin: SupabaseClient): Promise<SalonAnalytics> {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const since = thirtyDaysAgo.toISOString();
+export async function loadSalonAnalytics(
+  admin: SupabaseClient,
+  range?: AnalyticsRange,
+): Promise<SalonAnalytics> {
+  const { since, until } = range ?? parseAnalyticsRange();
+  const sinceIso = since.toISOString();
+  const untilIso = until.toISOString();
 
   const [
     recentBookings,
@@ -56,13 +108,22 @@ export async function loadSalonAnalytics(admin: SupabaseClient): Promise<SalonAn
     bookingRows,
     depositsPaid,
   ] = await Promise.all([
-    admin.from("bookings").select("id", { count: "exact", head: true }).gte("created_at", since),
+    admin
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", sinceIso)
+      .lte("created_at", untilIso),
     admin
       .from("bookings")
       .select("id", { count: "exact", head: true })
       .eq("status", "completed")
-      .gte("created_at", since),
-    admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since),
+      .gte("created_at", sinceIso)
+      .lte("created_at", untilIso),
+    admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", sinceIso)
+      .lte("created_at", untilIso),
     admin
       .from("bookings")
       .select("id", { count: "exact", head: true })
@@ -70,13 +131,16 @@ export async function loadSalonAnalytics(admin: SupabaseClient): Promise<SalonAn
     admin
       .from("bookings")
       .select(
-        "id, status, location_id, promotion_code, deposit_amount, deposit_paid, add_ons, services(name)",
+        "id, status, location_id, promotion_code, deposit_amount, deposit_paid, add_ons, services(name), created_at, client_name, start_at",
       )
-      .gte("created_at", since),
+      .gte("created_at", sinceIso)
+      .lte("created_at", untilIso)
+      .order("created_at", { ascending: false }),
     admin
       .from("bookings")
       .select("deposit_amount, deposit_paid, promotion_code, add_ons")
-      .gte("created_at", since)
+      .gte("created_at", sinceIso)
+      .lte("created_at", untilIso)
       .gt("deposit_amount", 0),
   ]);
 
@@ -111,7 +175,6 @@ export async function loadSalonAnalytics(admin: SupabaseClient): Promise<SalonAn
     String(r.status ?? "unknown").replaceAll("_", " "),
   );
 
-  // Ensure all locations appear even at zero
   for (const loc of SALON_LOCATIONS) {
     if (!byLocation.some((b) => b.label === loc.area)) {
       byLocation.push({ label: loc.area, count: 0 });
@@ -120,9 +183,11 @@ export async function loadSalonAnalytics(admin: SupabaseClient): Promise<SalonAn
   byLocation.sort((a, b) => b.count - a.count);
 
   return {
-    bookings30d: recentBookings.count ?? 0,
-    newClients30d: newClients.count ?? 0,
-    completed30d: completedBookings.count ?? 0,
+    since: sinceIso,
+    until: untilIso,
+    bookingsTotal: recentBookings.count ?? 0,
+    newClientsTotal: newClients.count ?? 0,
+    completedTotal: completedBookings.count ?? 0,
     awaitingApproval: awaitingApproval.count ?? 0,
     depositTotal,
     depositsPaidCount,
@@ -133,5 +198,59 @@ export async function loadSalonAnalytics(admin: SupabaseClient): Promise<SalonAn
     byService,
     byPromo,
     byStatus,
+    rawRows: rows as AnalyticsBookingRow[],
   };
+}
+
+export function analyticsToCsv(stats: SalonAnalytics) {
+  const lines: string[] = [
+    "Glam Room analytics export",
+    `From,${stats.since}`,
+    `To,${stats.until}`,
+    "",
+    "Summary",
+    `Bookings,${stats.bookingsTotal}`,
+    `Completed,${stats.completedTotal}`,
+    `Deposits collected (GHS),${stats.depositTotal}`,
+    `Promo bookings,${stats.promoBookings}`,
+    "",
+    "By location",
+    "Location,Count",
+    ...stats.byLocation.map((r) => `${csvEscape(r.label)},${r.count}`),
+    "",
+    "By service",
+    "Service,Count",
+    ...stats.byService.map((r) => `${csvEscape(r.label)},${r.count}`),
+    "",
+    "By status",
+    "Status,Count",
+    ...stats.byStatus.map((r) => `${csvEscape(r.label)},${r.count}`),
+  ];
+
+  const raw = stats.rawRows;
+  if (raw.length > 0) {
+    lines.push("", "Bookings", "Created,Start,Status,Location,Service,Client");
+    for (const row of raw) {
+      const svc = row.services as { name?: string } | null;
+      lines.push(
+        [
+          csvEscape(String(row.created_at ?? "")),
+          csvEscape(String(row.start_at ?? "")),
+          csvEscape(String(row.status ?? "")),
+          csvEscape(locationLabelFromId(row.location_id as string | null) ?? ""),
+          csvEscape(svc?.name ?? ""),
+          csvEscape(String(row.client_name ?? "")),
+        ].join(","),
+      );
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function csvEscape(value: string) {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
 }

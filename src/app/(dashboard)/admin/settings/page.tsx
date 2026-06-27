@@ -1,6 +1,8 @@
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { loadIntegrationHealth } from "@/lib/admin/integration-health";
 import { BOOKING_DEPOSIT_GHS, isPaystackConfigured } from "@/lib/booking/deposit";
 import { AdminPanel } from "@/components/admin/admin-ui";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { notificationsConfigured } from "@/lib/notifications/salon-contact";
 
 export const dynamic = "force-dynamic";
@@ -30,12 +32,14 @@ export default async function AdminSettingsPage() {
   const notify = notificationsConfigured();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "Not set";
 
+  const admin = createAdminClient();
+  const health = await loadIntegrationHealth(admin);
+
   return (
     <AdminPanel>
       <h1 className="font-display text-3xl">Settings</h1>
       <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Operational checklist for bookings, deposits, and alerts. Secrets stay in Vercel env — never
-        in the database.
+        Operational checklist and integration health. Secrets stay in Vercel env.
       </p>
 
       <div className="mt-8 space-y-3">
@@ -54,7 +58,7 @@ export default async function AdminSettingsPage() {
           detail={
             notify.hasEmail
               ? `Sending to ${notify.salonEmail} via Resend`
-              : "Set SALON_NOTIFY_EMAIL + RESEND_API_KEY (+ RESEND_FROM_EMAIL) for new booking emails"
+              : "Set SALON_NOTIFY_EMAIL + RESEND_API_KEY (+ RESEND_FROM_EMAIL)"
           }
         />
         <StatusRow
@@ -63,14 +67,64 @@ export default async function AdminSettingsPage() {
           detail={
             notify.hasSms
               ? `Sending to ${notify.salonPhone} via Twilio`
-              : "Set SALON_NOTIFY_PHONE (or NEXT_PUBLIC_WHATSAPP_BOOKING_NUMBER) + Twilio credentials"
+              : "Set SALON_NOTIFY_PHONE + Twilio credentials"
           }
         />
         <StatusRow
           label="Site URL"
-          ok={Boolean(process.env.NEXT_PUBLIC_APP_URL?.trim())}
+          ok={health.appUrlSet}
           detail={`Paystack callback + admin links use ${appUrl}`}
         />
+        <StatusRow
+          label="Cron reminders"
+          ok={health.cronConfigured}
+          detail={
+            health.cronConfigured
+              ? "CRON_SECRET set · /api/cron/reminders can run on schedule"
+              : "Set CRON_SECRET in Vercel and schedule GET /api/cron/reminders"
+          }
+        />
+        <StatusRow
+          label="Supabase connection"
+          ok={health.supabaseOk}
+          detail={health.supabaseOk ? "Service role can reach the database" : "Check Supabase URL and service role key"}
+        />
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
+        <h2 className="font-display text-xl">Integration health (7 days)</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wider text-white/45">Paystack webhooks received</p>
+            <p className="mt-2 font-display text-3xl text-white">{health.webhooksLast7d}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wider text-white/45">Deposits paid (7d)</p>
+            <p className="mt-2 font-display text-3xl text-glam-accent">{health.paidDepositsLast7d}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wider text-white/45">Unpaid deposits (open)</p>
+            <p className="mt-2 font-display text-3xl text-amber-200">{health.unpaidDepositsOpen}</p>
+            <a href="/admin/appointments?status=awaiting_approval" className="mt-2 inline-block text-xs text-glam-accent hover:underline">
+              View in appointments
+            </a>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wider text-white/45">Ops errors (7d)</p>
+            <p className={`mt-2 font-display text-3xl ${health.deadLettersLast7d > 0 ? "text-red-300" : "text-white"}`}>
+              {health.deadLettersLast7d}
+            </p>
+          </div>
+        </div>
+        {health.recentDeadLetters.length > 0 ? (
+          <ul className="mt-4 space-y-2 text-xs text-white/60">
+            {health.recentDeadLetters.map((row, i) => (
+              <li key={`${row.created_at}-${i}`} className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2">
+                {new Date(row.created_at).toLocaleString()} · {row.message}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-white/55">
@@ -82,16 +136,13 @@ export default async function AdminSettingsPage() {
             /api/paystack/webhook
           </code>
         </p>
-        <p className="mt-3 font-medium text-white">WhatsApp deep links</p>
+        <p className="mt-3 font-medium text-white">Reminder cron</p>
         <p className="mt-2">
-          Booking emails include one-tap WhatsApp buttons for the salon team (reply to client) and
-          clients (message Glam Room). No extra API needed — links open WhatsApp with pre-filled
-          messages.
-        </p>
-        <p className="mt-3 font-medium text-white">Database</p>
-        <p className="mt-2">
-          Ensure migration <code className="text-glam-accent">00011_booking_paystack_reference</code>{" "}
-          is applied so Paystack references can be stored on bookings.
+          Schedule:{" "}
+          <code className="text-glam-accent">
+            GET {appUrl === "Not set" ? "https://your-domain.vercel.app" : appUrl}/api/cron/reminders
+          </code>{" "}
+          with header <code className="text-glam-accent">Authorization: Bearer CRON_SECRET</code>
         </p>
       </div>
     </AdminPanel>

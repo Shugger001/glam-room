@@ -3,6 +3,28 @@ import {
   bookingLocationScope,
   requireAdminAccess,
 } from "@/lib/admin/access";
+import { createWalkInBookingAction } from "@/lib/admin/walk-in-booking-action";
+import { WalkInBookingForm } from "@/components/admin/walk-in-booking-form";
+import { SALON_SERVICES, type SalonService } from "@/lib/constants/services";
+
+function mapServicesFromRows(
+  serviceRows: { id: string; name: string; description: string | null; duration_minutes: number; base_price: number; slug: string | null; featured: boolean | null }[] | null,
+): SalonService[] {
+  if (!serviceRows || serviceRows.length === 0) return SALON_SERVICES;
+  return serviceRows
+    .map((row) => ({
+      id: row.id,
+      slug: row.slug ?? row.id,
+      name: row.name,
+      description: row.description ?? "",
+      category: "hair-reset" as const,
+      durationMinutes: Number(row.duration_minutes),
+      price: Number(row.base_price),
+      image: "/images/glam-braids-studio.png",
+      featured: row.featured === true,
+    }))
+    .filter((s) => s.name && s.durationMinutes);
+}
 import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
 import { BookingsTable, type AdminBookingRow } from "@/components/admin/bookings-table";
 import { AppointmentStats } from "@/components/admin/appointment-stats";
@@ -90,7 +112,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
   }
 
-  const [{ data }, { data: staffRows }, statsRes] = await Promise.all([
+  const [{ data }, { data: staffRows }, statsRes, { data: serviceRows }] = await Promise.all([
     query.limit(100),
     admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
     (async () => {
@@ -103,7 +125,14 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       if (locationScope) statsQuery = statsQuery.eq("location_id", locationScope);
       return statsQuery;
     })(),
+    admin
+      .from("services")
+      .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order")
+      .eq("active", true)
+      .order("sort_order"),
   ]);
+
+  const services = mapServicesFromRows(serviceRows);
 
   const todayRows = statsRes.data ?? [];
   const stats = [
@@ -161,6 +190,15 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       ) : null}
 
       <AppointmentStats stats={stats} activeRange={rangeFilter} />
+
+      <div className="mt-6">
+        <WalkInBookingForm
+          services={services}
+          staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+          defaultLocationId={locationScope}
+          createWalkInBooking={createWalkInBookingAction}
+        />
+      </div>
 
       <form action="/admin/appointments" className="mt-6 flex flex-wrap items-end gap-3">
         <input type="hidden" name="range" value={rangeFilter} />

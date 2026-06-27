@@ -73,7 +73,10 @@ export const STAFF_ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "operations",
     label: "Operations",
-    items: [{ href: "/admin/appointments", label: "Appointments" }],
+    items: [
+      { href: "/admin", label: "Today" },
+      { href: "/admin/appointments", label: "Appointments" },
+    ],
   },
 ];
 
