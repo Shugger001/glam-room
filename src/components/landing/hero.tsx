@@ -10,7 +10,7 @@ const HERO_IMAGE = "/images/glam-braids-studio.png";
 export function LandingHero() {
   return (
     <section
-      className="relative -mt-[var(--header-height)] flex min-h-[calc(100svh-var(--mobile-bar-height)-env(safe-area-inset-bottom,0px))] flex-col justify-center overflow-hidden bg-glam-primary md:min-h-[calc(100svh-var(--header-height))]"
+      className="relative -mt-[var(--header-height)] flex min-h-[52svh] flex-col justify-center overflow-hidden bg-glam-primary sm:min-h-[58svh] md:min-h-[62svh]"
       aria-label="Hero"
     >
       <div className="pointer-events-none absolute inset-0">
@@ -41,7 +41,7 @@ export function LandingHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-3 text-sm text-white/70"
+          className="eyebrow-label mt-4 text-white/60"
         >
           Accra · 3 shops
         </m.p>

@@ -1,43 +1,48 @@
 import Link from "next/link";
-import { Section } from "@/components/ui/section";
 
-const TABS = [
-  { href: "/book", label: "Book", icon: "📅" },
-  { href: "/services", label: "Services", icon: "✂️" },
-  { href: "/gallery", label: "Gallery", icon: "📷" },
-  { href: "/about", label: "Shops", icon: "📍" },
-  { href: "/experts", label: "Team", icon: "💇" },
-  { href: "/contact", label: "Contact", icon: "💬" },
+const LINKS = [
+  { href: "/book", label: "Book" },
+  { href: "/services", label: "Services" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/about", label: "Shops" },
+  { href: "/experts", label: "Team" },
+  { href: "/contact", label: "Contact" },
 ] as const;
 
 export function HomeQuickNav() {
   return (
-    <Section background="white" className="!py-10 sm:!py-12">
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-4">
-        {TABS.map((tab) => (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className="flex min-h-[4.5rem] flex-col items-center justify-center gap-1.5 rounded-2xl border border-glam-border bg-glam-background px-2 py-3 text-center transition hover:border-glam-accent hover:bg-glam-accent/5 sm:min-h-20"
-          >
-            <span className="text-2xl leading-none" aria-hidden>
-              {tab.icon}
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-glam-primary sm:text-sm">
-              {tab.label}
-            </span>
+    <nav
+      aria-label="Site sections"
+      className="border-t border-glam-accent/20 bg-glam-background px-4 py-8 sm:px-8 sm:py-10"
+    >
+      <div className="mx-auto max-w-4xl">
+        <p className="eyebrow-label text-center">Explore</p>
+        <span className="gold-rule mx-auto" aria-hidden />
+
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3">
+          {LINKS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group flex min-h-[3.25rem] items-center justify-center rounded-lg border border-glam-border/70 bg-glam-secondary px-2 transition duration-300 hover:border-glam-accent/50 hover:shadow-soft sm:min-h-[4rem] sm:rounded-xl"
+            >
+              <span className="heading-display text-base tracking-wide text-glam-primary transition duration-300 group-hover:text-glam-accent sm:text-lg">
+                {item.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-7 flex items-center justify-center gap-5 text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-glam-muted">
+          <Link href="/track" className="transition hover:text-glam-accent">
+            My booking
           </Link>
-        ))}
+          <span className="h-3 w-px bg-glam-accent/30" aria-hidden />
+          <Link href="/faq" className="transition hover:text-glam-accent">
+            Help
+          </Link>
+        </div>
       </div>
-      <p className="mt-6 text-center text-sm text-glam-muted">
-        <Link href="/track" className="font-medium text-glam-accent hover:underline">
-          My booking
-        </Link>
-        {" · "}
-        <Link href="/faq" className="font-medium text-glam-accent hover:underline">
-          Help
-        </Link>
-      </p>
-    </Section>
+    </nav>
   );
 }

@@ -1,4 +1,5 @@
 import { LandingHero } from "@/components/landing/hero";
+import { HomeQuickNav } from "@/components/landing/home-quick-nav";
 import { FaqJsonLd, LocalBusinessJsonLd } from "@/components/seo/json-ld";
 import { getLiveFaqs } from "@/lib/data/live-site-content";
 
@@ -12,6 +13,7 @@ export default async function HomePage() {
       <LocalBusinessJsonLd />
       <FaqJsonLd items={faqs} />
       <LandingHero />
+      <HomeQuickNav />
     </>
   );
 }
