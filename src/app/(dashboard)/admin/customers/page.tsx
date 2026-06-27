@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { locationLabelFromId, requireSuperAdmin } from "@/lib/admin/access";
+import { CustomerBookingHistory } from "@/components/admin/customer-booking-history";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import type { ProfileRole } from "@/types/database";
 
@@ -182,9 +183,55 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
     })
     .order("created_at", { ascending: false });
   if (roleFilter !== "all") query = query.eq("role", roleFilter);
-  if (q.length > 0) query = query.ilike("full_name", `%${q}%`);
+  if (q.length > 0) {
+    const digits = q.replace(/\D/g, "");
+    if (digits.length >= 4) {
+      query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%,phone.ilike.%${digits}%`);
+    } else {
+      query = query.or(`full_name.ilike.%${q}%,phone.ilike.%${q}%`);
+    }
+  }
   const { data, count } = await query.range(from, to);
   const customers = (data ?? []) as ProfileRow[];
+  const customerIds = customers.map((c) => c.id);
+  const customerPhones = customers.map((c) => c.phone).filter(Boolean) as string[];
+
+  type BookingHistoryRow = {
+    id: string;
+    user_id: string | null;
+    start_at: string;
+    status: string;
+    location_id: string | null;
+    client_phone: string | null;
+    services: { name?: string } | null;
+  };
+
+  let bookingRows: BookingHistoryRow[] = [];
+  if (customerIds.length > 0) {
+    const { data: bookingHistory } = await admin
+      .from("bookings")
+      .select("id, user_id, start_at, status, location_id, client_phone, services(name)")
+      .in("user_id", customerIds)
+      .order("start_at", { ascending: false })
+      .limit(200);
+    bookingRows = (bookingHistory ?? []) as BookingHistoryRow[];
+  }
+
+  // Also pull guest bookings matching phones on this page
+  let guestBookings: BookingHistoryRow[] = [];
+  if (customerPhones.length > 0) {
+    const phoneFilters = customerPhones.map((p) => `client_phone.ilike.%${p.replace(/\D/g, "").slice(-9)}%`);
+    const { data: guestData } = await admin
+      .from("bookings")
+      .select("id, user_id, start_at, status, location_id, client_phone, services(name)")
+      .or(phoneFilters.join(","))
+      .is("user_id", null)
+      .order("start_at", { ascending: false })
+      .limit(50);
+    guestBookings = (guestData ?? []) as BookingHistoryRow[];
+  }
+
+  const allBookings = [...bookingRows, ...guestBookings];
   const { data: auditData } = await admin
     .from("role_audit_log")
     .select("id, target_user_id, actor_user_id, previous_role, next_role, reason, created_at")
@@ -215,11 +262,11 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
       </p>
       <div className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-3">
         <form action="/admin/customers" className="space-y-2">
-          <label className="block text-xs uppercase tracking-wider text-white/55">Search name</label>
+          <label className="block text-xs uppercase tracking-wider text-white/55">Search name or phone</label>
           <input
             name="q"
             defaultValue={q}
-            placeholder="Matilda, Fafa, Malwine..."
+            placeholder="Name or phone number"
             className="w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
           />
         </form>
@@ -371,6 +418,14 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                     Save
                   </button>
                 </div>
+              </div>
+              <div className="mt-4 border-t border-white/10 pt-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/55">Booking history</p>
+                <CustomerBookingHistory
+                  bookings={allBookings}
+                  profileId={c.id}
+                  phone={c.phone}
+                />
               </div>
             </form>
           ))

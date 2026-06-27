@@ -1,12 +1,11 @@
-import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 import {
   bookingLocationScope,
   requireAdminAccess,
-  requireStaffBookingAccess,
 } from "@/lib/admin/access";
+import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
 import { BookingsTable, type AdminBookingRow } from "@/components/admin/bookings-table";
+import { AppointmentStats } from "@/components/admin/appointment-stats";
 import {
   adminBtnOutline,
   AdminPanel,
@@ -16,7 +15,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const statusOptions = [
+const statusTabs = [
+  "all",
+  "pending",
   "awaiting_approval",
   "confirmed",
   "rejected",
@@ -24,84 +25,21 @@ const statusOptions = [
   "completed",
 ] as const;
 
-const statusTabs = ["all", ...statusOptions] as const;
+function dayBounds(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
 
-async function updateBookingStatus(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "");
-  if (!id || !statusOptions.includes(status as (typeof statusOptions)[number])) return;
-
-  await requireStaffBookingAccess(id);
-
-  const admin = createAdminClient();
-  const requestedStartAt = String(formData.get("start_at") ?? "").trim();
-
-  const { data: existing } = await admin
-    .from("bookings")
-    .select("status, start_at, end_at, user_id, client_name, client_phone")
-    .eq("id", id)
-    .maybeSingle();
-  if (!existing) return;
-
-  let nextStartAt = existing.start_at;
-  let nextEndAt = existing.end_at;
-  if (requestedStartAt.length > 0) {
-    const parsed = new Date(requestedStartAt);
-    if (!Number.isNaN(parsed.getTime())) {
-      const oldStart = new Date(existing.start_at).getTime();
-      const oldEnd = new Date(existing.end_at).getTime();
-      const durationMs = Math.max(15 * 60_000, oldEnd - oldStart);
-      nextStartAt = parsed.toISOString();
-      nextEndAt = new Date(parsed.getTime() + durationMs).toISOString();
-    }
-  }
-
-  await admin
-    .from("bookings")
-    .update({
-      status,
-      start_at: nextStartAt,
-      end_at: nextEndAt,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-
-  if (existing.status !== status || existing.start_at !== nextStartAt) {
-    let body = `Your Glam Room booking is now ${status.replaceAll("_", " ")}.`;
-    if (existing.start_at !== nextStartAt) {
-      body += ` New schedule: ${new Date(nextStartAt).toLocaleString()}.`;
-    }
-
-    if (existing.user_id) {
-      await admin.from("notifications").insert({
-        user_id: existing.user_id,
-        title: "Booking update",
-        body,
-        type: "booking_status",
-      });
-    }
-
-    let notifyPhone = existing.client_phone;
-    if (!notifyPhone && existing.user_id) {
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("phone")
-        .eq("id", existing.user_id)
-        .maybeSingle();
-      notifyPhone = profile?.phone ?? null;
-    }
-
-    await sendTransactionalMessage({
-      toPhone: notifyPhone,
-      subject: "Glam Room booking update",
-      html: `<p>${body}</p>`,
-      smsText: body,
-    });
-  }
-
-  revalidatePath("/admin/appointments");
-  revalidatePath("/admin");
+function weekBounds(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -119,33 +57,98 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const statusFilter = statusTabs.includes(statusParam as (typeof statusTabs)[number])
     ? statusParam
     : "all";
+  const rangeParam = typeof params.range === "string" ? params.range : "today";
+  const rangeFilter = rangeParam === "week" || rangeParam === "all" ? rangeParam : "today";
   const fromDate = typeof params.from === "string" ? params.from : "";
   const toDate = typeof params.to === "string" ? params.to : "";
+  const q = typeof params.q === "string" ? params.q.trim() : "";
 
   const admin = createAdminClient();
-  let query = admin
-    .from("bookings")
-    .select(
-      "id, start_at, status, location_type, location_id, client_name, client_phone, client_notes, deposit_paid, deposit_amount, profiles(full_name,phone), services(name), staff(name)",
-    )
-    .order("start_at", { ascending: false });
+
+  const bookingSelect =
+    "id, start_at, status, location_type, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone), services(name), staff(name)";
+
+  let query = admin.from("bookings").select(bookingSelect).order("start_at", { ascending: true });
   if (locationScope) query = query.eq("location_id", locationScope);
   if (statusFilter !== "all") query = query.eq("status", statusFilter);
-  if (fromDate) query = query.gte("start_at", new Date(fromDate).toISOString());
-  if (toDate) {
-    const end = new Date(toDate);
-    end.setHours(23, 59, 59, 999);
-    query = query.lte("start_at", end.toISOString());
+  if (q.length > 0) {
+    query = query.or(`client_name.ilike.%${q}%,client_phone.ilike.%${q}%`);
   }
-  const { data } = await query.limit(80);
 
-  function tabHref(nextStatus: string) {
+  if (fromDate || toDate) {
+    if (fromDate) query = query.gte("start_at", new Date(fromDate).toISOString());
+    if (toDate) {
+      const end = new Date(toDate);
+      end.setHours(23, 59, 59, 999);
+      query = query.lte("start_at", end.toISOString());
+    }
+  } else if (rangeFilter === "today") {
+    const { start, end } = dayBounds();
+    query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
+  } else if (rangeFilter === "week") {
+    const { start, end } = weekBounds();
+    query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
+  }
+
+  const [{ data }, { data: staffRows }, statsRes] = await Promise.all([
+    query.limit(100),
+    admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
+    (async () => {
+      const { start, end } = dayBounds();
+      let statsQuery = admin
+        .from("bookings")
+        .select("status, deposit_paid, deposit_amount")
+        .gte("start_at", start.toISOString())
+        .lte("start_at", end.toISOString());
+      if (locationScope) statsQuery = statsQuery.eq("location_id", locationScope);
+      return statsQuery;
+    })(),
+  ]);
+
+  const todayRows = statsRes.data ?? [];
+  const stats = [
+    {
+      label: "Today total",
+      value: todayRows.length,
+      href: "/admin/appointments?range=today",
+      highlight: rangeFilter === "today",
+    },
+    {
+      label: "Awaiting approval",
+      value: todayRows.filter((r) => r.status === "awaiting_approval" || r.status === "pending").length,
+      href: "/admin/appointments?range=today&status=awaiting_approval",
+    },
+    {
+      label: "Confirmed today",
+      value: todayRows.filter((r) => r.status === "confirmed").length,
+      href: "/admin/appointments?range=today&status=confirmed",
+    },
+    {
+      label: "Unpaid deposits",
+      value: todayRows.filter(
+        (r) =>
+          !r.deposit_paid &&
+          typeof r.deposit_amount === "number" &&
+          Number(r.deposit_amount) > 0 &&
+          (r.status === "awaiting_approval" || r.status === "confirmed" || r.status === "pending"),
+      ).length,
+      href: "/admin/appointments?range=today&status=awaiting_approval",
+    },
+  ];
+
+  function buildHref(next: Record<string, string>) {
     const qs = new URLSearchParams();
-    if (nextStatus !== "all") qs.set("status", nextStatus);
+    if (statusFilter !== "all") qs.set("status", statusFilter);
+    if (rangeFilter !== "today") qs.set("range", rangeFilter);
     if (fromDate) qs.set("from", fromDate);
     if (toDate) qs.set("to", toDate);
-    const q = qs.toString();
-    return q ? `/admin/appointments?${q}` : "/admin/appointments";
+    if (q) qs.set("q", q);
+    Object.entries(next).forEach(([k, v]) => {
+      if (v) qs.set(k, v);
+      else qs.delete(k);
+    });
+    const s = qs.toString();
+    return s ? `/admin/appointments?${s}` : "/admin/appointments";
   }
 
   return (
@@ -156,41 +159,58 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           Showing bookings for <span className="text-glam-accent">{access.assignedLocationLabel}</span> only
         </p>
       ) : null}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {statusTabs.map((tab) => (
-          <a key={tab} href={tabHref(tab)} className={adminTabClass(statusFilter === tab)}>
-            {tab}
-          </a>
-        ))}
-      </div>
-      <form action="/admin/appointments" className="mt-4 flex flex-wrap items-end gap-3 text-xs text-white/65">
+
+      <AppointmentStats stats={stats} activeRange={rangeFilter} />
+
+      <form action="/admin/appointments" className="mt-6 flex flex-wrap items-end gap-3">
+        <input type="hidden" name="range" value={rangeFilter} />
         <input type="hidden" name="status" value={statusFilter} />
-        <label>
+        <label className="text-xs text-white/65">
+          Search client
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Name or phone"
+            className="mt-1 block w-48 rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+          />
+        </label>
+        <label className="text-xs text-white/65">
           From
           <input
             type="date"
             name="from"
             defaultValue={fromDate}
-            className="mt-1 rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            className="mt-1 block rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
           />
         </label>
-        <label>
+        <label className="text-xs text-white/65">
           To
           <input
             type="date"
             name="to"
             defaultValue={toDate}
-            className="mt-1 rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            className="mt-1 block rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
           />
         </label>
         <button type="submit" className={adminBtnOutline}>
-          Apply range
+          Apply
         </button>
       </form>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {statusTabs.map((tab) => (
+          <a key={tab} href={buildHref({ status: tab === "all" ? "" : tab })} className={adminTabClass(statusFilter === tab)}>
+            {tab.replaceAll("_", " ")}
+          </a>
+        ))}
+      </div>
+
       <div className="mt-6">
         <BookingsTable
           bookings={(data ?? []) as AdminBookingRow[]}
-          updateBookingStatus={updateBookingStatus}
+          updateBookingStatus={updateBookingStatusAction}
+          staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
         />
       </div>
     </AdminPanel>

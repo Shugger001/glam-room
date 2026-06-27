@@ -2,6 +2,8 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
 import { AdminPanel, adminTabClass, AdminSetupNotice } from "@/components/admin/admin-ui";
+import { buildWhatsAppDeepLink } from "@/lib/notifications/whatsapp-links";
+import { BRAND } from "@/lib/constants/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
 
   const admin = createAdminClient();
   let query = admin
-    .from("contact_messages")
+  .from("contact_messages")
     .select("id, name, email, phone, subject, message, read_at, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
@@ -46,7 +48,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
     <AdminPanel>
       <h1 className="font-display text-3xl">Messages</h1>
       <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Inquiries from the contact form on your website.
+        Contact form inbox. Reply on WhatsApp or email, then mark as read.
       </p>
 
       <div className="mt-4 flex gap-2">
@@ -65,49 +67,87 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
         {(messages ?? []).length === 0 ? (
           <p className="text-sm text-white/55">No messages yet.</p>
         ) : null}
-        {(messages ?? []).map((msg) => (
-          <article
-            key={msg.id}
-            className={`rounded-2xl border p-5 ${
-              msg.read_at
-                ? "border-white/10 bg-black/20"
-                : "border-glam-accent/30 bg-glam-accent/5"
-            }`}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold text-white">{msg.name}</p>
-                <p className="text-xs text-white/55">
-                  {msg.email}
-                  {msg.phone ? ` · ${msg.phone}` : ""}
+        {(messages ?? []).map((msg) => {
+          const salonWhatsApp = buildWhatsAppDeepLink(
+            BRAND.links.phone,
+            `Follow up: ${msg.name} — ${msg.subject}`,
+          );
+          const whatsappLink = msg.phone
+            ? buildWhatsAppDeepLink(
+                msg.phone,
+                `Hi ${msg.name}, thanks for contacting Glam Room. Regarding: ${msg.subject}`,
+              )
+            : salonWhatsApp;
+          const mailto = `mailto:${encodeURIComponent(msg.email)}?subject=${encodeURIComponent(`Re: ${msg.subject}`)}&body=${encodeURIComponent(`Hi ${msg.name},\n\nThank you for reaching out to Glam Room.\n\n`)}`;
+
+          return (
+            <article
+              key={msg.id}
+              className={`rounded-2xl border p-5 ${
+                msg.read_at
+                  ? "border-white/10 bg-black/20"
+                  : "border-glam-accent/30 bg-glam-accent/5"
+              }`}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-white">{msg.name}</p>
+                  <p className="text-xs text-white/55">
+                    {msg.email}
+                    {msg.phone ? ` · ${msg.phone}` : ""}
+                  </p>
+                </div>
+                <p className="text-xs text-white/45">
+                  {new Date(msg.created_at).toLocaleString()}
+                  {!msg.read_at ? (
+                    <span className="ml-2 rounded-full bg-glam-accent/20 px-2 py-0.5 text-glam-accent">
+                      New
+                    </span>
+                  ) : null}
                 </p>
               </div>
-              <p className="text-xs text-white/45">
-                {new Date(msg.created_at).toLocaleString()}
-                {!msg.read_at ? (
-                  <span className="ml-2 rounded-full bg-glam-accent/20 px-2 py-0.5 text-glam-accent">
-                    New
-                  </span>
-                ) : null}
+              <p className="mt-3 text-sm font-medium text-glam-accent">{msg.subject}</p>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white/75">
+                {msg.message}
               </p>
-            </div>
-            <p className="mt-3 text-sm font-medium text-glam-accent">{msg.subject}</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white/75">
-              {msg.message}
-            </p>
-            {!msg.read_at ? (
-              <form action={markMessageRead} className="mt-4">
-                <input type="hidden" name="id" value={msg.id} />
-                <button
-                  type="submit"
+              <div className="mt-4 flex flex-wrap gap-2">
+                {whatsappLink ? (
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full bg-glam-accent px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-glam-primary"
+                  >
+                    WhatsApp reply
+                  </a>
+                ) : null}
+                <a
+                  href={mailto}
                   className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
                 >
-                  Mark as read
-                </button>
-              </form>
-            ) : null}
-          </article>
-        ))}
+                  Email reply
+                </a>
+                <a
+                  href="/admin/appointments"
+                  className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
+                >
+                  Appointments
+                </a>
+                {!msg.read_at ? (
+                  <form action={markMessageRead} className="inline">
+                    <input type="hidden" name="id" value={msg.id} />
+                    <button
+                      type="submit"
+                      className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
+                    >
+                      Mark read
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </AdminPanel>
   );
