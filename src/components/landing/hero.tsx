@@ -10,7 +10,7 @@ const HERO_IMAGE = "/images/glam-braids-studio.png";
 export function LandingHero() {
   return (
     <section
-      className="relative -mt-[var(--header-height)] flex min-h-[52svh] flex-col justify-center overflow-hidden bg-glam-primary sm:min-h-[58svh] md:min-h-[62svh]"
+      className="relative -mt-[var(--header-height)] flex min-h-[78svh] flex-col justify-center overflow-hidden bg-glam-primary sm:min-h-[84svh] md:min-h-[88svh]"
       aria-label="Hero"
     >
       <div className="pointer-events-none absolute inset-0">
@@ -20,12 +20,12 @@ export function LandingHero() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center opacity-70"
+          className="object-cover object-[center_30%] opacity-70 sm:object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-glam-primary/60 via-glam-primary/45 to-glam-primary/90" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center px-4 pb-6 pt-[calc(var(--header-height)+env(safe-area-inset-top,0px)+1rem)] text-center sm:px-8">
+      <div className="relative z-10 flex flex-col items-center px-4 pb-12 pt-[calc(var(--header-height)+env(safe-area-inset-top,0px)+1.5rem)] text-center sm:px-8 sm:pb-16">
         <m.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
