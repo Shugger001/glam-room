@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/constants/brand";
+import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 
 type LookupResult = {
+  id: string;
   date: string;
   time: string;
   status: string;
   service: string;
   location: string | null;
+  start_at: string;
+  booking_date: string;
+  booking_time: string;
+  can_manage: boolean;
 };
 
 export function FindBookingTracker() {
@@ -21,12 +28,14 @@ export function FindBookingTracker() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<LookupResult[] | null>(null);
+  const [managingId, setManagingId] = useState<string | null>(null);
+  const [rescheduleFor, setRescheduleFor] = useState<string | null>(null);
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function lookupBookings() {
     setLoading(true);
     setError(null);
-    setResults(null);
 
     try {
       const res = await fetch("/api/bookings/lookup", {
@@ -37,13 +46,83 @@ export function FindBookingTracker() {
       const data = (await res.json()) as { bookings?: LookupResult[]; error?: string };
       if (!res.ok || data.error) {
         setError(data.error ?? "Something went wrong. Please try again.");
+        setResults(null);
         return;
       }
       setResults(data.bookings ?? []);
+      setError(null);
     } catch {
       setError("Something went wrong. Please try again or WhatsApp Glam Room.");
+      setResults(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setRescheduleFor(null);
+    await lookupBookings();
+  }
+
+  async function cancelBooking(bookingId: string) {
+    if (!window.confirm("Cancel this booking? You can rebook anytime on WhatsApp.")) return;
+
+    setManagingId(bookingId);
+    try {
+      const res = await fetch("/api/bookings/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel", bookingId, phone, nameSuffix }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Could not cancel booking.");
+        return;
+      }
+      toast.success("Booking cancelled.");
+      setResults((prev) => prev?.filter((b) => b.id !== bookingId) ?? null);
+    } catch {
+      toast.error("Could not cancel booking. Please WhatsApp us.");
+    } finally {
+      setManagingId(null);
+    }
+  }
+
+  async function rescheduleBooking(bookingId: string) {
+    if (!newDate || !newTime) {
+      toast.error("Pick a new date and time.");
+      return;
+    }
+
+    setManagingId(bookingId);
+    try {
+      const res = await fetch("/api/bookings/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reschedule",
+          bookingId,
+          phone,
+          nameSuffix,
+          bookingDate: newDate,
+          bookingTime: newTime,
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string; start_at?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Could not reschedule.");
+        return;
+      }
+      toast.success("Booking rescheduled!");
+      setRescheduleFor(null);
+      setNewDate("");
+      setNewTime("");
+      await lookupBookings();
+    } catch {
+      toast.error("Could not reschedule. Please WhatsApp us.");
+    } finally {
+      setManagingId(null);
     }
   }
 
@@ -54,7 +133,7 @@ export function FindBookingTracker() {
           <SectionHeader
             eyebrow="Track"
             title="Find My Booking"
-            description="Phone and last 4 letters of your name"
+            description="Check status, cancel, or reschedule with your phone and last 4 letters of your name."
           />
           <Reveal delay={0.1}>
             <form onSubmit={onSubmit} className="space-y-4">
@@ -99,21 +178,86 @@ export function FindBookingTracker() {
             ) : null}
 
             {results && results.length > 0 ? (
-              <ul className="mt-6 space-y-3">
+              <ul className="mt-6 space-y-4">
                 {results.map((booking) => (
                   <li
-                    key={`${booking.date}-${booking.time}-${booking.service}`}
+                    key={booking.id}
                     className="rounded-xl border border-glam-border bg-glam-background px-4 py-4 text-sm leading-relaxed text-glam-primary"
                   >
-                    Your booking on <strong>{booking.date}</strong> at <strong>{booking.time}</strong>{" "}
-                    is <strong>{booking.status}</strong>.
-                    {booking.location ? (
-                      <>
-                        {" "}
-                        Location: <strong>{booking.location}</strong>.
-                      </>
-                    ) : null}{" "}
-                    Service: <strong>{booking.service}</strong>.
+                    <p>
+                      <strong>{booking.service}</strong> · {booking.date} at {booking.time}
+                    </p>
+                    <p className="mt-1 text-glam-muted">
+                      Status: <strong>{booking.status}</strong>
+                      {booking.location ? <> · {booking.location}</> : null}
+                    </p>
+
+                    {booking.can_manage ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={managingId === booking.id}
+                          onClick={() => {
+                            setRescheduleFor(rescheduleFor === booking.id ? null : booking.id);
+                            setNewDate(booking.booking_date);
+                            setNewTime(booking.booking_time);
+                          }}
+                        >
+                          Reschedule
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={managingId === booking.id}
+                          onClick={() => void cancelBooking(booking.id)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : null}
+
+                    {rescheduleFor === booking.id ? (
+                      <div className="mt-4 grid gap-3 rounded-lg border border-glam-border bg-white p-3 sm:grid-cols-2">
+                        <label className="block text-xs font-medium">
+                          New date
+                          <input
+                            type="date"
+                            min={new Date().toISOString().slice(0, 10)}
+                            value={newDate}
+                            onChange={(e) => setNewDate(e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-glam-border px-3 py-2 text-sm"
+                          />
+                        </label>
+                        <label className="block text-xs font-medium">
+                          New time
+                          <select
+                            value={newTime}
+                            onChange={(e) => setNewTime(e.target.value)}
+                            className="mt-1 w-full rounded-lg border border-glam-border px-3 py-2 text-sm"
+                          >
+                            {BOOKING_TIME_SLOTS.map((slot) => (
+                              <option key={slot.value} value={slot.value}>
+                                {slot.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div className="sm:col-span-2">
+                          <Button
+                            type="button"
+                            variant="accent"
+                            size="sm"
+                            disabled={managingId === booking.id}
+                            onClick={() => void rescheduleBooking(booking.id)}
+                          >
+                            {managingId === booking.id ? "Saving…" : "Confirm new time"}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>

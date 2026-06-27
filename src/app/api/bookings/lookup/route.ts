@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
-import {
-  nameSuffixMatches,
-  normalizePhoneDigits,
-  parseClientNotesField,
-  phoneVariants,
-} from "@/lib/booking/phone";
+import { findClientBookings, MANAGEABLE_STATUSES } from "@/lib/booking/lookup-match";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { bookingLookupSchema } from "@/lib/validation/booking-lookup";
@@ -54,31 +49,14 @@ export async function POST(request: Request) {
   }
 
   const { phone, nameSuffix } = parsed.data;
-  const variants = new Set(phoneVariants(phone).map(normalizePhoneDigits));
 
   try {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("id, start_at, status, client_name, client_phone, location_id, client_notes, services(name)")
-      .in("status", ["pending", "awaiting_approval", "confirmed"])
-      .order("start_at", { ascending: false })
-      .limit(50);
+    const admin = createAdminClient();
+    const { bookings: matches, error } = await findClientBookings(admin, phone, nameSuffix);
 
     if (error) {
       return NextResponse.json({ error: "Booking lookup is unavailable right now." }, { status: 503 });
     }
-
-    const matches = (data ?? []).filter((row) => {
-      const storedPhone =
-        row.client_phone ??
-        parseClientNotesField(row.client_notes, "Phone") ??
-        "";
-      const storedName =
-        row.client_name ?? parseClientNotesField(row.client_notes, "Name") ?? "";
-      const phoneHit = phoneVariants(storedPhone).some((v) => variants.has(normalizePhoneDigits(v)));
-      return phoneHit && nameSuffixMatches(storedName, nameSuffix);
-    });
 
     if (matches.length === 0) {
       return NextResponse.json({
@@ -88,20 +66,25 @@ export async function POST(request: Request) {
     }
 
     const bookings = matches.map((row) => {
-      const serviceJoin = row.services as { name?: string } | { name?: string }[] | null;
+      const serviceJoin = row.services;
       const serviceName = Array.isArray(serviceJoin)
         ? serviceJoin[0]?.name
         : serviceJoin?.name;
-      const loc =
-        locationLabel(row.location_id) ??
-        parseClientNotesField(row.client_notes, "Location")?.replace(/^Glam Room · /i, "");
+      const loc = locationLabel(row.location_id);
+      const start = new Date(row.start_at);
+      const canManage = MANAGEABLE_STATUSES.has(row.status) && start.getTime() > Date.now();
 
       return {
+        id: row.id,
         date: formatBookingDate(row.start_at),
         time: formatBookingTime(row.start_at),
-        status: (row.status ?? "pending").toUpperCase(),
+        status: (row.status ?? "pending").replaceAll("_", " ").toUpperCase(),
         service: serviceName ?? "Glam Room appointment",
         location: loc,
+        start_at: row.start_at,
+        booking_date: row.start_at.slice(0, 10),
+        booking_time: `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`,
+        can_manage: canManage,
       };
     });
 

@@ -8,14 +8,14 @@ import { TeamPreview } from "@/components/landing/team-preview";
 import { TestimonialsSection } from "@/components/landing/testimonials";
 import { FindBookingTracker } from "@/components/booking/find-booking-tracker";
 import { FaqPreview } from "@/components/landing/faq-section";
+import { ContactSection } from "@/components/landing/contact-section";
 import { CtaBand } from "@/components/landing/cta-band";
 import { FAQ_ITEMS } from "@/lib/constants/faqs";
-import { LocalBusinessJsonLd } from "@/components/seo/json-ld";
+import { FaqJsonLd, LocalBusinessJsonLd } from "@/components/seo/json-ld";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { getSalonPageData } from "@/lib/data/salon-page-data";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function HomePage() {
   const { services, gallery, staff, testimonials } = await getSalonPageData();
@@ -23,6 +23,7 @@ export default async function HomePage() {
   return (
     <>
       <LocalBusinessJsonLd />
+      <FaqJsonLd />
       <LandingHero />
       <StatsRow
         locationCount={SALON_LOCATIONS.length}
@@ -37,6 +38,7 @@ export default async function HomePage() {
       <TestimonialsSection testimonials={testimonials} />
       <FindBookingTracker />
       <FaqPreview items={FAQ_ITEMS} />
+      <ContactSection />
       <CtaBand />
     </>
   );

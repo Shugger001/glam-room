@@ -71,8 +71,8 @@ export function TeamPreview({ staff }: { staff: StaffMember[] }) {
         ))}
       </div>
       <Reveal className="mt-12 text-center">
-        <ButtonLink href="/#experts" variant="outline" size="lg">
-          Learn More
+        <ButtonLink href="/experts" variant="outline" size="lg">
+          Meet the Team
         </ButtonLink>
       </Reveal>
     </Section>

@@ -18,6 +18,7 @@ import {
   MAX_BOOKINGS_PER_SLOT,
 } from "@/lib/booking/availability";
 import { computeDepositAmount } from "@/lib/booking/deposit";
+import type { LiveStaff } from "@/lib/data/live-staff";
 import { formatShopPrice } from "@/lib/format/money";
 import {
   BOOKING_TIME_SLOTS,
@@ -28,7 +29,8 @@ import { cn } from "@/lib/utils/cn";
 
 type BookingFormProps = {
   services: SalonService[];
-  staffId: string;
+  staff: LiveStaff[];
+  initialStaffId?: string;
   initialServiceId?: string;
   initialLocationId?: string;
   paystackEnabled?: boolean;
@@ -43,7 +45,8 @@ function findCategoryForService(services: SalonService[], serviceId?: string) {
 
 export function BookingForm({
   services,
-  staffId,
+  staff,
+  initialStaffId,
   initialServiceId,
   initialLocationId,
   paystackEnabled = false,
@@ -59,6 +62,11 @@ export function BookingForm({
     savings: number;
     label: string;
   } | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState(
+    initialStaffId && staff.some((s) => s.id === initialStaffId)
+      ? initialStaffId
+      : staff[0]?.id ?? "",
+  );
   const lastCapacityToastKey = useRef("");
 
   const form = useForm<GuestBookingValues>({
@@ -237,6 +245,11 @@ export function BookingForm({
   }
 
   async function onSubmit(values: GuestBookingValues) {
+    if (!selectedStaffId) {
+      toast.error("Please select a stylist.");
+      return;
+    }
+
     if (dateFullyBooked) {
       toast.error("This date is fully booked", {
         description: "Please choose another date or Glam Room location.",
@@ -250,7 +263,7 @@ export function BookingForm({
         const res = await fetch("/api/paystack/booking/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...values, staffId }),
+          body: JSON.stringify({ ...values, staffId: selectedStaffId }),
         });
         const data = (await res.json()) as {
           authorization_url?: string;
@@ -267,7 +280,7 @@ export function BookingForm({
       const res = await fetch("/api/bookings/guest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...values, staffId }),
+        body: JSON.stringify({ ...values, staffId: selectedStaffId }),
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
@@ -460,6 +473,29 @@ export function BookingForm({
               ) : null}
             </label>
           </div>
+
+          {staff.length > 0 ? (
+            <label className="block text-sm font-medium">
+              Stylist
+              <select
+                className={inputClass}
+                value={selectedStaffId}
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+              >
+                {staff.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                    {member.role ? ` · ${member.role}` : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-glam-muted">
+                {staff.length === 1
+                  ? "Your appointment will be with our lead stylist."
+                  : "Choose your preferred expert or leave the default."}
+              </p>
+            </label>
+          ) : null}
 
           <p className="rounded-xl bg-glam-background px-4 py-3 text-sm text-glam-muted" role="note">
             {BRAND.copy.braidsNotice}

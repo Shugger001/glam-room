@@ -12,20 +12,20 @@ export const metadata: Metadata = {
 };
 
 type BookPageProps = {
-  searchParams: Promise<{ service?: string; location?: string }>;
+  searchParams: Promise<{ service?: string; location?: string; staff?: string }>;
 };
 
 export default async function BookPage({ searchParams }: BookPageProps) {
   const params = await searchParams;
   const [services, staff] = await Promise.all([getSalonServices(), getLiveStaff()]);
-  const leadStaffId = staff[0]?.id ?? "";
   const paystackEnabled = isPaystackConfigured();
 
   return (
     <BookPageShell>
       <BookingForm
         services={services}
-        staffId={leadStaffId}
+        staff={staff}
+        initialStaffId={params.staff}
         initialServiceId={params.service}
         initialLocationId={params.location}
         paystackEnabled={paystackEnabled}

@@ -5,7 +5,7 @@ import { BRAND } from "@/lib/constants/brand";
 
 export function CtaBand() {
   return (
-    <Section id="contact" background="dark" className="relative !py-16 sm:!py-24">
+    <Section id="book-cta" background="dark" className="relative !py-16 sm:!py-24">
       <Reveal className="relative mx-auto flex max-w-3xl flex-col items-center rounded-3xl border border-glam-accent/20 bg-white/[0.03] px-6 py-12 text-center shadow-[var(--shadow-gold)] backdrop-blur-sm sm:px-12 sm:py-16">
         <p className="eyebrow-label text-glam-accent">Come Through, Sis</p>
         <span className="gold-rule mx-auto" aria-hidden />

@@ -15,15 +15,40 @@ export const adminServiceUpdateSchema = z.object({
   active: z.coerce.boolean(),
 });
 
+export const adminServiceCreateSchema = adminServiceUpdateSchema.omit({ id: true });
+
 export type AdminServiceUpdateInput = z.infer<typeof adminServiceUpdateSchema>;
+export type AdminServiceCreateInput = z.infer<typeof adminServiceCreateSchema>;
 
 function readBoolean(formData: FormData, key: string) {
   return formData.get(key) === "on" || formData.get(key) === "true";
 }
 
+export function slugifyServiceName(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+}
+
 export function parseAdminServiceForm(formData: FormData) {
   return adminServiceUpdateSchema.safeParse({
     id: formData.get("id"),
+    name: formData.get("name"),
+    description: formData.get("description") ?? "",
+    duration_minutes: formData.get("duration_minutes"),
+    base_price: formData.get("base_price"),
+    category: formData.get("category"),
+    sort_order: formData.get("sort_order"),
+    featured: readBoolean(formData, "featured"),
+    active: readBoolean(formData, "active"),
+  });
+}
+
+export function parseAdminServiceCreateForm(formData: FormData) {
+  return adminServiceCreateSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description") ?? "",
     duration_minutes: formData.get("duration_minutes"),

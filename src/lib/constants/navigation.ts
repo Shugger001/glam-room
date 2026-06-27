@@ -7,27 +7,27 @@ export type AdminNavGroup = {
 };
 
 export const PRIMARY_NAV = [
-  { href: "/#about", label: "About" },
-  { href: "/#services", label: "Services" },
-  { href: "/#gallery", label: "Gallery" },
-  { href: "/#experts", label: "Our Experts" },
-  { href: "/#testimonials", label: "Testimonials" },
-  { href: "/#faq", label: "FAQs" },
-  { href: "/#contact", label: "Contact" },
+  { href: "/about", label: "About" },
+  { href: "/services", label: "Services" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/experts", label: "Our Experts" },
+  { href: "/testimonials", label: "Testimonials" },
+  { href: "/faq", label: "FAQs" },
+  { href: "/contact", label: "Contact" },
 ] as const;
 
 export const FOOTER_NAV = {
   salon: [
-    { href: "/#about", label: "About Us" },
-    { href: "/#services", label: "Services" },
-    { href: "/#gallery", label: "Gallery" },
-    { href: "/#experts", label: "Our Experts" },
+    { href: "/about", label: "About Us" },
+    { href: "/services", label: "Services" },
+    { href: "/gallery", label: "Gallery" },
+    { href: "/experts", label: "Our Experts" },
   ],
   book: [
     { href: "/book", label: "Book Appointment" },
-    { href: "/#testimonials", label: "Testimonials" },
-    { href: "/#faq", label: "FAQs" },
-    { href: "/#contact", label: "Contact" },
+    { href: "/testimonials", label: "Testimonials" },
+    { href: "/faq", label: "FAQs" },
+    { href: "/contact", label: "Contact" },
   ],
 } as const;
 

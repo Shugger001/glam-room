@@ -33,6 +33,7 @@ export function MarketingMain({ children }: { children: ReactNode }) {
 
   return (
     <main
+      id="main"
       className={cn(
         "flex flex-1 flex-col",
         !isHome && "pt-[calc(var(--header-height)+env(safe-area-inset-top,0px))]",

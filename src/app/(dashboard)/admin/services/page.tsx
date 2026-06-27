@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
 import { SERVICE_CATEGORIES } from "@/lib/constants/services";
-import { parseAdminServiceForm } from "@/lib/validation/admin-service";
+import { parseAdminServiceCreateForm, parseAdminServiceForm, slugifyServiceName } from "@/lib/validation/admin-service";
 import {
   AdminBtnPrimary,
   adminFormRowClass,
@@ -46,6 +46,43 @@ async function updateService(formData: FormData) {
   revalidatePath("/");
 }
 
+async function createService(formData: FormData) {
+  "use server";
+  await requireSuperAdmin();
+
+  const parsed = parseAdminServiceCreateForm(formData);
+  if (!parsed.success) return;
+
+  const admin = createAdminClient();
+  const values = parsed.data;
+  const baseSlug = slugifyServiceName(values.name) || "service";
+
+  let slug = baseSlug;
+  for (let i = 0; i < 5; i++) {
+    const { data: existing } = await admin.from("services").select("id").eq("slug", slug).maybeSingle();
+    if (!existing) break;
+    slug = `${baseSlug}-${i + 2}`;
+  }
+
+  await admin.from("services").insert({
+    name: values.name,
+    description: values.description || null,
+    duration_minutes: values.duration_minutes,
+    base_price: values.base_price,
+    currency: "GHS",
+    category: values.category,
+    sort_order: values.sort_order,
+    featured: values.featured,
+    active: values.active,
+    slug,
+  });
+
+  revalidatePath("/admin/services");
+  revalidatePath("/services");
+  revalidatePath("/book");
+  revalidatePath("/");
+}
+
 export default async function AdminServicesPage() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice title="Services" />;
@@ -66,9 +103,58 @@ export default async function AdminServicesPage() {
     <AdminPanel>
       <h1 className="font-display text-3xl">Services</h1>
       <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Edit pricing, duration, categories, and visibility. Changes appear on the booking page
-        immediately.
+        Add new services or edit pricing, duration, categories, and visibility. Changes appear on
+        the booking page immediately.
       </p>
+
+      <form action={createService} className="mt-8 rounded-2xl border border-glam-accent/25 bg-glam-accent/5 p-5">
+        <p className="text-sm font-semibold text-glam-accent">Add new service</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <label className="block text-xs text-white/55">
+            Service name
+            <input type="text" name="name" required placeholder="Silk Press" className={inputClass} />
+          </label>
+          <label className="block text-xs text-white/55">
+            Category
+            <select name="category" defaultValue="hair-reset" className={inputClass}>
+              {categories.map(([value, label]) => (
+                <option key={value} value={value} className="bg-glam-primary">
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-xs text-white/55 lg:col-span-2">
+            Description
+            <textarea name="description" rows={2} className={inputClass} />
+          </label>
+          <label className="block text-xs text-white/55">
+            Duration (minutes)
+            <input type="number" name="duration_minutes" min={15} step={15} defaultValue={60} required className={inputClass} />
+          </label>
+          <label className="block text-xs text-white/55">
+            Price (GHS)
+            <input type="number" name="base_price" min={0} step={1} defaultValue={50} required className={inputClass} />
+          </label>
+          <label className="block text-xs text-white/55">
+            Sort order
+            <input type="number" name="sort_order" min={0} defaultValue={(services?.length ?? 0) + 1} className={inputClass} />
+          </label>
+          <div className="flex flex-wrap items-end gap-6">
+            <label className="flex items-center gap-2 text-sm text-white/75">
+              <input type="checkbox" name="featured" />
+              Featured
+            </label>
+            <label className="flex items-center gap-2 text-sm text-white/75">
+              <input type="checkbox" name="active" defaultChecked />
+              Active
+            </label>
+          </div>
+        </div>
+        <div className="mt-5">
+          <AdminBtnPrimary>Add service</AdminBtnPrimary>
+        </div>
+      </form>
 
       <div className="mt-6 space-y-4">
         {(services ?? []).length === 0 ? (
