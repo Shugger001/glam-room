@@ -1,5 +1,6 @@
-import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MarketingFooter } from "@/components/layout/marketing-footer";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { MarketingMain } from "@/components/layout/marketing-main";
 import { MobileHomeBar, MobileHomeSpacer } from "@/components/layout/mobile-home-bar";
 import { PremiumGrain } from "@/components/layout/premium-grain";
@@ -18,7 +19,7 @@ export default function MarketingLayout({
       <ScrollProgress />
       <SiteHeader />
       <MarketingMain>{children}</MarketingMain>
-      <SiteFooter />
+      <MarketingFooter fullFooter={<SiteFooter />} />
       <MobileHomeSpacer />
       <MobileHomeBar />
     </>
