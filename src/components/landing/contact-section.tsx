@@ -9,9 +9,9 @@ export function ContactSection({ locations = SALON_LOCATIONS }: { locations?: Sa
   return (
     <Section id="contact" background="white">
       <SectionHeader
-        eyebrow="Get in Touch"
-        title="Contact Glam Room"
-        description="Questions, bridal enquiries, or group bookings — send a message or reach us on WhatsApp."
+        eyebrow="Contact"
+        title="Contact us"
+        description="WhatsApp or send a message."
         align="center"
       />
       <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
@@ -23,11 +23,9 @@ export function ContactSection({ locations = SALON_LOCATIONS }: { locations?: Sa
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
               WhatsApp
             </p>
-            <p className="mt-2 text-sm text-glam-muted">
-              Fastest way to book or ask about availability.
-            </p>
+            <p className="mt-2 text-sm text-glam-muted">Fastest way to book.</p>
             <ButtonLink href={BRAND.links.whatsapp} variant="accent" className="mt-4 w-full sm:w-auto">
-              Chat on WhatsApp
+              WhatsApp
             </ButtonLink>
           </div>
           <div className="rounded-2xl border border-glam-border bg-glam-background p-6">

@@ -1,6 +1,5 @@
 import { Reveal } from "@/components/motion/reveal";
 import { ParallaxImage } from "@/components/motion/parallax-image";
-import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { BRAND } from "@/lib/constants/brand";
 
@@ -24,23 +23,14 @@ export function AboutPreview() {
         </Reveal>
         <div>
           <SectionHeader
-            eyebrow="The Glam Room"
-            title="The Art of Transformation"
+            eyebrow="Glam Room"
+            title="About us"
             description={BRAND.copy.aboutIntro[0]}
           />
           <Reveal delay={0.15}>
-            <p className="mb-4 text-base leading-relaxed text-glam-muted">
+            <p className="text-base leading-relaxed text-glam-muted">
               {BRAND.copy.aboutIntro[1]}
             </p>
-            <blockquote className="mb-8 border-l border-glam-accent/60 pl-5 text-lg italic leading-relaxed text-glam-primary">
-              &ldquo;{BRAND.copy.quote}&rdquo;
-              <footer className="mt-3 text-sm font-semibold not-italic tracking-wide text-glam-accent">
-                — {BRAND.copy.quoteAuthor}
-              </footer>
-            </blockquote>
-            <ButtonLink href="/about" variant="outline">
-              Our Story
-            </ButtonLink>
           </Reveal>
         </div>
       </div>

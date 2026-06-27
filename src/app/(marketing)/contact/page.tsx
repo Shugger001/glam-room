@@ -7,7 +7,7 @@ import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Contact ${BRAND.fullName} — WhatsApp, email, or message our team in Adenta, Sowutuom, or Madina.`,
+  description: `WhatsApp or message ${BRAND.fullName}.`,
 };
 
 export default async function ContactPage() {
@@ -15,11 +15,7 @@ export default async function ContactPage() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Contact"
-        title="We'd Love to Hear From You"
-        description="Send a message, WhatsApp Asantewaa's team, or book directly online."
-      />
+      <PageHero eyebrow="Contact" title="Get in touch" description="WhatsApp us or send a message." />
       <ContactSection locations={locations} />
       <CtaBand />
     </>

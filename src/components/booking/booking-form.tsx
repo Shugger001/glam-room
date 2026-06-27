@@ -320,7 +320,7 @@ export function BookingForm({
           <ButtonLink href={BRAND.links.whatsapp} variant="accent">
             Chat on WhatsApp
           </ButtonLink>
-          <ButtonLink href="/#track-booking" variant="outline">
+          <ButtonLink href="/track" variant="outline">
             Find My Booking
           </ButtonLink>
         </div>
@@ -592,7 +592,7 @@ export function BookingForm({
             </div>
             {appliedPromo ? (
               <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
-                {appliedPromo.label} — you save {formatShopPrice(appliedPromo.savings)} on the
+                {appliedPromo.label}. You save {formatShopPrice(appliedPromo.savings)} on the
                 deposit
               </p>
             ) : null}

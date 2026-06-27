@@ -88,12 +88,9 @@ export function ReviewForm({ token }: { token: string }) {
       <div className="rounded-2xl border border-glam-accent/30 bg-glam-accent/5 px-6 py-10 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-glam-accent">Thank you</p>
         <h2 className="heading-display mt-4 text-3xl text-glam-primary">Review received</h2>
-        <p className="mt-4 text-glam-muted">
-          We appreciate you taking the time. Your words may appear on our site after a quick review
-          from the Glam Room team.
-        </p>
-        <ButtonLink href="/testimonials" variant="accent" className="mt-8">
-          See testimonials
+        <p className="mt-4 text-glam-muted">Thank you. We got your review.</p>
+        <ButtonLink href="/" variant="accent" className="mt-8">
+          Back home
         </ButtonLink>
       </div>
     );
@@ -103,8 +100,8 @@ export function ReviewForm({ token }: { token: string }) {
     return (
       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-8 text-center text-amber-900">
         <p>Your review link will be active once your appointment is marked complete.</p>
-        <ButtonLink href="/#track-booking" variant="outline" className="mt-6">
-          Track booking
+        <ButtonLink href="/track" variant="outline" className="mt-6">
+          My booking
         </ButtonLink>
       </div>
     );

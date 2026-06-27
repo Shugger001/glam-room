@@ -9,8 +9,8 @@ import { getStaffMembers } from "@/lib/data/live-staff";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Our Experts",
-  description: `Meet the stylists behind ${BRAND.fullName} — expert braids, installs, and silk presses in Accra.`,
+  title: "Team",
+  description: `Stylists at ${BRAND.fullName}, Accra.`,
 };
 
 export default async function ExpertsPage() {
@@ -18,11 +18,7 @@ export default async function ExpertsPage() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Our Experts"
-        title="The Queen Behind the Chair"
-        description="Glam Room is Asantewaa's love letter to Accra — warm vibes, expert hands, and zero tolerance for bad hair days."
-      />
+      <PageHero eyebrow="Team" title="Our stylists" description="Meet the team." />
       <Section background="white" className="!pt-0">
         <div className="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
           {staff.map((member, i) => (

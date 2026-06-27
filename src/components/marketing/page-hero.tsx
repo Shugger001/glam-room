@@ -9,7 +9,7 @@ type PageHeroProps = {
 
 export function PageHero({ eyebrow, title, description }: PageHeroProps) {
   return (
-    <Section background="dark" className="!pb-10 sm:!pb-14">
+    <Section background="dark" className="!pb-8 sm:!pb-10">
       <Reveal className="mx-auto max-w-3xl text-center">
         <p className="eyebrow-label text-glam-accent">{eyebrow}</p>
         <span className="gold-rule mx-auto" aria-hidden />

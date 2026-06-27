@@ -9,7 +9,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Services",
-  description: `Hair resets, installations, and braids at ${BRAND.fullName} — Adenta, Sowutuom, and Madina, Accra.`,
+  description: `Hair services at ${BRAND.fullName}. Adenta, Sowutuom, and Madina.`,
 };
 
 export default async function ServicesPage() {
@@ -17,11 +17,7 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Services"
-        title="Your Crown, Our Craft"
-        description="From silk presses to waist-length braids — transparent pricing and expert hands at every Glam Room location."
-      />
+      <PageHero eyebrow="Services" title="Services" description="Pick a service and book." />
       <section className="container-narrow pb-16 sm:pb-24">
         <ServicesGrid services={services} />
       </section>

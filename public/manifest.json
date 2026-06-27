@@ -1,7 +1,7 @@
 {
   "name": "The Glam Room",
   "short_name": "Glam Room",
-  "description": "Accra's premier luxury hair and beauty salon — book appointments and explore our services.",
+  "description": "Accra's premier luxury hair and beauty salon. Book appointments and explore our services.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8F5F2",

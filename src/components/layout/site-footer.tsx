@@ -2,6 +2,7 @@ import Link from "next/link";
 import { GlamLogo } from "@/components/brand/glam-logo";
 import { BRAND } from "@/lib/constants/brand";
 import { FOOTER_NAV } from "@/lib/constants/navigation";
+import { getDirectionsUrl } from "@/lib/maps/directions-url";
 import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export async function SiteFooter() {
@@ -96,7 +97,7 @@ export async function SiteFooter() {
               <p className="text-sm font-medium text-white/80">Glam Room · {loc.area}</p>
               <p className="text-sm text-white/50">{loc.address}</p>
               <a
-                href={loc.mapUrl}
+                href={getDirectionsUrl(loc)}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-1 inline-block text-sm text-glam-accent transition hover:text-white"

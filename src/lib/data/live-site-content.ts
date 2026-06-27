@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/constants/brand";
 import { FAQ_ITEMS, type FaqItem } from "@/lib/constants/faqs";
 import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
+import { getDirectionsUrl } from "@/lib/maps/directions-url";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 
 export type BookingTimeSlot = { readonly value: string; readonly label: string };
@@ -47,10 +48,35 @@ export async function getLiveFaqs(): Promise<FaqItem[]> {
 
 export async function getLiveLocations(): Promise<SalonLocation[]> {
   const stored = await readSetting<SalonLocation[]>("locations");
-  if (Array.isArray(stored) && stored.length > 0) {
-    return stored.filter((l) => l.id && l.area);
-  }
-  return SALON_LOCATIONS;
+  const list =
+    Array.isArray(stored) && stored.length > 0
+      ? stored.filter((l) => l.id && l.area)
+      : SALON_LOCATIONS;
+
+  return list.map((loc) => {
+    const defaults = SALON_LOCATIONS.find((d) => d.id === loc.id);
+    const lat = typeof loc.lat === "number" ? loc.lat : defaults?.lat;
+    const lng = typeof loc.lng === "number" ? loc.lng : defaults?.lng;
+    const pinUrl = loc.pinUrl ?? defaults?.pinUrl;
+
+    return {
+      ...defaults,
+      ...loc,
+      lat: lat ?? defaults?.lat ?? 0,
+      lng: lng ?? defaults?.lng ?? 0,
+      pinUrl,
+      mapUrl: getDirectionsUrl({
+        lat,
+        lng,
+        pinUrl,
+        name: loc.name ?? defaults?.name,
+        area: loc.area,
+        address: loc.address,
+        city: loc.city ?? defaults?.city,
+        country: loc.country ?? defaults?.country,
+      }),
+    };
+  });
 }
 
 export async function getLiveSalonConfig(): Promise<SalonConfig> {

@@ -7,9 +7,9 @@ export function GalleryPreview({ items }: { items: GalleryItem[] }) {
     <Section id="gallery" narrow={false}>
       <div className="container-narrow">
         <SectionHeader
-          eyebrow="Portfolio"
-          title="The Glam Gallery"
-          description="Real client transformations from Adenta, Sowutuom, and Madina — silk presses, braids, installs, and glow-ups."
+          eyebrow="Gallery"
+          title="Gallery"
+          description="Recent work."
           align="center"
         />
       </div>

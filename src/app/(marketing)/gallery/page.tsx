@@ -9,7 +9,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Gallery",
-  description: `Real client transformations from ${BRAND.fullName} — braids, silk presses, and installs across Accra.`,
+  description: `Real client transformations from ${BRAND.fullName}. Braids, silk presses, and installs across Accra.`,
 };
 
 export default async function GalleryPage() {
@@ -17,11 +17,7 @@ export default async function GalleryPage() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Portfolio"
-        title="The Glam Gallery"
-        description="Browse recent work from Adenta, Sowutuom, and Madina — filter by style and book your look."
-      />
+      <PageHero eyebrow="Gallery" title="Gallery" description="Recent work from our shops." />
       <GalleryPreview items={gallery} />
       <CtaBand />
     </>

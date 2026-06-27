@@ -170,7 +170,7 @@ export default async function AdminGalleryPage() {
           </label>
           <label className="block text-xs text-white/55">
             Caption
-            <input type="text" name="alt" required placeholder="Butterfly braids — Madina" className={inputClass} />
+            <input type="text" name="alt" required placeholder="Butterfly braids, Madina" className={inputClass} />
           </label>
           <label className="block text-xs text-white/55">
             Category

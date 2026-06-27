@@ -7,7 +7,7 @@ export function LocalBusinessJsonLd() {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     name: BRAND.fullName,
-    description: `${BRAND.fullName} — luxury hair and beauty salon in ${MARKET.city}, ${MARKET.country}.`,
+    description: `${BRAND.fullName}. Luxury hair and beauty salon in ${MARKET.city}, ${MARKET.country}.`,
     url: process.env.NEXT_PUBLIC_APP_URL ?? "https://theglamroom.com",
     telephone: BRAND.links.phone,
     email: BRAND.links.email,

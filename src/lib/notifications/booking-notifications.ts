@@ -92,7 +92,7 @@ export async function notifySalonBookingRequest(
     : null;
 
   const subject =
-    event === "deposit_paid" ? "New booking — deposit received" : "New booking request";
+    event === "deposit_paid" ? "New booking: deposit received" : "New booking request";
 
   const html = renderBookingEmail({
     variant: event === "deposit_paid" ? "salon_deposit_paid" : "salon_new",
@@ -139,11 +139,11 @@ export async function notifyClientBookingUpdate(
   const { clientName, when, location, service, depositLine } = bookingSummary(booking);
   const clientPhone = booking.client_phone ?? parseClientNotesField(booking.client_notes, "Phone");
   const clientEmail = clientEmailFromNotes(booking.client_notes);
-  const trackUrl = `${appBaseUrl()}/#track-booking`;
+  const trackUrl = `${appBaseUrl()}/track`;
   const whatsAppUrl = buildClientBookingSupportLink(clientName, service, when);
 
   const subject =
-    event === "deposit_paid" ? "Glam Room — deposit received" : "Glam Room — booking received";
+    event === "deposit_paid" ? "Glam Room: deposit received" : "Glam Room: booking received";
 
   const html = renderBookingEmail({
     variant: event === "deposit_paid" ? "client_deposit_paid" : "client_submitted",

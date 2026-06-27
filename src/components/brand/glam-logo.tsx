@@ -47,7 +47,7 @@ export function GlamLogo({
   if (!asLink) return content;
 
   return (
-    <Link href="/" className="group inline-flex shrink-0 items-center" aria-label={`${BRAND.fullName} — Home`}>
+    <Link href="/" className="group inline-flex shrink-0 items-center" aria-label={`${BRAND.fullName} home`}>
       {content}
     </Link>
   );

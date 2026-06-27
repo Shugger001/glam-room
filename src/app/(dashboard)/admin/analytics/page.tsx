@@ -28,7 +28,7 @@ export default async function AdminAnalyticsPage() {
     <div className="space-y-10">
       <AdminPageHeader
         title="Analytics"
-        description="30-day performance — bookings, deposits, promos, and location mix."
+        description="30-day performance: bookings, deposits, promos, and location mix."
       />
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <AdminKpi label="Bookings (30d)" value={`${stats.bookings30d}`} />

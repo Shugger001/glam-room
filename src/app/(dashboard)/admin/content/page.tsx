@@ -138,7 +138,9 @@ export default async function AdminContentPage() {
               address: String(formData.get(`loc_address_${i}`) ?? loc.address),
               city: String(formData.get(`loc_city_${i}`) ?? loc.city),
               country: String(formData.get(`loc_country_${i}`) ?? loc.country),
-              mapUrl: String(formData.get(`loc_map_${i}`) ?? loc.mapUrl),
+              lat: Number(formData.get(`loc_lat_${i}`) ?? loc.lat),
+              lng: Number(formData.get(`loc_lng_${i}`) ?? loc.lng),
+              pinUrl: String(formData.get(`loc_pin_${i}`) ?? loc.pinUrl ?? ""),
               hours: String(formData.get(`loc_hours_${i}`) ?? loc.hours),
               image: String(formData.get(`loc_image_${i}`) ?? loc.image),
               badge: String(formData.get(`loc_badge_${i}`) ?? "") || undefined,
@@ -166,8 +168,35 @@ export default async function AdminContentPage() {
                   <input name={`loc_address_${i}`} defaultValue={loc.address} required className={inputClass} />
                 </label>
                 <label className="block text-xs text-white/55 sm:col-span-2">
-                  Map URL
-                  <input name={`loc_map_${i}`} defaultValue={loc.mapUrl} className={inputClass} />
+                  Google Maps pin link
+                  <input
+                    name={`loc_pin_${i}`}
+                    defaultValue={loc.pinUrl ?? ""}
+                    placeholder="https://maps.google.com/?q=5.686345,-0.172322"
+                    className={inputClass}
+                  />
+                </label>
+                <label className="block text-xs text-white/55">
+                  Latitude
+                  <input
+                    name={`loc_lat_${i}`}
+                    type="number"
+                    step="any"
+                    defaultValue={loc.lat}
+                    required
+                    className={inputClass}
+                  />
+                </label>
+                <label className="block text-xs text-white/55">
+                  Longitude
+                  <input
+                    name={`loc_lng_${i}`}
+                    type="number"
+                    step="any"
+                    defaultValue={loc.lng}
+                    required
+                    className={inputClass}
+                  />
                 </label>
                 <label className="block text-xs text-white/55">
                   Hours label

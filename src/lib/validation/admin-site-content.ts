@@ -2,6 +2,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { FaqItem } from "@/lib/constants/faqs";
 import type { SalonLocation } from "@/lib/constants/locations";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getDirectionsUrl } from "@/lib/maps/directions-url";
 import type { BookingTimeSlot, SalonConfig } from "@/lib/data/live-site-content";
 
 const faqSchema = z.object({
@@ -17,7 +19,10 @@ const locationSchema = z.object({
   address: z.string().trim().min(3).max(200),
   city: z.string().trim().min(1).max(80),
   country: z.string().trim().min(1).max(80),
-  mapUrl: z.string().trim().url().or(z.literal("")),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  pinUrl: z.string().trim().url().or(z.literal("")).optional(),
+  mapUrl: z.string().trim().url().or(z.literal("")).optional(),
   hours: z.string().trim().min(3).max(120),
   image: z.string().trim().min(1).max(300),
   badge: z.string().trim().max(40).optional().or(z.literal("")),
@@ -58,10 +63,30 @@ export function parseLocationsFromForm(formData: FormData): SalonLocation[] {
     return parsed
       .map((item) => locationSchema.safeParse(item))
       .filter((r) => r.success)
-      .map((r) => ({
-        ...r.data,
-        badge: r.data.badge || undefined,
-      }));
+      .map((r) => {
+        const defaults = SALON_LOCATIONS.find((d) => d.id === r.data.id);
+        const lat = r.data.lat ?? defaults?.lat ?? 0;
+        const lng = r.data.lng ?? defaults?.lng ?? 0;
+        const pinUrl = r.data.pinUrl || defaults?.pinUrl;
+        return {
+          ...defaults,
+          ...r.data,
+          lat,
+          lng,
+          pinUrl,
+          badge: r.data.badge || undefined,
+          mapUrl: getDirectionsUrl({
+            lat,
+            lng,
+            pinUrl,
+            name: r.data.name,
+            area: r.data.area,
+            address: r.data.address,
+            city: r.data.city,
+            country: r.data.country,
+          }),
+        };
+      });
   } catch {
     return [];
   }

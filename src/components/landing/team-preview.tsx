@@ -60,9 +60,9 @@ export function TeamPreview({ staff }: { staff: StaffMember[] }) {
   return (
     <Section id="experts" background="white">
       <SectionHeader
-        eyebrow="The Queen Behind the Chair"
-        title="Meet Asantewaa"
-        description="Glam Room is her love letter to Accra — warm vibes, expert hands, and zero tolerance for bad hair days."
+        eyebrow="Team"
+        title="Our stylists"
+        description="Meet the team."
         align="center"
       />
       <div className="mx-auto grid max-w-md gap-6">
@@ -72,7 +72,7 @@ export function TeamPreview({ staff }: { staff: StaffMember[] }) {
       </div>
       <Reveal className="mt-12 text-center">
         <ButtonLink href="/experts" variant="outline" size="lg">
-          Meet the Team
+          See team
         </ButtonLink>
       </Reveal>
     </Section>

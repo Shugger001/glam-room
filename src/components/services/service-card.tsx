@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { ServicesInteractiveGrid } from "@/components/services/services-interactive-grid";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { formatShopPrice } from "@/lib/format/money";
+import { BRAND } from "@/lib/constants/brand";
 import type { SalonService } from "@/lib/constants/services";
 
 type ServiceCardProps = {
@@ -81,15 +82,14 @@ export function ServicesPreview({ services }: { services: SalonService[] }) {
   return (
     <Section id="services" background="white">
       <SectionHeader
-        eyebrow="What We Do"
-        title="Services That Slay"
-        description="Pick your vibe and let us work our magic. Every service comes with main character energy included."
+        eyebrow="Services"
+        title="Services"
+        description="Pick one and book."
         align="center"
       />
       <ServicesInteractiveGrid services={services} />
       <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-glam-muted" role="note">
-        Please note that all Braids prices do not include hair extensions. You can either come along
-        with your own extensions or purchase from our salon.
+        {BRAND.copy.braidsNotice}
       </p>
     </Section>
   );

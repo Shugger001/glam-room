@@ -7,6 +7,7 @@ import { Reveal } from "@/components/motion/reveal";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/constants/brand";
+import { cn } from "@/lib/utils/cn";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 import type { BookingTimeSlot } from "@/lib/data/live-site-content";
 
@@ -25,8 +26,10 @@ type LookupResult = {
 
 export function FindBookingTracker({
   timeSlots = BOOKING_TIME_SLOTS,
+  showHeader = true,
 }: {
   timeSlots?: ReadonlyArray<BookingTimeSlot>;
+  showHeader?: boolean;
 }) {
   const [phone, setPhone] = useState("");
   const [nameSuffix, setNameSuffix] = useState("");
@@ -132,14 +135,21 @@ export function FindBookingTracker({
   }
 
   return (
-    <Section id="track-booking" background="white">
-      <div className="flex flex-col gap-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
-        <div className="order-1 lg:order-2">
-          <SectionHeader
-            eyebrow="Track"
-            title="Find My Booking"
-            description="Check status, cancel, or reschedule with your phone and last 4 letters of your name."
-          />
+    <Section id="track-booking" background="white" className={showHeader ? undefined : "!pt-0"}>
+      <div
+        className={cn(
+          "flex flex-col gap-10",
+          showHeader && "lg:grid lg:grid-cols-2 lg:items-center lg:gap-16",
+        )}
+      >
+        <div className={showHeader ? "order-1 lg:order-2" : undefined}>
+          {showHeader ? (
+            <SectionHeader
+              eyebrow="Track"
+              title="Find My Booking"
+              description="Phone + last 4 letters of your name."
+            />
+          ) : null}
           <Reveal delay={0.1}>
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
@@ -277,17 +287,19 @@ export function FindBookingTracker({
           </Reveal>
         </div>
 
-        <Reveal className="relative order-2 aspect-[4/3] overflow-hidden rounded-2xl lg:order-1">
-          <ParallaxImage
-            src="/images/glam-red-indoor.png"
-            alt="Find your Glam Room booking"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="absolute inset-0"
-            yRange={["-6%", "6%"]}
-            scaleRange={[1.06, 1.12]}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 via-glam-primary/20 to-transparent" />
-        </Reveal>
+        {showHeader ? (
+          <Reveal className="relative order-2 aspect-[4/3] overflow-hidden rounded-2xl lg:order-1">
+            <ParallaxImage
+              src="/images/glam-red-indoor.png"
+              alt="Find your Glam Room booking"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="absolute inset-0"
+              yRange={["-6%", "6%"]}
+              scaleRange={[1.06, 1.12]}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 via-glam-primary/20 to-transparent" />
+          </Reveal>
+        ) : null}
       </div>
     </Section>
   );

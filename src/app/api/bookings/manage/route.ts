@@ -91,14 +91,14 @@ export async function POST(request: Request) {
       await sendTransactionalMessage({
         toEmail: email,
         toPhone: salonPhone,
-        subject: `Glam Room — booking cancelled (${clientName})`,
+        subject: `Glam Room: booking cancelled (${clientName})`,
         html: `<p>${clientName} cancelled their ${svc} booking on ${when} (${loc}).</p>`,
         smsText: `Glam Room: ${clientName} cancelled ${svc} on ${when} (${loc}).`,
       });
 
       await sendTransactionalMessage({
         toPhone: clientPhone,
-        subject: "Glam Room — booking cancelled",
+        subject: "Glam Room: booking cancelled",
         html: `<p>Your Glam Room booking for ${svc} on ${when} has been cancelled. WhatsApp us to rebook anytime.</p>`,
         smsText: `The Glam Room: your booking for ${svc} on ${when} was cancelled. WhatsApp us to rebook.`,
       });
@@ -152,14 +152,14 @@ export async function POST(request: Request) {
     await sendTransactionalMessage({
       toEmail: email,
       toPhone: salonPhone,
-      subject: `Glam Room — booking rescheduled (${clientName})`,
+      subject: `Glam Room: booking rescheduled (${clientName})`,
       html: `<p>${clientName} moved ${svc} from ${when} to ${newWhen} (${loc}).</p>`,
       smsText: `Glam Room: ${clientName} rescheduled ${svc} to ${newWhen} (${loc}).`,
     });
 
     await sendTransactionalMessage({
       toPhone: clientPhone,
-      subject: "Glam Room — booking rescheduled",
+      subject: "Glam Room: booking rescheduled",
       html: `<p>Your Glam Room booking for ${svc} is now scheduled for ${newWhen} at ${loc}.</p>`,
       smsText: `The Glam Room: ${svc} rescheduled to ${newWhen} (${loc}).`,
     });

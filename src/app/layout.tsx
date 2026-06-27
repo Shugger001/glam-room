@@ -22,10 +22,10 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://127.0.0.1:3100"),
   title: {
-    default: `${BRAND.fullName} — Luxury Hair & Beauty Salon · ${MARKET.city}`,
+    default: `${BRAND.fullName} · Luxury Hair & Beauty Salon · ${MARKET.city}`,
     template: `%s · ${BRAND.name}`,
   },
-  description: `${BRAND.fullName} — ${BRAND.copy.heroSubtitle}. Hair reset, installs, and braids in Adenta, Sowutuom, and Madina, Accra.`,
+  description: `${BRAND.fullName}. ${BRAND.copy.heroSubtitle}. Hair reset, installs, and braids in Adenta, Sowutuom, and Madina, Accra.`,
   applicationName: BRAND.fullName,
   keywords: [
     "luxury salon",
@@ -48,14 +48,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GH",
     siteName: BRAND.fullName,
-    title: `${BRAND.fullName} — Luxury Hair & Beauty`,
+    title: `${BRAND.fullName} · Luxury Hair & Beauty`,
     description: `Where beauty meets confidence. Premium hair and beauty services in ${MARKET.city}, ${MARKET.country}.`,
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: `${BRAND.fullName} — Luxury Hair & Beauty Salon`,
+        alt: `${BRAND.fullName} · Luxury Hair & Beauty Salon`,
       },
     ],
   },

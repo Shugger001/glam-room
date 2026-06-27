@@ -17,7 +17,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "faq-02",
     question: "Do you have more than one location?",
     answer:
-      "Yes — Glam Room has three shops in Accra: Adenta, Sowutuom, and our newest location in Madina (Ritz Junction). Pick your preferred location when you book.",
+      "Yes. Glam Room has three shops in Accra: Adenta, Sowutuom, and our newest location in Madina (Ritz Junction). Pick your preferred location when you book.",
   },
   {
     id: "faq-03",
@@ -33,7 +33,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "faq-05",
     question: "What should I bring for braids?",
     answer:
-      "For braiding services (workmanship only), bring your own hair extensions or purchase from our salon. Our stylists handle the braiding — you provide the hair.",
+      "For braiding services (workmanship only), bring your own hair extensions or purchase from our salon. Our stylists handle the braiding. You provide the hair.",
   },
   {
     id: "faq-06",
@@ -49,6 +49,6 @@ export const FAQ_ITEMS: FaqItem[] = [
     id: "faq-08",
     question: "Do you accept walk-ins?",
     answer:
-      "We recommend booking ahead to secure your slot, especially on weekends. Limited walk-in availability may exist — WhatsApp us to check.",
+      "We recommend booking ahead to secure your slot, especially on weekends. Limited walk-in availability may exist. WhatsApp us to check.",
   },
 ];

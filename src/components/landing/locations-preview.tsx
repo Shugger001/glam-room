@@ -5,6 +5,7 @@ import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
+import { getDirectionsUrl } from "@/lib/maps/directions-url";
 
 export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: SalonLocation[] }) {
   return (
@@ -12,7 +13,7 @@ export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: 
       <SectionHeader
         eyebrow="Our Sanctuaries"
         title="Three Shops. One Standard."
-        description="Adenta, Sowutuom, and our newest Madina location — same premium care, wherever you book."
+        description="Three shops across Accra."
         align="center"
       />
       <div className="mb-10 flex justify-center">
@@ -52,7 +53,7 @@ export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: 
                 <p className="text-sm text-glam-muted">{location.hours}</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <Link
-                    href={location.mapUrl}
+                    href={getDirectionsUrl(location)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-glam-border px-4 text-sm font-medium text-glam-primary transition hover:border-glam-accent hover:text-glam-accent"

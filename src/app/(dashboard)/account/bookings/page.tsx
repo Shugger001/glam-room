@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AccountBookingsPage() {
-  redirect("/#track-booking");
+  redirect("/track");
 }

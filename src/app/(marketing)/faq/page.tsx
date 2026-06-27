@@ -10,7 +10,7 @@ import { getLiveFaqs } from "@/lib/data/live-site-content";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "FAQs",
+  title: "Help",
   description: `Frequently asked questions about booking, deposits, braids, and visits at ${BRAND.fullName}.`,
 };
 
@@ -20,11 +20,7 @@ export default async function FaqPage() {
   return (
     <>
       <FaqJsonLd items={faqs} />
-      <PageHero
-        eyebrow="FAQs"
-        title="Questions & Answers"
-        description="Everything you need to know before your visit."
-      />
+      <PageHero eyebrow="Help" title="Common questions" description="Booking, prices, and visits." />
       <Section background="white" className="!pt-0">
         <div className="mx-auto max-w-3xl">
           <FaqAccordion items={faqs} />

@@ -9,7 +9,7 @@ import { getLiveLocations, getLiveSalonConfig } from "@/lib/data/live-site-conte
 
 export const metadata: Metadata = {
   title: "Book Appointment",
-  description: `Book your luxury hair and beauty appointment at ${BRAND.fullName}. No account needed — we'll confirm via WhatsApp.`,
+  description: `Book your luxury hair and beauty appointment at ${BRAND.fullName}. No account needed. We'll confirm via WhatsApp.`,
 };
 
 type BookPageProps = {

@@ -84,9 +84,9 @@ export function BookingsTable({
             const formId = `booking-form-${b.id}`;
             const profile = b.profiles;
             const clientName = b.client_name ?? profile?.full_name ?? "Guest";
-            const clientPhone = b.client_phone ?? profile?.phone ?? "—";
-            const loc = locationLabelFromId(b.location_id) ?? "—";
-            const staffName = b.staff?.name ?? "—";
+            const clientPhone = b.client_phone ?? profile?.phone ?? "-";
+            const loc = locationLabelFromId(b.location_id) ?? "-";
+            const staffName = b.staff?.name ?? "-";
             const serviceName = b.services?.name ?? "Service";
 
             const depositCell =
@@ -97,7 +97,7 @@ export function BookingsTable({
                   <span className="text-amber-200/90">Pending</span>
                 )
               ) : (
-                "—"
+                "-"
               );
 
             return (

@@ -11,9 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/gallery",
     "/about",
     "/experts",
-    "/testimonials",
     "/faq",
     "/contact",
+    "/track",
   ];
 
   const now = new Date();

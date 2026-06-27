@@ -5,9 +5,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
+function useMobileTabBar(pathname: string) {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/auth")) return false;
+  if (pathname.startsWith("/book/") || pathname === "/review") return false;
+  return true;
+}
+
 export function MarketingMain({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const hasMobileTabBar = useMobileTabBar(pathname);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -37,7 +44,7 @@ export function MarketingMain({ children }: { children: ReactNode }) {
       className={cn(
         "flex flex-1 flex-col",
         !isHome && "pt-[calc(var(--header-height)+env(safe-area-inset-top,0px))]",
-        isHome && "mobile-page-bottom md:pb-0",
+        hasMobileTabBar && "mobile-page-bottom md:pb-0",
       )}
     >
       {content}

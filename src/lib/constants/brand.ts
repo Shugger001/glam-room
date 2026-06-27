@@ -43,18 +43,16 @@ export const BRAND = {
     { day: "Sunday", open: "08:00", close: "20:00", closed: false },
   ],
   copy: {
-    heroTagline:
-      "Where beauty meets influence, and every detail is designed to make a statement.",
-    heroSubtitle: "Accra's Premier Hair Destination",
+    heroTagline: "Hair and beauty in Accra.",
+    heroSubtitle: "3 shops in Accra",
     aboutIntro: [
-      "Glam Room is a destination for modern beauty. Designed for women who value excellence, every service is delivered with precision, care, and an uncompromising attention to detail.",
-      "From everyday refinement to life's defining moments, our stylists create looks that feel effortless, elevated, and uniquely yours.",
+      "Three Glam Room shops in Accra.",
+      "Book online or chat on WhatsApp.",
     ],
     quote:
       "I didn't come to play, I came to SLAY, and so did your hair when you walk out my door. Baby girl, treat yourself. You deserve to look expensive!",
     quoteAuthor: "Asantewaa",
-    braidsNotice:
-      "Please note that all Braids prices do not include hair extensions. You can either come along with your own extensions or purchase from our salon.",
+    braidsNotice: "Braids: bring hair or buy at the salon.",
     footerTagline: "Made with love in Accra, Ghana 🇬🇭",
   },
 } as const;

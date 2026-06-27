@@ -6,7 +6,7 @@ import { BRAND } from "@/lib/constants/brand";
 
 const ROTATING_LINES = [
   BRAND.copy.heroSubtitle,
-  "Braids, installs & silk presses — done right.",
+  "Braids, installs & silk presses, done right.",
   "Three Accra locations. One glam standard.",
 ];
 
