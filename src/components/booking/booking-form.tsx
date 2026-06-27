@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button";
 import { BRAND } from "@/lib/constants/brand";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
+import type { BookingTimeSlot } from "@/lib/data/live-site-content";
 import {
   SERVICE_CATEGORIES,
   type SalonService,
@@ -30,6 +31,9 @@ import { cn } from "@/lib/utils/cn";
 type BookingFormProps = {
   services: SalonService[];
   staff: LiveStaff[];
+  locations?: SalonLocation[];
+  timeSlots?: ReadonlyArray<BookingTimeSlot>;
+  braidsNotice?: string;
   initialStaffId?: string;
   initialServiceId?: string;
   initialLocationId?: string;
@@ -46,6 +50,9 @@ function findCategoryForService(services: SalonService[], serviceId?: string) {
 export function BookingForm({
   services,
   staff,
+  locations = SALON_LOCATIONS,
+  timeSlots = BOOKING_TIME_SLOTS,
+  braidsNotice = BRAND.copy.braidsNotice,
   initialStaffId,
   initialServiceId,
   initialLocationId,
@@ -109,8 +116,8 @@ export function BookingForm({
   );
 
   const selectedLocation = useMemo(
-    () => SALON_LOCATIONS.find((l) => l.id === locationId),
-    [locationId],
+    () => locations.find((l) => l.id === locationId),
+    [locationId, locations],
   );
 
   useEffect(() => {
@@ -330,7 +337,7 @@ export function BookingForm({
         Locations
       </p>
       <ul className="mt-4 space-y-4 text-sm text-white/70">
-        {SALON_LOCATIONS.map((loc) => (
+        {locations.map((loc) => (
           <li key={loc.id}>
             <p className="font-medium text-white">
               {loc.area}
@@ -420,7 +427,7 @@ export function BookingForm({
             Location
             <select className={inputClass} {...form.register("locationId")}>
               <option value="">Select location</option>
-              {SALON_LOCATIONS.map((loc) => (
+              {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.area}
                   {loc.badge ? ` (${loc.badge})` : ""}
@@ -498,7 +505,7 @@ export function BookingForm({
           ) : null}
 
           <p className="rounded-xl bg-glam-background px-4 py-3 text-sm text-glam-muted" role="note">
-            {BRAND.copy.braidsNotice}
+            {braidsNotice}
           </p>
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -533,7 +540,7 @@ export function BookingForm({
                 {...form.register("bookingTime")}
               >
                 <option value="">Select time</option>
-                {BOOKING_TIME_SLOTS.map((slot) => (
+                {timeSlots.map((slot) => (
                   <option key={slot.value} value={slot.value}>
                     {slot.label}
                   </option>
@@ -609,7 +616,7 @@ export function BookingForm({
                 </p>
                 <p>
                   {selectedLocation.area} · {bookingDate} at{" "}
-                  {BOOKING_TIME_SLOTS.find((s) => s.value === bookingTime)?.label ?? bookingTime}
+                  {timeSlots.find((s) => s.value === bookingTime)?.label ?? bookingTime}
                 </p>
                 {requiresDeposit ? (
                   <p className="mt-3 border-t border-glam-accent/20 pt-3 text-glam-primary">

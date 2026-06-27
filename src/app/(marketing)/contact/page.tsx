@@ -3,13 +3,16 @@ import { ContactSection } from "@/components/landing/contact-section";
 import { PageHero } from "@/components/marketing/page-hero";
 import { CtaBand } from "@/components/landing/cta-band";
 import { BRAND } from "@/lib/constants/brand";
+import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: `Contact ${BRAND.fullName} — WhatsApp, email, or message our team in Adenta, Sowutuom, or Madina.`,
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const locations = await getLiveLocations();
+
   return (
     <>
       <PageHero
@@ -17,7 +20,7 @@ export default function ContactPage() {
         title="We'd Love to Hear From You"
         description="Send a message, WhatsApp Asantewaa's team, or book directly online."
       />
-      <ContactSection />
+      <ContactSection locations={locations} />
       <CtaBand />
     </>
   );

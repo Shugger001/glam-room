@@ -7,13 +7,16 @@ import { ButtonLink } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
 import { CtaBand } from "@/components/landing/cta-band";
 import { BRAND } from "@/lib/constants/brand";
+import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export const metadata: Metadata = {
   title: "About",
   description: `${BRAND.fullName} — luxury hair and beauty in Accra, founded by Asantewaa.`,
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const locations = await getLiveLocations();
+
   return (
     <>
       <PageHero
@@ -37,7 +40,7 @@ export default function AboutPage() {
           </ButtonLink>
         </Reveal>
       </Section>
-      <LocationsPreview />
+      <LocationsPreview locations={locations} />
       <CtaBand />
     </>
   );

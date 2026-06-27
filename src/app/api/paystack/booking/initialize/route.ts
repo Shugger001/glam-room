@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { insertGuestBooking } from "@/lib/booking/create-guest-booking";
 import { computeDepositAmount, isPaystackConfigured } from "@/lib/booking/deposit";
 import { MARKET } from "@/lib/constants/market";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import { resolvePromoForBooking } from "@/lib/promotions/validate-promo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/security/rate-limit";
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   const depositAmount = promoResult.promo?.depositAmount ?? baseDeposit;
 
   const locationLabel =
-    SALON_LOCATIONS.find((l) => l.id === values.locationId)?.area ?? values.locationId;
+    locationLabelFromList(values.locationId, await getLiveLocations()) ?? values.locationId;
 
   const reference = `glam_bk_${crypto.randomUUID().replace(/-/g, "")}`;
 

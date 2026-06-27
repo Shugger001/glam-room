@@ -8,6 +8,7 @@ import { Section, SectionHeader } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/constants/brand";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
+import type { BookingTimeSlot } from "@/lib/data/live-site-content";
 
 type LookupResult = {
   id: string;
@@ -22,7 +23,11 @@ type LookupResult = {
   can_manage: boolean;
 };
 
-export function FindBookingTracker() {
+export function FindBookingTracker({
+  timeSlots = BOOKING_TIME_SLOTS,
+}: {
+  timeSlots?: ReadonlyArray<BookingTimeSlot>;
+}) {
   const [phone, setPhone] = useState("");
   const [nameSuffix, setNameSuffix] = useState("");
   const [loading, setLoading] = useState(false);
@@ -238,7 +243,7 @@ export function FindBookingTracker() {
                             onChange={(e) => setNewTime(e.target.value)}
                             className="mt-1 w-full rounded-lg border border-glam-border px-3 py-2 text-sm"
                           >
-                            {BOOKING_TIME_SLOTS.map((slot) => (
+                            {timeSlots.map((slot) => (
                               <option key={slot.value} value={slot.value}>
                                 {slot.label}
                               </option>

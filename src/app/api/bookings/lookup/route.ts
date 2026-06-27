@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import { findClientBookings, MANAGEABLE_STATUSES } from "@/lib/booking/lookup-match";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -22,9 +22,8 @@ function formatBookingTime(iso: string) {
   });
 }
 
-function locationLabel(locationId: string | null) {
-  if (!locationId) return null;
-  return SALON_LOCATIONS.find((l) => l.id === locationId)?.area ?? locationId;
+function locationLabel(locationId: string | null, locations: Awaited<ReturnType<typeof getLiveLocations>>) {
+  return locationLabelFromList(locationId, locations);
 }
 
 export async function POST(request: Request) {
@@ -52,6 +51,7 @@ export async function POST(request: Request) {
 
   try {
     const admin = createAdminClient();
+    const locations = await getLiveLocations();
     const { bookings: matches, error } = await findClientBookings(admin, phone, nameSuffix);
 
     if (error) {
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       const serviceName = Array.isArray(serviceJoin)
         ? serviceJoin[0]?.name
         : serviceJoin?.name;
-      const loc = locationLabel(row.location_id);
+      const loc = locationLabel(row.location_id, locations);
       const start = new Date(row.start_at);
       const canManage = MANAGEABLE_STATUSES.has(row.status) && start.getTime() > Date.now();
 

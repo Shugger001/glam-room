@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { insertGuestBooking } from "@/lib/booking/create-guest-booking";
 import { computeDepositAmount, isPaystackConfigured } from "@/lib/booking/deposit";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import {
   notifyClientBookingUpdate,
   notifySalonBookingRequest,
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   }
 
   const locationLabel =
-    SALON_LOCATIONS.find((l) => l.id === values.locationId)?.area ?? values.locationId;
+    locationLabelFromList(values.locationId, await getLiveLocations()) ?? values.locationId;
 
   const servicePrice = Number(serviceRow.base_price);
   const baseDeposit = computeDepositAmount(servicePrice);

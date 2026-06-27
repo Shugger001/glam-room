@@ -1,5 +1,5 @@
 import { BRAND } from "@/lib/constants/brand";
-import { FAQ_ITEMS } from "@/lib/constants/faqs";
+import type { FaqItem } from "@/lib/constants/faqs";
 import { MARKET } from "@/lib/constants/market";
 
 export function LocalBusinessJsonLd() {
@@ -44,11 +44,11 @@ export function LocalBusinessJsonLd() {
   );
 }
 
-export function FaqJsonLd() {
+export function FaqJsonLd({ items }: { items: FaqItem[] }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQ_ITEMS.map((item) => ({
+    mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
       acceptedAnswer: {

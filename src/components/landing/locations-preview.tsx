@@ -4,9 +4,9 @@ import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
 
-export function LocationsPreview() {
+export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: SalonLocation[] }) {
   return (
     <Section id="locations" background="accent">
       <SectionHeader
@@ -19,7 +19,7 @@ export function LocationsPreview() {
         <SalonOpenStatus variant="badge" />
       </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {SALON_LOCATIONS.map((location, i) => (
+        {locations.map((location, i) => (
           <Reveal key={location.id} delay={i * 0.1}>
             <article className="premium-card group overflow-hidden">
               <div className="relative aspect-[16/10] overflow-hidden">

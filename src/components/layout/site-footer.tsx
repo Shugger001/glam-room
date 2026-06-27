@@ -2,9 +2,11 @@ import Link from "next/link";
 import { GlamLogo } from "@/components/brand/glam-logo";
 import { BRAND } from "@/lib/constants/brand";
 import { FOOTER_NAV } from "@/lib/constants/navigation";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getLiveLocations } from "@/lib/data/live-site-content";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const locations = await getLiveLocations();
+
   return (
     <footer className="relative border-t border-white/10 bg-glam-primary text-glam-secondary">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-glam-accent/60 to-transparent" aria-hidden />
@@ -89,7 +91,7 @@ export function SiteFooter() {
           >
             WhatsApp: {BRAND.links.phone}
           </a>
-          {SALON_LOCATIONS.map((loc) => (
+          {locations.map((loc) => (
             <div key={loc.id} className="mt-4">
               <p className="text-sm font-medium text-white/80">Glam Room · {loc.area}</p>
               <p className="text-sm text-white/50">{loc.address}</p>

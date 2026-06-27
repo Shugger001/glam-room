@@ -65,6 +65,16 @@ async function updateTestimonial(formData: FormData) {
   revalidateTestimonialPaths();
 }
 
+async function approveTestimonial(formData: FormData) {
+  "use server";
+  await requireSuperAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  const admin = createAdminClient();
+  await admin.from("testimonials").update({ published: true }).eq("id", id);
+  revalidateTestimonialPaths();
+}
+
 async function deleteTestimonial(formData: FormData) {
   "use server";
   await requireSuperAdmin();
@@ -84,8 +94,11 @@ export default async function AdminTestimonialsPage() {
   const admin = createAdminClient();
   const { data: items } = await admin
     .from("testimonials")
-    .select("id, name, service, rating, quote, image_url, sort_order, published")
+    .select("id, name, service, rating, quote, image_url, sort_order, published, source, booking_id")
     .order("sort_order", { ascending: true });
+
+  const pending = (items ?? []).filter((t) => !t.published && t.source === "client");
+  const published = (items ?? []).filter((t) => t.published || t.source !== "client");
 
   const nextSort = (items?.length ?? 0) + 1;
 
@@ -139,8 +152,31 @@ export default async function AdminTestimonialsPage() {
         </form>
       </section>
 
+      {pending.length > 0 ? (
+        <section className="mt-8 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-5">
+          <h2 className="font-display text-xl text-amber-100">Pending client reviews ({pending.length})</h2>
+          <p className="mt-2 text-sm text-white/55">
+            Submitted after appointments via SMS review links. Approve to publish on the website.
+          </p>
+          <div className="mt-4 space-y-4">
+            {pending.map((t) => (
+              <div key={t.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm font-medium text-white">
+                  {t.name} · {"★".repeat(t.rating)} · {t.service}
+                </p>
+                <p className="mt-2 text-sm italic text-white/70">&ldquo;{t.quote}&rdquo;</p>
+                <form action={approveTestimonial} className="mt-4 flex gap-3">
+                  <input type="hidden" name="id" value={t.id} />
+                  <AdminBtnPrimary>Approve & publish</AdminBtnPrimary>
+                </form>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="mt-8 space-y-4">
-        {(items ?? []).map((t) => (
+        {(published ?? []).map((t) => (
           <div key={t.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
             <form action={updateTestimonial} className="grid gap-4 sm:grid-cols-2">
               <input type="hidden" name="id" value={t.id} />

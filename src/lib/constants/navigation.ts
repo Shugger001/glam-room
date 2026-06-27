@@ -52,6 +52,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/staff", label: "Staff" },
       { href: "/admin/testimonials", label: "Testimonials" },
       { href: "/admin/promotions", label: "Promotions" },
+      { href: "/admin/content", label: "Site content" },
     ],
   },
   {

@@ -5,17 +5,21 @@ import { Section } from "@/components/ui/section";
 import { CtaBand } from "@/components/landing/cta-band";
 import { FaqJsonLd } from "@/components/seo/json-ld";
 import { BRAND } from "@/lib/constants/brand";
-import { FAQ_ITEMS } from "@/lib/constants/faqs";
+import { getLiveFaqs } from "@/lib/data/live-site-content";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "FAQs",
   description: `Frequently asked questions about booking, deposits, braids, and visits at ${BRAND.fullName}.`,
 };
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const faqs = await getLiveFaqs();
+
   return (
     <>
-      <FaqJsonLd />
+      <FaqJsonLd items={faqs} />
       <PageHero
         eyebrow="FAQs"
         title="Questions & Answers"
@@ -23,7 +27,7 @@ export default function FaqPage() {
       />
       <Section background="white" className="!pt-0">
         <div className="mx-auto max-w-3xl">
-          <FaqAccordion items={FAQ_ITEMS} />
+          <FaqAccordion items={faqs} />
         </div>
       </Section>
       <CtaBand />

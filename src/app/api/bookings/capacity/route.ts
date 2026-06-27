@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getShopDailyBookingStatus } from "@/lib/booking/availability";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/security/rate-limit";
 
@@ -26,7 +26,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid location or date." }, { status: 400 });
   }
 
-  const validLocationIds = new Set(SALON_LOCATIONS.map((l) => l.id));
+  const locations = await getLiveLocations();
+  const validLocationIds = new Set(locations.map((l) => l.id));
   if (!validLocationIds.has(parsed.data.locationId)) {
     return NextResponse.json({ error: "Unknown location." }, { status: 400 });
   }
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     }
 
     const locationLabel =
-      SALON_LOCATIONS.find((l) => l.id === parsed.data.locationId)?.area ?? "This shop";
+      locationLabelFromList(parsed.data.locationId, locations) ?? "This shop";
 
     return NextResponse.json({
       fullyBooked: status.fullyBooked,

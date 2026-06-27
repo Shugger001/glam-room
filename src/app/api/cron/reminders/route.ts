@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
+import { generateReviewToken, reviewPageUrl } from "@/lib/reviews/review-token";
 
 function inWindow(iso: string, fromMs: number, toMs: number): boolean {
   const t = new Date(iso).getTime();
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
   const { data: bookings } = await admin
     .from("bookings")
     .select(
-      "id, user_id, start_at, end_at, status, reminder_state, follow_up_sent_at, client_phone, profiles(phone)",
+      "id, user_id, start_at, end_at, status, reminder_state, follow_up_sent_at, review_token, review_submitted_at, client_phone, client_name, profiles(phone)",
     )
     .in("status", ["confirmed", "completed"]);
 
@@ -88,18 +89,48 @@ export async function GET(request: Request) {
       }
     }
 
-    if (b.status === "completed" && !b.follow_up_sent_at && b.end_at) {
+    if (
+      b.status === "completed" &&
+      !b.follow_up_sent_at &&
+      !b.review_submitted_at &&
+      b.end_at
+    ) {
       const end = new Date(b.end_at);
       if (end >= yesterdayStart && end <= yesterdayEnd) {
-        await admin.from("notifications").insert({
-          user_id: b.user_id,
-          title: "How was your look?",
-          body: "We would love a short review. Thank you for choosing The Glam Room.",
-          type: "follow_up",
-        });
+        let reviewToken = (b as { review_token?: string | null }).review_token;
+        if (!reviewToken) {
+          reviewToken = generateReviewToken();
+          await admin.from("bookings").update({ review_token: reviewToken }).eq("id", b.id);
+        }
+
+        const reviewUrl = reviewPageUrl(reviewToken);
+        const clientName =
+          (b as { client_name?: string | null }).client_name?.trim() || "there";
+
+        if (b.user_id) {
+          await admin.from("notifications").insert({
+            user_id: b.user_id,
+            title: "How was your look?",
+            body: "We would love a short review. Thank you for choosing The Glam Room.",
+            type: "follow_up",
+          });
+        }
+
+        if (phone) {
+          await sendTransactionalMessage({
+            toPhone: phone,
+            subject: "How was your Glam Room visit?",
+            html: `<p>Hi ${clientName}, we'd love to hear about your visit. <a href="${reviewUrl}">Leave a quick review</a>.</p>`,
+            smsText: `The Glam Room: how was your visit? Leave a review: ${reviewUrl}`,
+          });
+        }
+
         await admin
           .from("bookings")
-          .update({ follow_up_sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+          .update({
+            follow_up_sent_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", b.id);
         followUps += 1;
       }

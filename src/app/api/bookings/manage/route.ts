@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { validateBookingCapacity } from "@/lib/booking/availability";
 import { MANAGEABLE_STATUSES, verifyClientBooking } from "@/lib/booking/lookup-match";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import { getSalonNotifyContacts } from "@/lib/notifications/salon-contact";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { bookingManageSchema } from "@/lib/validation/booking-manage";
 
-function locationLabel(locationId: string | null) {
-  if (!locationId) return "Glam Room";
-  return SALON_LOCATIONS.find((l) => l.id === locationId)?.area ?? locationId;
+function locationLabel(locationId: string | null, locations: Awaited<ReturnType<typeof getLiveLocations>>) {
+  return locationLabelFromList(locationId, locations) ?? "Glam Room";
 }
 
 function serviceName(
@@ -61,6 +60,7 @@ export async function POST(request: Request) {
     }
 
     const booking = verified.booking;
+    const locations = await getLiveLocations();
     if (!MANAGEABLE_STATUSES.has(booking.status)) {
       return NextResponse.json(
         { error: "This booking can no longer be changed online. WhatsApp us for help." },
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       hour12: true,
     });
     const svc = serviceName(booking.services);
-    const loc = locationLabel(booking.location_id);
+    const loc = locationLabel(booking.location_id, locations);
     const clientName = booking.client_name ?? "Guest";
     const clientPhone = booking.client_phone ?? phone;
 

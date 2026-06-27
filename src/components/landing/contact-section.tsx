@@ -3,9 +3,9 @@ import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { BRAND } from "@/lib/constants/brand";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
 
-export function ContactSection() {
+export function ContactSection({ locations = SALON_LOCATIONS }: { locations?: SalonLocation[] }) {
   return (
     <Section id="contact" background="white">
       <SectionHeader
@@ -35,7 +35,7 @@ export function ContactSection() {
               Locations
             </p>
             <ul className="mt-4 space-y-4 text-sm text-glam-muted">
-              {SALON_LOCATIONS.map((loc) => (
+              {locations.map((loc) => (
                 <li key={loc.id}>
                   <p className="font-medium text-glam-primary">{loc.area}</p>
                   <p>{loc.address}</p>

@@ -10,35 +10,34 @@ import { FindBookingTracker } from "@/components/booking/find-booking-tracker";
 import { FaqPreview } from "@/components/landing/faq-section";
 import { ContactSection } from "@/components/landing/contact-section";
 import { CtaBand } from "@/components/landing/cta-band";
-import { FAQ_ITEMS } from "@/lib/constants/faqs";
 import { FaqJsonLd, LocalBusinessJsonLd } from "@/components/seo/json-ld";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { getSalonPageData } from "@/lib/data/salon-page-data";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const { services, gallery, staff, testimonials } = await getSalonPageData();
+  const { services, gallery, staff, testimonials, faqs, locations, salonConfig } =
+    await getSalonPageData();
 
   return (
     <>
       <LocalBusinessJsonLd />
-      <FaqJsonLd />
+      <FaqJsonLd items={faqs} />
       <LandingHero />
       <StatsRow
-        locationCount={SALON_LOCATIONS.length}
+        locationCount={locations.length}
         serviceCount={services.length}
         testimonialCount={testimonials.length}
       />
-      <LocationsPreview />
+      <LocationsPreview locations={locations} />
       <AboutPreview />
       <ServicesPreview services={services} />
       <GalleryPreview items={gallery} />
       <TeamPreview staff={staff} />
       <TestimonialsSection testimonials={testimonials} />
-      <FindBookingTracker />
-      <FaqPreview items={FAQ_ITEMS} />
-      <ContactSection />
+      <FindBookingTracker timeSlots={salonConfig.bookingTimeSlots} />
+      <FaqPreview items={faqs} />
+      <ContactSection locations={locations} />
       <CtaBand />
     </>
   );
