@@ -170,7 +170,13 @@ function trimToContent(data, width, height, channels, backgroundMask, padding = 
 
 async function makeTransparentPipeline(
   input,
-  { lightenForLightBg = false, trim = true, padding = 24, brightStrokesOnly = false } = {},
+  {
+    lightenForLightBg = false,
+    trim = true,
+    padding = 24,
+    brightStrokesOnly = false,
+    minLuminance = 100,
+  } = {},
 ) {
   const { data, info } = await input
     .clone()
@@ -183,7 +189,9 @@ async function makeTransparentPipeline(
   let height = info.height;
   let backgroundMask = buildBackgroundMask(workingData, width, height, info.channels);
 
-  fillDarkForeground(workingData, width, height, info.channels, backgroundMask);
+  if (!brightStrokesOnly) {
+    fillDarkForeground(workingData, width, height, info.channels, backgroundMask);
+  }
 
   if (trim) {
     const trimmed = trimToContent(workingData, width, height, info.channels, backgroundMask, padding);
@@ -200,11 +208,20 @@ async function makeTransparentPipeline(
       continue;
     }
 
+    const max = Math.max(workingData[i], workingData[i + 1], workingData[i + 2]);
+
+    if (brightStrokesOnly && max < minLuminance) {
+      workingData[i + 3] = 0;
+      continue;
+    }
+
     workingData[i + 3] = 255;
 
-    const max = Math.max(workingData[i], workingData[i + 1], workingData[i + 2]);
-    if (brightStrokesOnly && max < 55) {
-      workingData[i + 3] = 0;
+    if (brightStrokesOnly) {
+      const scale = 235 / Math.max(max, 1);
+      workingData[i] = Math.min(255, Math.round(workingData[i] * scale + 10));
+      workingData[i + 1] = Math.min(255, Math.round(workingData[i + 1] * scale + 10));
+      workingData[i + 2] = Math.min(255, Math.round(workingData[i + 2] * scale + 10));
       continue;
     }
 
@@ -237,10 +254,10 @@ async function writePNG(pipeline, target, { width, height, fit = "contain", back
   await out.toFile(target);
 }
 
-async function writeWordmark(sourcePipeline, target, { lighten = false, width, height, brightStrokesOnly = false } = {}) {
+async function writeWordmark(sourcePipeline, target, { lighten = false, width, height, brightStrokesOnly = false, minLuminance = 100 } = {}) {
   const transparent = await makeTransparentPipeline(
     sourcePipeline.clone().extract(REGIONS.wordmark),
-    { lightenForLightBg: lighten, trim: true, padding: 8, brightStrokesOnly },
+    { lightenForLightBg: lighten, trim: true, padding: 8, brightStrokesOnly, minLuminance },
   );
   await writePNG(transparent, target, width || height ? { width, height } : undefined);
   return transparent.metadata();
@@ -268,10 +285,12 @@ async function main() {
   await writePNG(transparent, path.join(brandDir, "glam-room-logo-transparent-dark.png"));
   await writePNG(transparentLight, path.join(brandDir, "glam-room-logo-transparent-light.png"));
 
-  const heroBright = await makeTransparentPipeline(source, {
+  const heroBright = await makeTransparentPipeline(source.clone().extract(REGIONS.wordmark), {
     lightenForLightBg: true,
     trim: true,
+    padding: 8,
     brightStrokesOnly: true,
+    minLuminance: 100,
   });
   await heroBright.clone().toFile(path.join(brandDir, "glam-room-logo-hero-bright.png"));
   const heroBrightMeta = await heroBright.metadata();

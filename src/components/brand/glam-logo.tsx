@@ -24,8 +24,8 @@ export function GlamLogo({
     : onDark
       ? BRAND.logo.heroBright
       : BRAND.logo.navWordmark;
-  const logoWidth = isCompact ? 150 : BRAND.logo.transparentWidth;
-  const logoHeight = isCompact ? 150 : BRAND.logo.transparentHeight;
+  const logoWidth = isCompact ? 150 : BRAND.logo.navWordmarkWidth;
+  const logoHeight = isCompact ? 150 : BRAND.logo.navWordmarkHeight;
 
   const content = (
     <Image
@@ -37,12 +37,7 @@ export function GlamLogo({
       unoptimized
       className={cn(
         "block shrink-0 object-contain",
-        isCompact
-          ? "h-12 w-12"
-          : onDark
-            ? "h-12 w-auto sm:h-14"
-            : "h-8 w-auto sm:h-9",
-        onDark && "drop-shadow-[0_2px_20px_rgba(0,0,0,0.65)]",
+        isCompact ? "h-12 w-12" : onDark ? "h-9 w-auto sm:h-10" : "h-8 w-auto sm:h-9",
         className,
       )}
     />
