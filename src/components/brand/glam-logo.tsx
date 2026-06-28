@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { BRAND } from "@/lib/constants/brand";
@@ -13,35 +14,38 @@ export function GlamLogo({
   variant = "default",
   className,
   asLink = true,
-  priority: _priority,
+  priority = false,
 }: GlamLogoProps) {
+  const onDark = variant === "onDark";
+  const isCompact = variant === "compact";
+
+  const logoSrc = isCompact
+    ? BRAND.logo.mark
+    : onDark
+      ? BRAND.logo.heroBright
+      : BRAND.logo.navWordmark;
+  const logoWidth = isCompact ? 150 : BRAND.logo.transparentWidth;
+  const logoHeight = isCompact ? 150 : BRAND.logo.transparentHeight;
+
   const content = (
-    <span
+    <Image
+      src={logoSrc}
+      alt={BRAND.logo.alt}
+      width={logoWidth}
+      height={logoHeight}
+      priority={priority}
+      unoptimized
       className={cn(
-        "inline-flex flex-col leading-none",
-        variant === "compact" && "gap-0",
-        variant !== "compact" && "gap-0.5",
+        "block shrink-0 object-contain",
+        isCompact
+          ? "h-12 w-12"
+          : onDark
+            ? "h-12 w-auto sm:h-14"
+            : "h-8 w-auto sm:h-9",
+        onDark && "drop-shadow-[0_2px_20px_rgba(0,0,0,0.65)]",
         className,
       )}
-      aria-label={BRAND.fullName}
-    >
-      <span
-        className={cn(
-          "heading-display text-xl font-medium tracking-[0.12em] uppercase sm:text-2xl",
-          variant === "onDark" ? "text-glam-secondary" : "text-glam-primary",
-        )}
-      >
-        The Glam
-      </span>
-      <span
-        className={cn(
-          "text-[0.65rem] font-medium uppercase tracking-[0.35em] sm:text-xs",
-          variant === "onDark" ? "text-glam-accent" : "text-glam-accent",
-        )}
-      >
-        Room
-      </span>
-    </span>
+    />
   );
 
   if (!asLink) return content;

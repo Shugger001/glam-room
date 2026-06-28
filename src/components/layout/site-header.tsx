@@ -54,7 +54,7 @@ export function SiteHeader() {
         )}
       >
         <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-3 overflow-visible px-5 sm:gap-5 sm:px-8">
-          <GlamLogo variant={showSolidHeader ? "default" : "onDark"} />
+          <GlamLogo variant={showSolidHeader ? "default" : "onDark"} priority={isHome} />
 
           <nav
             className={cn(

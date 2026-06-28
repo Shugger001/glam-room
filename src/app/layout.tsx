@@ -38,7 +38,8 @@ export const metadata: Metadata = {
     "The Glam Room",
   ],
   icons: {
-    icon: [{ url: "/favicon.ico" }],
+    icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
   manifest: "/manifest.json",
   formatDetection: {
