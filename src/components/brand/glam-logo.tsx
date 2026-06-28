@@ -37,7 +37,11 @@ export function GlamLogo({
       unoptimized
       className={cn(
         "block shrink-0 object-contain",
-        isCompact ? "h-12 w-12" : onDark ? "h-9 w-auto sm:h-10" : "h-8 w-auto sm:h-9",
+        isCompact
+          ? "h-12 w-12"
+          : onDark
+            ? "h-10 w-auto brightness-125 contrast-110 sm:h-11"
+            : "h-8 w-auto sm:h-9",
         className,
       )}
     />

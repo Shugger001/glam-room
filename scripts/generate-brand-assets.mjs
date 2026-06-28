@@ -289,8 +289,6 @@ async function main() {
     lightenForLightBg: true,
     trim: true,
     padding: 8,
-    brightStrokesOnly: true,
-    minLuminance: 100,
   });
   await heroBright.clone().toFile(path.join(brandDir, "glam-room-logo-hero-bright.png"));
   const heroBrightMeta = await heroBright.metadata();
@@ -319,12 +317,12 @@ async function main() {
   const navWordmarkDarkMeta = await writeWordmark(
     transparentFull,
     path.join(brandDir, "glam-room-logo-dark.png"),
-    { lighten: true, width: 784, height: 142, brightStrokesOnly: true },
+    { lighten: true, width: 784, height: 142 },
   );
   const navWordmarkLightMeta = await writeWordmark(
     transparentLightFull,
     path.join(brandDir, "glam-room-logo-light.png"),
-    { lighten: true, width: 784, height: 142, brightStrokesOnly: true },
+    { lighten: true, width: 784, height: 142 },
   );
 
   await writePNG(
@@ -341,7 +339,7 @@ async function main() {
   const iconBackground = { r: 248, g: 245, b: 242, alpha: 1 };
   const iconWordmark = await makeTransparentPipeline(
     source.clone().extract(REGIONS.wordmark),
-    { lightenForLightBg: true, trim: true, padding: 8, brightStrokesOnly: true },
+    { lightenForLightBg: true, trim: true, padding: 8, brightStrokesOnly: true, minLuminance: 80 },
   );
 
   // PWA icons — wordmark on brand cream (reads clearly at small sizes).
