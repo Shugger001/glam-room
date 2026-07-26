@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { ServicesInteractiveGrid } from "@/components/services/services-interactive-grid";
@@ -16,7 +17,7 @@ type ServiceCardProps = {
 export function ServiceCard({ service, index = 0, disableReveal = false }: ServiceCardProps) {
   const card = (
     <article className="premium-card group flex h-full flex-col !rounded-xl sm:!rounded-2xl">
-        <div className="relative aspect-square overflow-hidden sm:aspect-[4/3]">
+        <Link href={`/services/${service.slug}`} className="relative aspect-square overflow-hidden sm:aspect-[4/3]">
           <Image
             src={service.image}
             alt={service.name}
@@ -25,13 +26,15 @@ export function ServiceCard({ service, index = 0, disableReveal = false }: Servi
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/40 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        </div>
+        </Link>
         <div className="flex flex-1 flex-col p-3 sm:p-8">
           <p className="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-glam-accent sm:text-xs sm:tracking-[0.2em]">
             {service.durationMinutes} min
           </p>
           <h3 className="heading-display mt-1 text-base leading-tight text-glam-primary sm:mt-2 sm:text-2xl">
-            {service.name}
+            <Link href={`/services/${service.slug}`} className="transition hover:text-glam-accent">
+              {service.name}
+            </Link>
           </h3>
           <p className="mt-2 hidden flex-1 text-sm leading-relaxed text-glam-muted sm:mt-3 sm:block">
             {service.description}

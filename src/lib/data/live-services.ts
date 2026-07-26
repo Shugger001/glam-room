@@ -80,3 +80,13 @@ export async function getLiveServices(): Promise<LiveService[]> {
     price: s.price,
   }));
 }
+
+export async function getSalonServiceBySlug(slug: string): Promise<SalonService | null> {
+  const services = await getSalonServices();
+  return services.find((service) => service.slug === slug) ?? null;
+}
+
+export async function getSalonServiceSlugs(): Promise<string[]> {
+  const services = await getSalonServices();
+  return services.map((service) => service.slug).filter(Boolean);
+}

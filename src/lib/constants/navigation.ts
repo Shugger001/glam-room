@@ -11,6 +11,7 @@ export const PRIMARY_NAV = [
   { href: "/gallery", label: "Gallery" },
   { href: "/about", label: "Shops" },
   { href: "/experts", label: "Team" },
+  { href: "/testimonials", label: "Reviews" },
   { href: "/faq", label: "Help" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -21,6 +22,7 @@ export const FOOTER_NAV = {
     { href: "/gallery", label: "Gallery" },
     { href: "/about", label: "Shops" },
     { href: "/experts", label: "Team" },
+    { href: "/testimonials", label: "Reviews" },
   ],
   book: [
     { href: "/book", label: "Book" },

@@ -2,11 +2,25 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 import { generateReviewToken, reviewPageUrl } from "@/lib/reviews/review-token";
+import {
+  renderReminderEmail,
+  renderReviewFollowUpEmail,
+} from "@/lib/notifications/email-templates";
+import { BRAND } from "@/lib/constants/brand";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 function inWindow(iso: string, fromMs: number, toMs: number): boolean {
   const t = new Date(iso).getTime();
   const now = Date.now();
   return t >= now + fromMs && t <= now + toMs;
+}
+
+function formatWhen(iso: string): string {
+  return new Intl.DateTimeFormat("en-GH", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: "Africa/Accra",
+  }).format(new Date(iso));
 }
 
 /**
@@ -25,10 +39,13 @@ export async function GET(request: Request) {
   }
 
   const admin = createAdminClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://glam-room-gilt.vercel.app";
+  const trackUrl = `${appUrl}/track`;
+
   const { data: bookings } = await admin
     .from("bookings")
     .select(
-      "id, user_id, start_at, end_at, status, reminder_state, follow_up_sent_at, review_token, review_submitted_at, client_phone, client_name, profiles(phone)",
+      "id, user_id, start_at, end_at, status, reminder_state, follow_up_sent_at, review_token, review_submitted_at, client_phone, client_name, location_id, profiles(phone), services(name)",
     )
     .in("status", ["confirmed", "completed"]);
 
@@ -53,14 +70,32 @@ export async function GET(request: Request) {
       (b.profiles as { phone?: string | null } | null)?.phone ??
       (b as { client_phone?: string | null }).client_phone ??
       null;
+    const clientName =
+      (b as { client_name?: string | null }).client_name?.trim() || "there";
+    const serviceRelation = b.services as { name?: string | null } | { name?: string | null }[] | null;
+    const service = Array.isArray(serviceRelation)
+      ? serviceRelation[0]?.name?.trim() || undefined
+      : serviceRelation?.name?.trim() || undefined;
+    const locationId = (b as { location_id?: string | null }).location_id;
+    const location =
+      SALON_LOCATIONS.find((loc) => loc.id === locationId)?.area ?? undefined;
 
     if (b.status === "confirmed" && b.start_at) {
       if (!state.h24 && inWindow(b.start_at, h20, h30) && phone) {
+        const when = formatWhen(b.start_at);
         await sendTransactionalMessage({
           toPhone: phone,
-          subject: "Appointment reminder",
-          html: "<p>Reminder: your Glam Room appointment is tomorrow.</p>",
-          smsText: "The Glam Room: your appointment is within 24 hours. Reply if you need to reschedule.",
+          subject: "Appointment reminder — Glam Room",
+          html: renderReminderEmail({
+            clientName,
+            when,
+            location,
+            service,
+            trackUrl,
+            whatsAppUrl: BRAND.links.whatsapp,
+            timing: "24h",
+          }),
+          smsText: `Glam Room reminder: your appointment is tomorrow (${when}). Manage: ${trackUrl}`,
         });
         await admin
           .from("bookings")
@@ -72,11 +107,20 @@ export async function GET(request: Request) {
         reminders24 += 1;
       }
       if (!state.h2 && inWindow(b.start_at, h2, h14) && phone) {
+        const when = formatWhen(b.start_at);
         await sendTransactionalMessage({
           toPhone: phone,
-          subject: "Appointment today",
-          html: "<p>Your Glam Room appointment is coming up soon.</p>",
-          smsText: "The Glam Room: your appointment is today. See you soon!",
+          subject: "Appointment today — Glam Room",
+          html: renderReminderEmail({
+            clientName,
+            when,
+            location,
+            service,
+            trackUrl,
+            whatsAppUrl: BRAND.links.whatsapp,
+            timing: "2h",
+          }),
+          smsText: `Glam Room: your appointment is today (${when}). See you soon!`,
         });
         await admin
           .from("bookings")
@@ -104,8 +148,6 @@ export async function GET(request: Request) {
         }
 
         const reviewUrl = reviewPageUrl(reviewToken);
-        const clientName =
-          (b as { client_name?: string | null }).client_name?.trim() || "there";
 
         if (b.user_id) {
           await admin.from("notifications").insert({
@@ -120,7 +162,7 @@ export async function GET(request: Request) {
           await sendTransactionalMessage({
             toPhone: phone,
             subject: "How was your Glam Room visit?",
-            html: `<p>Hi ${clientName}, we'd love to hear about your visit. <a href="${reviewUrl}">Leave a quick review</a>.</p>`,
+            html: renderReviewFollowUpEmail({ clientName, reviewUrl }),
             smsText: `The Glam Room: how was your visit? Leave a review: ${reviewUrl}`,
           });
         }

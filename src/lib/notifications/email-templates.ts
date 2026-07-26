@@ -166,3 +166,148 @@ export function renderBookingEmail(content: BookingEmailContent) {
   </body>
 </html>`;
 }
+
+type ReminderEmailContent = {
+  clientName: string;
+  when: string;
+  location?: string;
+  service?: string;
+  trackUrl?: string | null;
+  whatsAppUrl?: string | null;
+  timing: "24h" | "2h";
+};
+
+export function renderReminderEmail(content: ReminderEmailContent) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://glam-room-gilt.vercel.app";
+  const isToday = content.timing === "2h";
+  const eyebrow = isToday ? "Appointment today" : "Appointment tomorrow";
+  const headline = isToday ? "See you soon" : "Your appointment is tomorrow";
+  const intro = isToday
+    ? `Hi ${content.clientName}, your Glam Room appointment is coming up soon.`
+    : `Hi ${content.clientName}, this is a friendly reminder that your Glam Room appointment is tomorrow.`;
+
+  const detailRows = [
+    ...(content.service ? [["Service", content.service] as const] : []),
+    ["When", content.when],
+    ...(content.location ? [["Location", content.location] as const] : []),
+  ];
+
+  const buttons: EmailButton[] = [];
+  if (content.whatsAppUrl) {
+    buttons.push({ label: "Chat on WhatsApp", href: content.whatsAppUrl, primary: true });
+  }
+  if (content.trackUrl) {
+    buttons.push({ label: "Find my booking", href: content.trackUrl });
+  }
+
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(BRAND.fullName)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#F8F5F2;font-family:Georgia,'Times New Roman',serif;color:#0F0F0F;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8F5F2;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E8E0D6;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(15,15,15,0.08);">
+            <tr>
+              <td style="padding:32px 32px 20px;background:linear-gradient(180deg,#0F0F0F 0%,#1A1A1A 100%);">
+                <p style="margin:0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#C8A86B;">${escapeHtml(BRAND.fullName)}</p>
+                <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.72);">${escapeHtml(BRAND.tagline)}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <p style="margin:0;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:#C8A86B;">${escapeHtml(eyebrow)}</p>
+                <h1 style="margin:12px 0 0;font-size:32px;line-height:1.15;font-weight:400;">${escapeHtml(headline)}</h1>
+                <p style="margin:18px 0 0;font-size:16px;line-height:1.7;color:#4A4A4A;">${escapeHtml(intro)}</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;border-top:1px solid #EFE7DE;">
+                  ${detailRows
+                    .map(
+                      ([label, value]) => `
+                    <tr>
+                      <td style="padding:14px 0 0;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#8A8178;width:120px;vertical-align:top;">${escapeHtml(label)}</td>
+                      <td style="padding:14px 0 0;font-size:15px;line-height:1.6;color:#0F0F0F;vertical-align:top;">${escapeHtml(value)}</td>
+                    </tr>`,
+                    )
+                    .join("")}
+                </table>
+                ${renderButtons(buttons)}
+                <p style="margin:32px 0 0;font-size:13px;line-height:1.7;color:#8A8178;">
+                  Need to reschedule? WhatsApp us at ${escapeHtml(BRAND.links.phone)}.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px 28px;border-top:1px solid #EFE7DE;background:#FCFAF8;">
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#8A8178;">
+                  ${escapeHtml(BRAND.fullName)} · Accra, Ghana
+                </p>
+                <p style="margin:8px 0 0;font-size:12px;">
+                  <a href="${escapeHtml(appUrl)}" style="color:#C8A86B;text-decoration:none;">Visit website</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+type ReviewFollowUpEmailContent = {
+  clientName: string;
+  reviewUrl: string;
+};
+
+export function renderReviewFollowUpEmail(content: ReviewFollowUpEmailContent) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://glam-room-gilt.vercel.app";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(BRAND.fullName)}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#F8F5F2;font-family:Georgia,'Times New Roman',serif;color:#0F0F0F;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8F5F2;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #E8E0D6;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(15,15,15,0.08);">
+            <tr>
+              <td style="padding:32px 32px 20px;background:linear-gradient(180deg,#0F0F0F 0%,#1A1A1A 100%);">
+                <p style="margin:0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#C8A86B;">${escapeHtml(BRAND.fullName)}</p>
+                <p style="margin:10px 0 0;font-size:13px;color:rgba(255,255,255,0.72);">${escapeHtml(BRAND.tagline)}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <p style="margin:0;font-size:11px;letter-spacing:0.24em;text-transform:uppercase;color:#C8A86B;">How was your visit?</p>
+                <h1 style="margin:12px 0 0;font-size:32px;line-height:1.15;font-weight:400;">We'd love your review</h1>
+                <p style="margin:18px 0 0;font-size:16px;line-height:1.7;color:#4A4A4A;">
+                  Hi ${escapeHtml(content.clientName)}, thank you for choosing Glam Room. A short review helps other queens find us.
+                </p>
+                ${renderButtons([{ label: "Leave a quick review", href: content.reviewUrl, primary: true }])}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px 28px;border-top:1px solid #EFE7DE;background:#FCFAF8;">
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#8A8178;">
+                  ${escapeHtml(BRAND.fullName)} · Accra, Ghana
+                </p>
+                <p style="margin:8px 0 0;font-size:12px;">
+                  <a href="${escapeHtml(appUrl)}" style="color:#C8A86B;text-decoration:none;">Visit website</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
