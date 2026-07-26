@@ -40,16 +40,25 @@ export function TeamCard({ member, index = 0 }: { member: StaffMember; index?: n
               </span>
             ))}
           </div>
-          {member.instagram ? (
-            <Link
-              href={member.instagram}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-block text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-glam-primary"
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <ButtonLink
+              href={`/book?staff=${member.id}`}
+              size="sm"
+              variant="accent"
             >
-              Instagram →
-            </Link>
-          ) : null}
+              Book with {member.name.split(" ")[0]}
+            </ButtonLink>
+            {member.instagram ? (
+              <Link
+                href={member.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-glam-primary"
+              >
+                Instagram →
+              </Link>
+            ) : null}
+          </div>
         </div>
       </article>
     </Reveal>

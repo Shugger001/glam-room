@@ -76,12 +76,21 @@ export function BookingForm({
   );
   const lastCapacityToastKey = useRef("");
 
+  const resolvedLocationId =
+    initialLocationId && locations.some((l) => l.id === initialLocationId)
+      ? initialLocationId
+      : "";
+  const resolvedServiceId =
+    initialServiceId && services.some((s) => s.id === initialServiceId)
+      ? initialServiceId
+      : "";
+
   const form = useForm<GuestBookingValues>({
     resolver: zodResolver(guestBookingSchema),
     defaultValues: {
-      locationId: initialLocationId ?? "",
-      category: findCategoryForService(services, initialServiceId),
-      serviceId: initialServiceId ?? "",
+      locationId: resolvedLocationId,
+      category: findCategoryForService(services, resolvedServiceId),
+      serviceId: resolvedServiceId,
       bookingDate: "",
       bookingTime: "",
       clientName: "",
@@ -121,12 +130,11 @@ export function BookingForm({
   );
 
   useEffect(() => {
-    if (initialServiceId) {
-      const cat = findCategoryForService(services, initialServiceId);
-      if (cat) form.setValue("category", cat);
-      form.setValue("serviceId", initialServiceId);
-    }
-  }, [initialServiceId, services, form]);
+    if (!resolvedServiceId) return;
+    const cat = findCategoryForService(services, resolvedServiceId);
+    if (cat) form.setValue("category", cat);
+    form.setValue("serviceId", resolvedServiceId);
+  }, [resolvedServiceId, services, form]);
 
   useEffect(() => {
     if (!category) return;
