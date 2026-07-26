@@ -138,11 +138,38 @@ export default async function AdminSettingsPage() {
         </p>
         <p className="mt-3 font-medium text-white">Reminder cron</p>
         <p className="mt-2">
-          Schedule:{" "}
+          Vercel Cron runs daily at 08:00 UTC →{" "}
           <code className="text-glam-accent">
             GET {appUrl === "Not set" ? "https://your-domain.vercel.app" : appUrl}/api/cron/reminders
-          </code>{" "}
-          with header <code className="text-glam-accent">Authorization: Bearer CRON_SECRET</code>
+          </code>
+          . Requires <code className="text-glam-accent">CRON_SECRET</code> in Vercel env (Authorization bearer).
+        </p>
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 text-sm text-white/70">
+        <p className="font-medium text-amber-100">Notification setup (Vercel → Settings → Environment Variables)</p>
+        <ol className="mt-3 list-decimal space-y-2 pl-5">
+          <li>
+            <strong className="text-white">Email (Resend):</strong>{" "}
+            <code className="text-glam-accent">RESEND_API_KEY</code>,{" "}
+            <code className="text-glam-accent">RESEND_FROM_EMAIL</code> (verified domain),{" "}
+            <code className="text-glam-accent">SALON_NOTIFY_EMAIL</code>
+          </li>
+          <li>
+            <strong className="text-white">SMS (Twilio):</strong>{" "}
+            <code className="text-glam-accent">TWILIO_ACCOUNT_SID</code>,{" "}
+            <code className="text-glam-accent">TWILIO_AUTH_TOKEN</code>,{" "}
+            <code className="text-glam-accent">TWILIO_FROM_NUMBER</code>,{" "}
+            <code className="text-glam-accent">SALON_NOTIFY_PHONE</code>
+          </li>
+          <li>
+            <strong className="text-white">Deposits (Paystack):</strong>{" "}
+            <code className="text-glam-accent">PAYSTACK_SECRET_KEY</code>,{" "}
+            <code className="text-glam-accent">NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY</code>
+          </li>
+        </ol>
+        <p className="mt-3 text-white/50">
+          After adding vars, redeploy production. Status rows above turn green when each integration is live.
         </p>
       </div>
     </AdminPanel>
