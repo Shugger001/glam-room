@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "deploy:vercel": "vercel deploy --prod --yes",
-    "deploy:vercel:preview": "vercel deploy --yes"
+    "deploy:vercel:preview": "vercel deploy --yes",
+    "env:push:notifications": "node scripts/push-notification-env.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
