@@ -107,6 +107,7 @@ export function BookingForm({
   const bookingDate = useWatch({ control: form.control, name: "bookingDate" });
   const bookingTime = useWatch({ control: form.control, name: "bookingTime" });
   const clientName = useWatch({ control: form.control, name: "clientName" });
+  const clientPhone = useWatch({ control: form.control, name: "clientPhone" });
   const promoCode = useWatch({ control: form.control, name: "promoCode" });
 
   const categoriesInCatalog = useMemo(() => {
@@ -313,18 +314,30 @@ export function BookingForm({
     }
   }
 
+  const detailsComplete = Boolean(clientName?.trim() && clientPhone?.trim());
+  const serviceComplete = Boolean(locationId && category && serviceId && selectedStaffId);
+  const scheduleComplete = Boolean(bookingDate && bookingTime && !dateFullyBooked);
+  const activeStep = !detailsComplete
+    ? 1
+    : !serviceComplete
+      ? 2
+      : !scheduleComplete
+        ? 3
+        : 4;
+
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-white/20 bg-glam-secondary/95 p-8 text-center shadow-premium backdrop-blur-md sm:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-glam-accent">
-          Request received
-        </p>
-        <h2 className="heading-display mt-4 text-3xl text-glam-primary">You&apos;re on the list</h2>
+      <div className="rounded-2xl border border-glam-accent/25 bg-glam-secondary/95 p-8 text-center shadow-premium backdrop-blur-md sm:p-10">
+        <p className="eyebrow-label">Request received</p>
+        <span className="gold-rule mx-auto" aria-hidden />
+        <h2 className="heading-display mt-5 text-3xl text-glam-primary sm:text-4xl">
+          You&apos;re on the list
+        </h2>
         <p className="mt-4 text-glam-muted">
           Your booking request has been received. We&apos;ll confirm via WhatsApp at{" "}
           {BRAND.links.phone}.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <ButtonLink href={BRAND.links.whatsapp} variant="accent">
             Chat on WhatsApp
           </ButtonLink>
@@ -337,20 +350,33 @@ export function BookingForm({
   }
 
   const inputClass =
-    "mt-2 w-full rounded-xl border border-glam-border bg-glam-secondary px-4 py-3 text-sm text-glam-primary outline-none focus:border-glam-accent focus:ring-1 focus:ring-glam-accent touch-manipulation";
+    "mt-2 w-full rounded-xl border border-glam-border bg-glam-secondary px-4 py-3 text-sm text-glam-primary outline-none transition focus:border-glam-accent focus:ring-2 focus:ring-glam-accent/25 touch-manipulation";
+
+  const choiceCardClass =
+    "rounded-xl border px-4 py-3 text-left text-sm transition duration-300 touch-manipulation";
+  const choiceSelected =
+    "border-glam-accent bg-glam-accent/10 shadow-[var(--shadow-gold)] ring-1 ring-glam-accent/40";
+  const choiceIdle =
+    "border-glam-border bg-glam-secondary hover:border-glam-accent/40 hover:bg-glam-background";
+
+  const steps = [
+    { n: 1, label: "You" },
+    { n: 2, label: "Service" },
+    { n: 3, label: "Schedule" },
+    { n: 4, label: "Confirm" },
+  ] as const;
 
   const locationsPanel = (
     <>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
-        Locations
-      </p>
-      <ul className="mt-4 space-y-4 text-sm text-white/70">
+      <p className="eyebrow-label text-glam-accent">Locations</p>
+      <span className="gold-rule" aria-hidden />
+      <ul className="mt-5 space-y-4 text-sm text-white/70">
         {locations.map((loc) => (
           <li key={loc.id}>
             <p className="font-medium text-white">
               {loc.area}
               {loc.badge ? (
-                <span className="ml-2 rounded-full bg-glam-accent/20 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-glam-accent">
+                <span className="ml-2 rounded-full bg-glam-accent/20 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
                   {loc.badge}
                 </span>
               ) : null}
@@ -384,91 +410,173 @@ export function BookingForm({
         {locationsPanel}
       </aside>
 
-      <div className="rounded-2xl border border-white/20 bg-glam-secondary/95 p-6 shadow-premium backdrop-blur-md sm:p-8">
-        <h1 className="heading-display text-3xl text-glam-primary">Book appointment</h1>
+      <div className="rounded-2xl border border-glam-border/80 bg-glam-secondary/95 p-6 shadow-premium backdrop-blur-md sm:p-8">
+        <div className="mb-2">
+          <p className="eyebrow-label">Booking</p>
+          <span className="gold-rule" aria-hidden />
+        </div>
+        <h1 className="heading-display mt-4 text-3xl text-glam-primary sm:text-4xl">
+          Book appointment
+        </h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-glam-muted sm:text-base">
+          Four quick steps — we&apos;ll confirm on WhatsApp.
+        </p>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-5">
-          <label className="block text-sm font-medium">
-            Full name
-            <input
-              type="text"
-              autoComplete="name"
-              placeholder="e.g., Efua Mensah"
-              className={inputClass}
-              {...form.register("clientName")}
-            />
-            {form.formState.errors.clientName ? (
-              <p className="mt-1 text-xs text-red-600">{form.formState.errors.clientName.message}</p>
-            ) : null}
-          </label>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <label className="block text-sm font-medium">
-              WhatsApp
-              <input
-                type="tel"
-                autoComplete="tel"
-                placeholder="+233 XX XXX XXXX"
-                className={inputClass}
-                {...form.register("clientPhone")}
-              />
-              <p className="mt-1 text-xs text-glam-muted">We&apos;ll text you a reminder</p>
-              {form.formState.errors.clientPhone ? (
-                <p className="mt-1 text-xs text-red-600">
-                  {form.formState.errors.clientPhone.message}
-                </p>
-              ) : null}
-            </label>
-            <label className="block text-sm font-medium">
-              Email <span className="font-normal text-glam-muted">optional</span>
-              <input
-                type="email"
-                autoComplete="email"
-                placeholder="Optional"
-                className={inputClass}
-                {...form.register("clientEmail")}
-              />
-            </label>
-          </div>
-
-          <label className="block text-sm font-medium">
-            Location
-            <select className={inputClass} {...form.register("locationId")}>
-              <option value="">Select location</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.area}
-                  {loc.badge ? ` (${loc.badge})` : ""}
-                </option>
-              ))}
-            </select>
-            {form.formState.errors.locationId ? (
-              <p className="mt-1 text-xs text-red-600">{form.formState.errors.locationId.message}</p>
-            ) : null}
-          </label>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <label className="block text-sm font-medium">
-              Category
-              <select
-                className={inputClass}
-                {...form.register("category")}
-                onChange={(e) => {
-                  form.setValue("category", e.target.value as ServiceCategory | "");
-                  form.setValue("serviceId", "");
-                }}
+        <ol className="mt-8 flex flex-wrap gap-2 sm:gap-3" aria-label="Booking progress">
+          {steps.map((step) => {
+            const done =
+              (step.n === 1 && detailsComplete) ||
+              (step.n === 2 && serviceComplete) ||
+              (step.n === 3 && scheduleComplete) ||
+              (step.n === 4 && summaryReady);
+            const current = activeStep === step.n;
+            return (
+              <li
+                key={step.n}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.14em] transition sm:px-4 sm:text-xs",
+                  done && "border-glam-accent/50 bg-glam-accent/15 text-glam-primary",
+                  current && !done && "border-glam-accent bg-glam-accent/10 text-glam-primary shadow-[var(--shadow-gold)]",
+                  !done && !current && "border-glam-border text-glam-muted",
+                )}
               >
-                <option value="">Select category</option>
-                {categoriesInCatalog.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {SERVICE_CATEGORIES[cat]}
-                  </option>
-                ))}
-              </select>
-              {form.formState.errors.category ? (
-                <p className="mt-1 text-xs text-red-600">{form.formState.errors.category.message}</p>
+                <span
+                  className={cn(
+                    "flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem]",
+                    done || current
+                      ? "bg-glam-accent text-glam-primary"
+                      : "bg-glam-background text-glam-muted",
+                  )}
+                  aria-hidden
+                >
+                  {done ? "✓" : step.n}
+                </span>
+                {step.label}
+              </li>
+            );
+          })}
+        </ol>
+
+        <form onSubmit={form.handleSubmit(onSubmit)} className="mt-10 space-y-10">
+          <section className="space-y-5" aria-labelledby="booking-step-you">
+            <div>
+              <h2 id="booking-step-you" className="eyebrow-label">
+                01 · You
+              </h2>
+              <span className="gold-rule" aria-hidden />
+            </div>
+
+            <label className="block text-sm font-medium">
+              Full name
+              <input
+                type="text"
+                autoComplete="name"
+                placeholder="e.g., Efua Mensah"
+                className={inputClass}
+                {...form.register("clientName")}
+              />
+              {form.formState.errors.clientName ? (
+                <p className="mt-1 text-xs text-red-600">{form.formState.errors.clientName.message}</p>
               ) : null}
             </label>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block text-sm font-medium">
+                WhatsApp
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  placeholder="+233 XX XXX XXXX"
+                  className={inputClass}
+                  {...form.register("clientPhone")}
+                />
+                <p className="mt-1 text-xs text-glam-muted">We&apos;ll text you a reminder</p>
+                {form.formState.errors.clientPhone ? (
+                  <p className="mt-1 text-xs text-red-600">
+                    {form.formState.errors.clientPhone.message}
+                  </p>
+                ) : null}
+              </label>
+              <label className="block text-sm font-medium">
+                Email <span className="font-normal text-glam-muted">optional</span>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Optional"
+                  className={inputClass}
+                  {...form.register("clientEmail")}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="space-y-5" aria-labelledby="booking-step-service">
+            <div>
+              <h2 id="booking-step-service" className="eyebrow-label">
+                02 · Service
+              </h2>
+              <span className="gold-rule" aria-hidden />
+            </div>
+
+            <fieldset>
+              <legend className="text-sm font-medium">Location</legend>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                {locations.map((loc) => {
+                  const selected = locationId === loc.id;
+                  return (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      className={cn(choiceCardClass, selected ? choiceSelected : choiceIdle)}
+                      aria-pressed={selected}
+                      onClick={() => form.setValue("locationId", loc.id, { shouldValidate: true })}
+                    >
+                      <span className="block font-semibold text-glam-primary">{loc.area}</span>
+                      {loc.badge ? (
+                        <span className="mt-1 block text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
+                          {loc.badge}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              <input type="hidden" {...form.register("locationId")} />
+              {form.formState.errors.locationId ? (
+                <p className="mt-2 text-xs text-red-600">{form.formState.errors.locationId.message}</p>
+              ) : null}
+            </fieldset>
+
+            <fieldset>
+              <legend className="text-sm font-medium">Category</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {categoriesInCatalog.map((cat) => {
+                  const selected = category === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition",
+                        selected ? choiceSelected : choiceIdle,
+                      )}
+                      aria-pressed={selected}
+                      onClick={() => {
+                        form.setValue("category", cat, { shouldValidate: true });
+                        form.setValue("serviceId", "");
+                      }}
+                    >
+                      {SERVICE_CATEGORIES[cat]}
+                    </button>
+                  );
+                })}
+              </div>
+              <input type="hidden" {...form.register("category")} />
+              {form.formState.errors.category ? (
+                <p className="mt-2 text-xs text-red-600">{form.formState.errors.category.message}</p>
+              ) : null}
+            </fieldset>
+
             <label className="block text-sm font-medium">
               Style
               <select
@@ -487,193 +595,223 @@ export function BookingForm({
                 <p className="mt-1 text-xs text-red-600">{form.formState.errors.serviceId.message}</p>
               ) : null}
             </label>
-          </div>
 
-          {staff.length > 0 ? (
-            <label className="block text-sm font-medium">
-              Stylist
-              <select
-                className={inputClass}
-                value={selectedStaffId}
-                onChange={(e) => setSelectedStaffId(e.target.value)}
-              >
-                {staff.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                    {member.role ? ` · ${member.role}` : ""}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-glam-muted">
-                {staff.length === 1
-                  ? "Your appointment will be with our lead stylist."
-                  : "Choose your preferred expert or leave the default."}
-              </p>
-            </label>
-          ) : null}
-
-          <p className="rounded-xl bg-glam-background px-4 py-3 text-sm text-glam-muted" role="note">
-            {braidsNotice}
-          </p>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <label className="block text-sm font-medium">
-              Date
-              <input
-                type="date"
-                min={new Date().toISOString().slice(0, 10)}
-                className={inputClass}
-                {...form.register("bookingDate")}
-              />
-              {form.formState.errors.bookingDate ? (
-                <p className="mt-1 text-xs text-red-600">
-                  {form.formState.errors.bookingDate.message}
+            {staff.length > 0 ? (
+              <fieldset>
+                <legend className="text-sm font-medium">Stylist</legend>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {staff.map((member) => {
+                    const selected = selectedStaffId === member.id;
+                    return (
+                      <button
+                        key={member.id}
+                        type="button"
+                        className={cn(choiceCardClass, selected ? choiceSelected : choiceIdle)}
+                        aria-pressed={selected}
+                        onClick={() => setSelectedStaffId(member.id)}
+                      >
+                        <span className="block font-semibold text-glam-primary">{member.name}</span>
+                        {member.role ? (
+                          <span className="mt-1 block text-xs text-glam-muted">{member.role}</span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-glam-muted">
+                  {staff.length === 1
+                    ? "Your appointment will be with our lead stylist."
+                    : "Choose your preferred expert or leave the default."}
                 </p>
-              ) : null}
-              {checkingDateCapacity ? (
-                <p className="mt-2 text-xs text-glam-muted">Checking availability…</p>
-              ) : null}
-              {dateFullyBooked ? (
-                <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-                  {selectedLocation?.area ?? "This shop"} is fully booked on this date. Please pick
-                  another date or location.
-                </p>
-              ) : null}
-            </label>
-            <label className="block text-sm font-medium">
-              Time
-              <select
-                className={inputClass}
-                disabled={dateFullyBooked}
-                {...form.register("bookingTime")}
-              >
-                <option value="">Select time</option>
-                {timeSlots.map((slot) => (
-                  <option key={slot.value} value={slot.value}>
-                    {slot.label}
-                  </option>
-                ))}
-              </select>
-              {form.formState.errors.bookingTime ? (
-                <p className="mt-1 text-xs text-red-600">
-                  {form.formState.errors.bookingTime.message}
-                </p>
-              ) : null}
-              <p className="mt-2 text-xs text-glam-muted">
-                Up to {MAX_BOOKINGS_PER_SLOT} clients per time · {MAX_BOOKINGS_PER_SHOP_PER_DAY} per
-                shop per day
-              </p>
-            </label>
-          </div>
-
-          <label className="block text-sm font-medium">
-            Notes <span className="font-normal text-glam-muted">optional</span>
-            <textarea
-              rows={3}
-              placeholder="Anything we should know?"
-              className={inputClass}
-              {...form.register("clientNotes")}
-            />
-          </label>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium">
-              Promo code <span className="font-normal text-glam-muted">optional</span>
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="e.g. GLAM10"
-                autoComplete="off"
-                className={cn(inputClass, "mt-0 flex-1 uppercase")}
-                {...form.register("promoCode")}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="shrink-0 self-start"
-                disabled={validatingPromo || !promoCode?.trim()}
-                onClick={() => void applyPromoCode()}
-              >
-                {validatingPromo ? "Checking…" : "Apply"}
-              </Button>
-            </div>
-            {appliedPromo ? (
-              <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
-                {appliedPromo.label}. You save {formatShopPrice(appliedPromo.savings)} on the
-                deposit
-              </p>
+              </fieldset>
             ) : null}
-          </div>
 
-          <div
-            className={cn(
-              "rounded-xl border px-4 py-3 text-sm",
-              summaryReady
-                ? "border-glam-accent/30 bg-glam-accent/5 text-glam-primary"
-                : "border-glam-border bg-glam-background text-glam-muted",
-            )}
-          >
-            {summaryReady && selectedService && selectedLocation ? (
-              <>
-                <p className="text-xs font-semibold uppercase tracking-wider text-glam-accent">
-                  Summary
-                </p>
-                <p className="mt-2">
-                  {clientName?.trim() || "Guest"} · {selectedService.name}
-                </p>
-                <p>
-                  {selectedLocation.area} · {bookingDate} at{" "}
-                  {timeSlots.find((s) => s.value === bookingTime)?.label ?? bookingTime}
-                </p>
-                {requiresDeposit ? (
-                  <p className="mt-3 border-t border-glam-accent/20 pt-3 text-glam-primary">
-                    Booking deposit due now:{" "}
-                    <strong>{formatShopPrice(checkoutDeposit)}</strong>
-                    {appliedPromo && appliedPromo.savings > 0 ? (
-                      <span className="ml-2 text-xs font-normal text-glam-muted line-through">
-                        {formatShopPrice(depositAmount)}
-                      </span>
-                    ) : null}
-                    <span className="mt-1 block text-xs font-normal text-glam-muted">
-                      Remaining balance paid at the salon · secure checkout via Paystack
-                    </span>
+            <p
+              className="rounded-xl border border-glam-border/60 bg-glam-background px-4 py-3 text-sm text-glam-muted"
+              role="note"
+            >
+              {braidsNotice}
+            </p>
+          </section>
+
+          <section className="space-y-5" aria-labelledby="booking-step-schedule">
+            <div>
+              <h2 id="booking-step-schedule" className="eyebrow-label">
+                03 · Schedule
+              </h2>
+              <span className="gold-rule" aria-hidden />
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <label className="block text-sm font-medium">
+                Date
+                <input
+                  type="date"
+                  min={new Date().toISOString().slice(0, 10)}
+                  className={inputClass}
+                  {...form.register("bookingDate")}
+                />
+                {form.formState.errors.bookingDate ? (
+                  <p className="mt-1 text-xs text-red-600">
+                    {form.formState.errors.bookingDate.message}
                   </p>
                 ) : null}
-              </>
-            ) : selectedService && selectedLocation ? (
-              "Pick a date and time to finish."
-            ) : (
-              "Choose category and style to see your summary."
-            )}
-          </div>
+                {checkingDateCapacity ? (
+                  <p className="mt-2 text-xs text-glam-muted">Checking availability…</p>
+                ) : null}
+                {dateFullyBooked ? (
+                  <p className="mt-2 rounded-lg border border-amber-500/40 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    {selectedLocation?.area ?? "This shop"} is fully booked on this date. Please pick
+                    another date or location.
+                  </p>
+                ) : null}
+              </label>
+              <label className="block text-sm font-medium">
+                Time
+                <select
+                  className={inputClass}
+                  disabled={dateFullyBooked}
+                  {...form.register("bookingTime")}
+                >
+                  <option value="">Select time</option>
+                  {timeSlots.map((slot) => (
+                    <option key={slot.value} value={slot.value}>
+                      {slot.label}
+                    </option>
+                  ))}
+                </select>
+                {form.formState.errors.bookingTime ? (
+                  <p className="mt-1 text-xs text-red-600">
+                    {form.formState.errors.bookingTime.message}
+                  </p>
+                ) : null}
+                <p className="mt-2 text-xs text-glam-muted">
+                  Up to {MAX_BOOKINGS_PER_SLOT} clients per time · {MAX_BOOKINGS_PER_SHOP_PER_DAY} per
+                  shop per day
+                </p>
+              </label>
+            </div>
 
-          <Button
-            type="submit"
-            variant="accent"
-            className="w-full"
-            disabled={submitting || dateFullyBooked || checkingDateCapacity}
-          >
-            {submitting
-              ? requiresDeposit
-                ? "Redirecting to Paystack…"
-                : "Booking…"
-              : requiresDeposit
-                ? `Pay ${formatShopPrice(checkoutDeposit)} deposit`
-                : "Book appointment"}
-          </Button>
+            <label className="block text-sm font-medium">
+              Notes <span className="font-normal text-glam-muted">optional</span>
+              <textarea
+                rows={3}
+                placeholder="Anything we should know?"
+                className={inputClass}
+                {...form.register("clientNotes")}
+              />
+            </label>
 
-          <p className="text-center text-sm text-glam-muted">
-            Prefer WhatsApp?{" "}
-            <a
-              href={BRAND.links.whatsapp}
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-glam-accent hover:underline"
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                Promo code <span className="font-normal text-glam-muted">optional</span>
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. GLAM10"
+                  autoComplete="off"
+                  className={cn(inputClass, "mt-0 flex-1 uppercase")}
+                  {...form.register("promoCode")}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 self-start"
+                  disabled={validatingPromo || !promoCode?.trim()}
+                  onClick={() => void applyPromoCode()}
+                >
+                  {validatingPromo ? "Checking…" : "Apply"}
+                </Button>
+              </div>
+              {appliedPromo ? (
+                <p className="rounded-lg border border-emerald-500/40 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                  {appliedPromo.label}. You save {formatShopPrice(appliedPromo.savings)} on the
+                  deposit
+                </p>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="space-y-5" aria-labelledby="booking-step-confirm">
+            <div>
+              <h2 id="booking-step-confirm" className="eyebrow-label">
+                04 · Confirm
+              </h2>
+              <span className="gold-rule" aria-hidden />
+            </div>
+
+            <div
+              className={cn(
+                "rounded-xl border px-5 py-4 text-sm transition",
+                summaryReady
+                  ? "border-glam-accent/40 bg-glam-accent/10 text-glam-primary shadow-[var(--shadow-gold)]"
+                  : "border-glam-border bg-glam-background text-glam-muted",
+              )}
             >
-              Chat with Asantewaa directly
-            </a>
-          </p>
+              {summaryReady && selectedService && selectedLocation ? (
+                <>
+                  <p className="eyebrow-label text-[0.65rem]">Summary</p>
+                  <p className="mt-3 heading-display text-2xl text-glam-primary">
+                    {selectedService.name}
+                  </p>
+                  <p className="mt-2">
+                    {clientName?.trim() || "Guest"} · {selectedLocation.area}
+                  </p>
+                  <p>
+                    {bookingDate} at{" "}
+                    {timeSlots.find((s) => s.value === bookingTime)?.label ?? bookingTime}
+                  </p>
+                  {requiresDeposit ? (
+                    <p className="mt-4 border-t border-glam-accent/25 pt-4 text-glam-primary">
+                      Booking deposit due now:{" "}
+                      <strong>{formatShopPrice(checkoutDeposit)}</strong>
+                      {appliedPromo && appliedPromo.savings > 0 ? (
+                        <span className="ml-2 text-xs font-normal text-glam-muted line-through">
+                          {formatShopPrice(depositAmount)}
+                        </span>
+                      ) : null}
+                      <span className="mt-1 block text-xs font-normal text-glam-muted">
+                        Remaining balance paid at the salon · secure checkout via Paystack
+                      </span>
+                    </p>
+                  ) : null}
+                </>
+              ) : selectedService && selectedLocation ? (
+                "Pick a date and time to finish."
+              ) : (
+                "Choose location, category, and style to see your summary."
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              variant="accent"
+              size="lg"
+              className="w-full"
+              disabled={submitting || dateFullyBooked || checkingDateCapacity}
+            >
+              {submitting
+                ? requiresDeposit
+                  ? "Redirecting to Paystack…"
+                  : "Booking…"
+                : requiresDeposit
+                  ? `Pay ${formatShopPrice(checkoutDeposit)} deposit`
+                  : "Book appointment"}
+            </Button>
+
+            <p className="text-center text-sm text-glam-muted">
+              Prefer WhatsApp?{" "}
+              <a
+                href={BRAND.links.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-glam-accent hover:underline"
+              >
+                Chat with Asantewaa directly
+              </a>
+            </p>
+          </section>
         </form>
       </div>
     </div>
