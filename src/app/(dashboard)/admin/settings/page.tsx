@@ -31,6 +31,10 @@ export default async function AdminSettingsPage() {
   const paystack = isPaystackConfigured();
   const notify = notificationsConfigured();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "Not set";
+  const gaReady = Boolean(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim());
+  const posthogReady = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim());
+  // Vercel Analytics ships in the app; enable once in the Vercel project dashboard.
+  const vercelAnalyticsShipped = true;
 
   const admin = createAdminClient();
   const health = await loadIntegrationHealth(admin);
@@ -88,6 +92,29 @@ export default async function AdminSettingsPage() {
           label="Supabase connection"
           ok={health.supabaseOk}
           detail={health.supabaseOk ? "Service role can reach the database" : "Check Supabase URL and service role key"}
+        />
+        <StatusRow
+          label="Vercel Web Analytics"
+          ok={vercelAnalyticsShipped}
+          detail="Visitor traffic + Speed Insights are in the app. Open Vercel → Project → Analytics and click Enable if you haven't yet."
+        />
+        <StatusRow
+          label="Google Analytics"
+          ok={gaReady}
+          detail={
+            gaReady
+              ? "gtag is loading on every page"
+              : "Optional: set NEXT_PUBLIC_GA_MEASUREMENT_ID (G-…) in Vercel"
+          }
+        />
+        <StatusRow
+          label="PostHog"
+          ok={posthogReady}
+          detail={
+            posthogReady
+              ? "Product analytics capturing pageviews"
+              : "Optional: set NEXT_PUBLIC_POSTHOG_KEY in Vercel"
+          }
         />
       </div>
 

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics/analytics-scripts";
+import { VercelTrafficAnalytics } from "@/components/analytics/vercel-traffic-analytics";
 import { AppProviders } from "@/components/providers/app-providers";
 import { BRAND } from "@/lib/constants/brand";
 import { MARKET } from "@/lib/constants/market";
@@ -96,6 +97,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <AnalyticsScripts />
         <AppProviders>{children}</AppProviders>
+        <VercelTrafficAnalytics />
       </body>
     </html>
   );
