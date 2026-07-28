@@ -7,7 +7,16 @@ import { type NextRequest, NextResponse } from "next/server";
  * `/` gets strong no-store headers so the CDN never serves an old HTML/RSC shell (stale testimonials).
  */
 export function proxy(request: NextRequest) {
-  const res = NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    requestHeaders.set("x-glam-pathname", request.nextUrl.pathname);
+    requestHeaders.set("x-glam-search", request.nextUrl.search);
+  }
+
+  const res = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   if (request.nextUrl.pathname === "/") {
     res.headers.set("Cache-Control", "private, no-cache, no-store, max-age=0, must-revalidate");

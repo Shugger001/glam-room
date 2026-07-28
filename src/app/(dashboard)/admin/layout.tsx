@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
 import { AdminNav } from "@/components/admin/admin-nav";
-import { getAdminAccess, getAdminNavGroups, isClientSession } from "@/lib/admin/access";
+import {
+  adminAuthRedirectPath,
+  getAdminAccess,
+  getAdminNavGroups,
+  isClientSession,
+} from "@/lib/admin/access";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -25,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     if (await isClientSession()) {
       redirect("/book");
     }
-    redirect("/auth?next=/admin");
+    redirect(await adminAuthRedirectPath());
   }
 
   if (!access.isSuperAdmin && !access.assignedLocationId) {

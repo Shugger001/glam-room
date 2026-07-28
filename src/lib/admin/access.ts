@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { ADMIN_NAV_GROUPS, STAFF_ADMIN_NAV_GROUPS } from "@/lib/constants/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -31,6 +32,15 @@ export function locationLabelFromId(locationId: string | null) {
 /** Location filter for booking queries — null means all shops (super admin). */
 export function bookingLocationScope(access: AdminAccess): string | null {
   return access.isSuperAdmin ? null : access.assignedLocationId;
+}
+
+/** Build /auth?next=… preserving the current admin deep-link when possible. */
+export async function adminAuthRedirectPath() {
+  const h = await headers();
+  const pathname = h.get("x-glam-pathname") || "/admin";
+  const search = h.get("x-glam-search") || "";
+  const next = pathname.startsWith("/admin") ? `${pathname}${search}` : "/admin";
+  return `/auth?next=${encodeURIComponent(next)}`;
 }
 
 export async function getAdminAccess(): Promise<AdminAccess | null> {
@@ -84,7 +94,7 @@ export async function requireAdminAccess(): Promise<AdminAccess> {
     redirect("/book");
   }
 
-  redirect("/auth?next=/admin");
+  redirect(await adminAuthRedirectPath());
 }
 
 export async function requireSuperAdmin(): Promise<AdminAccess> {
