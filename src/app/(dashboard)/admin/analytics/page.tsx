@@ -38,10 +38,13 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
     <div className="space-y-10">
       <AdminPageHeader
         title="Analytics"
-        description="Bookings, deposits, promos, and location mix for your chosen date range."
+        description="Visit-day metrics by appointment date — stylist load, show/no-show rates, deposits, and promos."
       />
 
-      <form action="/admin/analytics" className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+      <form
+        action="/admin/analytics"
+        className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-black/20 p-4"
+      >
         <label className="text-xs text-white/65">
           From
           <input
@@ -69,32 +72,50 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
       </form>
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <AdminKpi label="Bookings" value={`${stats.bookingsTotal}`} />
+        <AdminKpi label="Visits" value={`${stats.bookingsTotal}`} hint="by appointment date" />
         <AdminKpi label="Completed" value={`${stats.completedTotal}`} />
+        <AdminKpi
+          label="Show rate"
+          value={`${stats.showRate}%`}
+          hint={`${stats.completedTotal + stats.arrivedTotal} showed · ${stats.noShowTotal} no-show`}
+        />
+        <AdminKpi
+          label="No-show rate"
+          value={`${stats.noShowRate}%`}
+          hint={`${stats.noShowTotal} no-shows in range`}
+        />
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <AdminKpi label="Deposits collected" value={`₵${stats.depositTotal.toLocaleString()}`} />
         <AdminKpi
           label="Deposit conversion"
           value={`${depositConversion}%`}
           hint={`${stats.depositsPaidCount} paid · ${stats.depositsPendingCount} pending`}
         />
+        <AdminKpi label="Promo bookings" value={`${stats.promoBookings}`} />
+        <AdminKpi
+          label="Promo savings (est.)"
+          value={`₵${stats.promoSavingsEstimate.toLocaleString()}`}
+        />
       </div>
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <AdminKpi label="Promo bookings" value={`${stats.promoBookings}`} />
-        <AdminKpi label="Promo savings (est.)" value={`₵${stats.promoSavingsEstimate.toLocaleString()}`} />
-        <AdminKpi label="New clients" value={`${stats.newClientsTotal}`} />
-        <AdminKpi label="Awaiting approval" value={`${stats.awaitingApproval}`} hint="current open queue" />
+        <AdminKpi label="New clients" value={`${stats.newClientsTotal}`} hint="profile signups" />
+        <AdminKpi label="Arrived" value={`${stats.arrivedTotal}`} />
+        <AdminKpi label="Cancelled / rejected" value={`${stats.cancelledTotal}`} />
+        <AdminKpi label="Awaiting approval" value={`${stats.awaitingApproval}`} hint="live open queue" />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <AnalyticsBreakdownTable title="Bookings by location" rows={stats.byLocation} />
-        <AnalyticsBreakdownTable title="Bookings by service" rows={stats.byService} />
+        <AnalyticsBreakdownTable title="Visits by stylist" rows={stats.byStylist} />
+        <AnalyticsBreakdownTable title="Visits by location" rows={stats.byLocation} />
+        <AnalyticsBreakdownTable title="Visits by service" rows={stats.byService} />
+        <AnalyticsBreakdownTable title="Visits by status" rows={stats.byStatus} />
         <AnalyticsBreakdownTable
           title="Promo code usage"
           rows={stats.byPromo}
           showAmount
           emptyMessage="No promo bookings in this range."
         />
-        <AnalyticsBreakdownTable title="Bookings by status" rows={stats.byStatus} />
       </div>
     </div>
   );

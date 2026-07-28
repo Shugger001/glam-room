@@ -425,6 +425,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   bookings={allBookings}
                   profileId={c.id}
                   phone={c.phone}
+                  clientName={c.full_name}
                 />
               </div>
             </form>

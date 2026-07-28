@@ -11,9 +11,17 @@ export type AnalyticsBreakdown = {
 export type SalonAnalytics = {
   since: string;
   until: string;
+  /** Visit-day bookings (filtered by start_at). */
   bookingsTotal: number;
   newClientsTotal: number;
   completedTotal: number;
+  noShowTotal: number;
+  arrivedTotal: number;
+  cancelledTotal: number;
+  /** completed / (completed + no_show + arrived) among floor outcomes */
+  showRate: number;
+  /** no_show / (completed + no_show + arrived) */
+  noShowRate: number;
   awaitingApproval: number;
   depositTotal: number;
   depositsPaidCount: number;
@@ -22,6 +30,7 @@ export type SalonAnalytics = {
   promoSavingsEstimate: number;
   byLocation: AnalyticsBreakdown[];
   byService: AnalyticsBreakdown[];
+  byStylist: AnalyticsBreakdown[];
   byPromo: AnalyticsBreakdown[];
   byStatus: AnalyticsBreakdown[];
   rawRows: AnalyticsBookingRow[];
@@ -31,11 +40,13 @@ export type AnalyticsBookingRow = {
   id?: string;
   status?: string;
   location_id?: string | null;
+  staff_id?: string | null;
   promotion_code?: string | null;
   deposit_amount?: number | null;
   deposit_paid?: boolean | null;
   add_ons?: unknown;
   services?: { name?: string } | { name?: string }[] | null;
+  staff?: { name?: string } | { name?: string }[] | null;
   created_at?: string;
   client_name?: string | null;
   start_at?: string;
@@ -92,6 +103,14 @@ function countByKey<T>(
     .sort((a, b) => b.count - a.count);
 }
 
+function relationName(
+  value: { name?: string } | { name?: string }[] | null | undefined,
+): string {
+  if (!value) return "Unknown";
+  if (Array.isArray(value)) return value[0]?.name ?? "Unknown";
+  return value.name ?? "Unknown";
+}
+
 export async function loadSalonAnalytics(
   admin: SupabaseClient,
   range?: AnalyticsRange,
@@ -100,25 +119,7 @@ export async function loadSalonAnalytics(
   const sinceIso = since.toISOString();
   const untilIso = until.toISOString();
 
-  const [
-    recentBookings,
-    completedBookings,
-    newClients,
-    awaitingApproval,
-    bookingRows,
-    depositsPaid,
-  ] = await Promise.all([
-    admin
-      .from("bookings")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", sinceIso)
-      .lte("created_at", untilIso),
-    admin
-      .from("bookings")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "completed")
-      .gte("created_at", sinceIso)
-      .lte("created_at", untilIso),
+  const [newClients, awaitingApproval, bookingRows, depositsPaid] = await Promise.all([
     admin
       .from("profiles")
       .select("id", { count: "exact", head: true })
@@ -131,21 +132,33 @@ export async function loadSalonAnalytics(
     admin
       .from("bookings")
       .select(
-        "id, status, location_id, promotion_code, deposit_amount, deposit_paid, add_ons, services(name), created_at, client_name, start_at",
+        "id, status, location_id, staff_id, promotion_code, deposit_amount, deposit_paid, add_ons, services(name), staff(name), created_at, client_name, start_at",
       )
-      .gte("created_at", sinceIso)
-      .lte("created_at", untilIso)
-      .order("created_at", { ascending: false }),
+      .gte("start_at", sinceIso)
+      .lte("start_at", untilIso)
+      .order("start_at", { ascending: false }),
     admin
       .from("bookings")
       .select("deposit_amount, deposit_paid, promotion_code, add_ons")
-      .gte("created_at", sinceIso)
-      .lte("created_at", untilIso)
+      .gte("start_at", sinceIso)
+      .lte("start_at", untilIso)
       .gt("deposit_amount", 0),
   ]);
 
-  const rows = bookingRows.data ?? [];
+  const rows = (bookingRows.data ?? []) as AnalyticsBookingRow[];
   const depositRows = depositsPaid.data ?? [];
+
+  const completedTotal = rows.filter((r) => r.status === "completed").length;
+  const noShowTotal = rows.filter((r) => r.status === "no_show").length;
+  const arrivedTotal = rows.filter((r) => r.status === "arrived").length;
+  const cancelledTotal = rows.filter(
+    (r) => r.status === "cancelled" || r.status === "rejected",
+  ).length;
+
+  const floorOutcomes = completedTotal + noShowTotal + arrivedTotal;
+  const showRate =
+    floorOutcomes > 0 ? Math.round(((completedTotal + arrivedTotal) / floorOutcomes) * 100) : 0;
+  const noShowRate = floorOutcomes > 0 ? Math.round((noShowTotal / floorOutcomes) * 100) : 0;
 
   const depositTotal = depositRows
     .filter((r) => r.deposit_paid)
@@ -160,11 +173,12 @@ export async function loadSalonAnalytics(
     return sum + Number(addOns?.promo?.savings ?? 0);
   }, 0);
 
-  const byLocation = countByKey(rows, (r) => locationLabelFromId(r.location_id) ?? "Unknown");
-  const byService = countByKey(rows, (r) => {
-    const svc = r.services as { name?: string } | { name?: string }[] | null;
-    if (Array.isArray(svc)) return svc[0]?.name ?? "Unknown";
-    return svc?.name ?? "Unknown";
+  const byLocation = countByKey(rows, (r) => locationLabelFromId(r.location_id ?? null) ?? "Unknown");
+  const byService = countByKey(rows, (r) => relationName(r.services));
+  const byStylist = countByKey(rows, (r) => {
+    if (!r.staff_id) return "Unassigned";
+    const name = relationName(r.staff);
+    return name === "Unknown" ? "Unassigned" : name;
   });
   const byPromo = countByKey(
     promoRows,
@@ -185,9 +199,14 @@ export async function loadSalonAnalytics(
   return {
     since: sinceIso,
     until: untilIso,
-    bookingsTotal: recentBookings.count ?? 0,
+    bookingsTotal: rows.length,
     newClientsTotal: newClients.count ?? 0,
-    completedTotal: completedBookings.count ?? 0,
+    completedTotal,
+    noShowTotal,
+    arrivedTotal,
+    cancelledTotal,
+    showRate,
+    noShowRate,
     awaitingApproval: awaitingApproval.count ?? 0,
     depositTotal,
     depositsPaidCount,
@@ -196,9 +215,10 @@ export async function loadSalonAnalytics(
     promoSavingsEstimate,
     byLocation,
     byService,
+    byStylist,
     byPromo,
     byStatus,
-    rawRows: rows as AnalyticsBookingRow[],
+    rawRows: rows,
   };
 }
 
@@ -207,16 +227,26 @@ export function analyticsToCsv(stats: SalonAnalytics) {
     "Glam Room analytics export",
     `From,${stats.since}`,
     `To,${stats.until}`,
+    "Range basis,visit day (start_at)",
     "",
     "Summary",
     `Bookings,${stats.bookingsTotal}`,
     `Completed,${stats.completedTotal}`,
+    `Arrived,${stats.arrivedTotal}`,
+    `No-shows,${stats.noShowTotal}`,
+    `Show rate %,${stats.showRate}`,
+    `No-show rate %,${stats.noShowRate}`,
+    `Cancelled / rejected,${stats.cancelledTotal}`,
     `Deposits collected (GHS),${stats.depositTotal}`,
     `Promo bookings,${stats.promoBookings}`,
     "",
     "By location",
     "Location,Count",
     ...stats.byLocation.map((r) => `${csvEscape(r.label)},${r.count}`),
+    "",
+    "By stylist",
+    "Stylist,Count",
+    ...stats.byStylist.map((r) => `${csvEscape(r.label)},${r.count}`),
     "",
     "By service",
     "Service,Count",
@@ -229,16 +259,16 @@ export function analyticsToCsv(stats: SalonAnalytics) {
 
   const raw = stats.rawRows;
   if (raw.length > 0) {
-    lines.push("", "Bookings", "Created,Start,Status,Location,Service,Client");
+    lines.push("", "Bookings", "Visit start,Created,Status,Location,Stylist,Service,Client");
     for (const row of raw) {
-      const svc = row.services as { name?: string } | null;
       lines.push(
         [
-          csvEscape(String(row.created_at ?? "")),
           csvEscape(String(row.start_at ?? "")),
+          csvEscape(String(row.created_at ?? "")),
           csvEscape(String(row.status ?? "")),
           csvEscape(locationLabelFromId(row.location_id as string | null) ?? ""),
-          csvEscape(svc?.name ?? ""),
+          csvEscape(row.staff_id ? relationName(row.staff) : "Unassigned"),
+          csvEscape(relationName(row.services)),
           csvEscape(String(row.client_name ?? "")),
         ].join(","),
       );

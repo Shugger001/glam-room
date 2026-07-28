@@ -95,6 +95,14 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const staffParam = typeof params.staff === "string" ? params.staff : "all";
   const locationParam = typeof params.location === "string" ? params.location : "all";
+  const walkinOpen =
+    params.walkin === "1" || params.walkin === "true" || Boolean(params.name) || Boolean(params.phone);
+  const walkinName = typeof params.name === "string" ? params.name.trim() : "";
+  const walkinPhone = typeof params.phone === "string" ? params.phone.trim() : "";
+  const walkinShop =
+    typeof params.shop === "string" && SALON_LOCATIONS.some((l) => l.id === params.shop)
+      ? params.shop
+      : "";
   const locationFilter =
     access.isSuperAdmin && SALON_LOCATIONS.some((l) => l.id === locationParam)
       ? locationParam
@@ -254,6 +262,12 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           services={services}
           staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
           defaultLocationId={locationScope}
+          defaults={{
+            open: walkinOpen,
+            clientName: walkinName,
+            clientPhone: walkinPhone,
+            locationId: walkinShop || locationScope,
+          }}
           createWalkInBooking={createWalkInBookingAction}
         />
       </div>

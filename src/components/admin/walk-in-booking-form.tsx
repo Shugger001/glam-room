@@ -1,9 +1,21 @@
+"use client";
+
+import { useState } from "react";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 import { AdminBtnPrimary } from "@/components/admin/admin-ui";
 import type { SalonService } from "@/lib/constants/services";
 
 type StaffOption = { id: string; name: string };
+
+export type WalkInDefaults = {
+  open?: boolean;
+  clientName?: string;
+  clientPhone?: string;
+  locationId?: string | null;
+  clientNotes?: string;
+  adminNotes?: string;
+};
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white";
@@ -12,13 +24,19 @@ export function WalkInBookingForm({
   services,
   staff,
   defaultLocationId,
+  defaults,
   createWalkInBooking,
 }: {
   services: SalonService[];
   staff: StaffOption[];
   defaultLocationId?: string | null;
+  defaults?: WalkInDefaults;
   createWalkInBooking: (formData: FormData) => Promise<void>;
 }) {
+  const isRebook = Boolean(defaults?.open || defaults?.clientName || defaults?.clientPhone);
+  const [open, setOpen] = useState(isRebook);
+
+  const preferredLocation = defaults?.locationId || defaultLocationId || "";
   const locations = defaultLocationId
     ? SALON_LOCATIONS.filter((l) => l.id === defaultLocationId)
     : SALON_LOCATIONS;
@@ -26,15 +44,29 @@ export function WalkInBookingForm({
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <details className="group rounded-2xl border border-glam-accent/25 bg-glam-accent/5 open:bg-black/20">
+    <details
+      className="group rounded-2xl border border-glam-accent/25 bg-glam-accent/5 open:bg-black/20"
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+    >
       <summary className="cursor-pointer list-none px-5 py-4 font-display text-lg text-white marker:content-none [&::-webkit-details-marker]:hidden">
-        + Add walk-in booking
+        {isRebook ? "Book again · walk-in" : "+ Add walk-in booking"}
       </summary>
       <form action={createWalkInBooking} className="space-y-4 border-t border-white/10 px-5 py-5">
+        {isRebook ? (
+          <p className="text-xs text-glam-accent/90">
+            Client details prefilled from CRM — pick service, shop, and time, then create.
+          </p>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <label className="block text-xs text-white/60">
             Shop
-            <select name="locationId" required defaultValue={defaultLocationId ?? ""} className={inputClass}>
+            <select
+              name="locationId"
+              required
+              defaultValue={preferredLocation}
+              className={inputClass}
+            >
               <option value="" className="bg-glam-primary">
                 Select shop
               </option>
@@ -98,11 +130,23 @@ export function WalkInBookingForm({
           </label>
           <label className="block text-xs text-white/60">
             Client name
-            <input name="clientName" required placeholder="Client name" className={inputClass} />
+            <input
+              name="clientName"
+              required
+              placeholder="Client name"
+              defaultValue={defaults?.clientName ?? ""}
+              className={inputClass}
+            />
           </label>
           <label className="block text-xs text-white/60">
             Phone
-            <input name="clientPhone" required placeholder="024XXXXXXX" className={inputClass} />
+            <input
+              name="clientPhone"
+              required
+              placeholder="024XXXXXXX"
+              defaultValue={defaults?.clientPhone ?? ""}
+              className={inputClass}
+            />
           </label>
           <label className="flex items-end gap-2 pb-2 text-xs text-white/60">
             <input type="checkbox" name="waiveDeposit" value="true" defaultChecked className="rounded" />
@@ -111,14 +155,24 @@ export function WalkInBookingForm({
         </div>
         <label className="block text-xs text-white/60">
           Client note
-          <input name="clientNotes" placeholder="Optional" className={inputClass} />
+          <input
+            name="clientNotes"
+            placeholder="Optional"
+            defaultValue={defaults?.clientNotes ?? ""}
+            className={inputClass}
+          />
         </label>
         <label className="block text-xs text-white/60">
           Internal note
-          <input name="adminNotes" placeholder="Team only" className={inputClass} />
+          <input
+            name="adminNotes"
+            placeholder="Team only"
+            defaultValue={defaults?.adminNotes ?? ""}
+            className={inputClass}
+          />
         </label>
         <div className="flex gap-3">
-          <AdminBtnPrimary>Create walk-in</AdminBtnPrimary>
+          <AdminBtnPrimary>{isRebook ? "Create rebooking" : "Create walk-in"}</AdminBtnPrimary>
         </div>
       </form>
     </details>
