@@ -28,3 +28,14 @@ export function buildClientBookingSupportLink(clientName: string, service: strin
   const message = `Hi Glam Room! I'm ${clientName}. I just booked ${service} for ${when}. Looking forward to it!`;
   return buildWhatsAppDeepLink(BRAND.links.phone, message);
 }
+
+export function buildChaseDepositLink(
+  clientPhone: string,
+  clientName: string,
+  service: string,
+  when: string,
+  amountLabel: string,
+) {
+  const message = `Hi ${clientName}, this is Glam Room by Asantewaa. Your ${service} on ${when} is reserved — please complete your ${amountLabel} booking deposit to hold the slot. Reply here if you need help.`;
+  return buildWhatsAppDeepLink(clientPhone, message);
+}

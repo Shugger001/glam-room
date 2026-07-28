@@ -26,16 +26,17 @@ function mapServicesFromRows(
     .filter((s) => s.name && s.durationMinutes);
 }
 import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
+import { loadShopCapacityToday } from "@/lib/admin/load-shop-capacity";
 import { BookingsByTimeGroups, type AdminBookingRow } from "@/components/admin/bookings-table";
 import { AppointmentStats } from "@/components/admin/appointment-stats";
+import { BulkApproveBar } from "@/components/admin/bulk-approve-bar";
+import { ShopCapacityStrip } from "@/components/admin/shop-capacity-strip";
 import {
   adminBtnOutline,
   AdminPanel,
   adminTabClass,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
-import { getShopDailyBookingStatus, MAX_BOOKINGS_PER_SHOP_PER_DAY } from "@/lib/booking/availability";
-import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +89,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const fromDate = typeof params.from === "string" ? params.from : "";
   const toDate = typeof params.to === "string" ? params.to : "";
   const q = typeof params.q === "string" ? params.q.trim() : "";
+  const staffParam = typeof params.staff === "string" ? params.staff : "all";
 
   const admin = createAdminClient();
 
@@ -97,6 +99,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   let query = admin.from("bookings").select(bookingSelect).order("start_at", { ascending: true });
   if (locationScope) query = query.eq("location_id", locationScope);
   if (statusFilter !== "all") query = query.eq("status", statusFilter);
+  if (staffParam !== "all") query = query.eq("staff_id", staffParam);
   if (q.length > 0) {
     query = query.or(`client_name.ilike.%${q}%,client_phone.ilike.%${q}%`);
   }
@@ -116,7 +119,8 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
   }
 
-  const [{ data }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows] = await Promise.all([
+  const [{ data }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes] =
+    await Promise.all([
     query.limit(100),
     admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
     (async () => {
@@ -134,23 +138,15 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order")
       .eq("active", true)
       .order("sort_order"),
+    loadShopCapacityToday(admin, locationScope),
     (async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const shops = locationScope
-        ? SALON_LOCATIONS.filter((l) => l.id === locationScope)
-        : SALON_LOCATIONS;
-      return Promise.all(
-        shops.map(async (loc) => {
-          const status = await getShopDailyBookingStatus(admin, loc.id, today);
-          return {
-            id: loc.id,
-            area: loc.area,
-            count: status.count,
-            max: status.max ?? MAX_BOOKINGS_PER_SHOP_PER_DAY,
-            fullyBooked: status.fullyBooked,
-          };
-        }),
-      );
+      let paidQuery = admin
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["pending", "awaiting_approval"])
+        .eq("deposit_paid", true);
+      if (locationScope) paidQuery = paidQuery.eq("location_id", locationScope);
+      return paidQuery;
     })(),
   ]);
 
@@ -194,6 +190,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     if (fromDate) qs.set("from", fromDate);
     if (toDate) qs.set("to", toDate);
     if (q) qs.set("q", q);
+    if (staffParam !== "all") qs.set("staff", staffParam);
     Object.entries(next).forEach(([k, v]) => {
       if (v) qs.set(k, v);
       else qs.delete(k);
@@ -201,6 +198,8 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     const s = qs.toString();
     return s ? `/admin/appointments?${s}` : "/admin/appointments";
   }
+
+  const paidAwaitingCount = paidAwaitingRes.count ?? 0;
 
   return (
     <AdminPanel>
@@ -213,31 +212,10 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
 
       <AppointmentStats stats={stats} activeRange={rangeFilter} />
 
-      {capacityRows.length > 0 ? (
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          {capacityRows.map((shop) => (
-            <div
-              key={shop.id}
-              className={`rounded-2xl border px-4 py-3 ${
-                shop.fullyBooked
-                  ? "border-amber-400/40 bg-amber-500/10"
-                  : "border-white/10 bg-black/20"
-              }`}
-            >
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-glam-accent">
-                {shop.area} today
-              </p>
-              <p className="mt-2 text-lg text-white">
-                {shop.count}
-                <span className="text-sm text-white/45"> / {shop.max}</span>
-              </p>
-              <p className="mt-1 text-xs text-white/50">
-                {shop.fullyBooked ? "Fully booked" : `${shop.max - shop.count} openings left`}
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <div className="mt-6 space-y-4">
+        <ShopCapacityStrip shops={capacityRows} />
+        <BulkApproveBar paidAwaitingCount={paidAwaitingCount} locationId={locationScope} />
+      </div>
 
       <div className="mt-6">
         <WalkInBookingForm
@@ -251,6 +229,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       <form action="/admin/appointments" className="mt-6 flex flex-wrap items-end gap-3">
         <input type="hidden" name="range" value={rangeFilter} />
         <input type="hidden" name="status" value={statusFilter} />
+        {staffParam !== "all" ? <input type="hidden" name="staff" value={staffParam} /> : null}
         <label className="text-xs text-white/65">
           Search client
           <input
@@ -291,6 +270,24 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           </a>
         ))}
       </div>
+
+      {(staffRows ?? []).length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Stylist</span>
+          <a href={buildHref({ staff: "" })} className={adminTabClass(staffParam === "all")}>
+            All
+          </a>
+          {(staffRows ?? []).map((s) => (
+            <a
+              key={s.id}
+              href={buildHref({ staff: s.id })}
+              className={adminTabClass(staffParam === s.id)}
+            >
+              {s.name}
+            </a>
+          ))}
+        </div>
+      ) : null}
 
       <div className="mt-6">
         <BookingsByTimeGroups

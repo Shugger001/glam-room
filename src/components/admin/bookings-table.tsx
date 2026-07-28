@@ -1,7 +1,7 @@
 import { locationLabelFromId } from "@/lib/admin/access";
 import { BOOKING_STATUS_OPTIONS } from "@/lib/admin/update-booking-status";
 import { adminBtnPrimary } from "@/components/admin/admin-ui";
-import { buildClientReplyLink } from "@/lib/notifications/whatsapp-links";
+import { buildChaseDepositLink, buildClientReplyLink } from "@/lib/notifications/whatsapp-links";
 import { cn } from "@/lib/utils/cn";
 
 export type AdminBookingRow = {
@@ -98,14 +98,40 @@ export function BookingsTable({
               clientPhone.length > 0
                 ? buildClientReplyLink(clientPhone, clientName, serviceName, when)
                 : null;
+            const depositDue =
+              !b.deposit_paid &&
+              typeof b.deposit_amount === "number" &&
+              Number(b.deposit_amount) > 0;
+            const chaseDepositLink =
+              depositDue && clientPhone.length > 0
+                ? buildChaseDepositLink(
+                    clientPhone,
+                    clientName,
+                    serviceName,
+                    when,
+                    `₵${Number(b.deposit_amount).toFixed(0)}`,
+                  )
+                : null;
 
             const depositCell =
               typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0 ? (
-                b.deposit_paid ? (
-                  <span className="text-glam-accent">Paid</span>
-                ) : (
-                  <span className="text-amber-200/90">Pending</span>
-                )
+                <div className="space-y-1">
+                  {b.deposit_paid ? (
+                    <span className="text-glam-accent">Paid</span>
+                  ) : (
+                    <span className="text-amber-200/90">Pending</span>
+                  )}
+                  {chaseDepositLink ? (
+                    <a
+                      href={chaseDepositLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block text-xs font-semibold uppercase tracking-wider text-amber-200/90 hover:text-white"
+                    >
+                      Chase deposit
+                    </a>
+                  ) : null}
+                </div>
               ) : (
                 "-"
               );
