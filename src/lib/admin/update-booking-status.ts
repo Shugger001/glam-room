@@ -7,9 +7,11 @@ export const BOOKING_STATUS_OPTIONS = [
   "pending",
   "awaiting_approval",
   "confirmed",
+  "arrived",
   "rejected",
   "cancelled",
   "completed",
+  "no_show",
 ] as const;
 
 export type BookingStatusOption = (typeof BOOKING_STATUS_OPTIONS)[number];

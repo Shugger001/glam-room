@@ -7,8 +7,9 @@ import { BRAND } from "@/lib/constants/brand";
 import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export const metadata: Metadata = {
-  title: "Shops",
-  description: `Glam Room shops in Adenta, Sowutuom, and Madina, Accra.`,
+  title: "Shops in Adenta, Sowutuom & Madina",
+  description:
+    "Visit Glam Room by Asantewaa in Adenta, Sowutuom, and Madina, Accra. Book hair installs, braids, and glam makeup at three Accra shops.",
 };
 
 export default async function AboutPage() {

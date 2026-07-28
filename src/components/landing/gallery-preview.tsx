@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { MasonryGallery } from "@/components/gallery/masonry-gallery";
 import { ButtonLink } from "@/components/ui/button";
-import type { GalleryItem } from "@/lib/constants/gallery";
+import { pickHomepageGalleryItems, type GalleryItem } from "@/lib/constants/gallery";
 
 type GalleryPreviewProps = {
   items: GalleryItem[];
   limit?: number;
   showFilters?: boolean;
   viewAllHref?: string;
+  balanced?: boolean;
 };
 
 export function GalleryPreview({
@@ -16,8 +17,13 @@ export function GalleryPreview({
   limit,
   showFilters = true,
   viewAllHref,
+  balanced = false,
 }: GalleryPreviewProps) {
-  const previewItems = limit ? items.slice(0, limit) : items;
+  const previewItems = limit
+    ? balanced
+      ? pickHomepageGalleryItems(items, limit)
+      : items.slice(0, limit)
+    : items;
 
   return (
     <Section id="gallery" narrow={false}>

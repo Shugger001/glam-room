@@ -1,17 +1,66 @@
 import { BRAND } from "@/lib/constants/brand";
 import type { FaqItem } from "@/lib/constants/faqs";
+import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
 import { MARKET } from "@/lib/constants/market";
 
-export function LocalBusinessJsonLd() {
+function googleBusinessUrl() {
+  return process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL?.trim() || null;
+}
+
+function sameAsLinks(): string[] {
+  const links: string[] = [BRAND.links.instagram, BRAND.links.tiktok, BRAND.links.youtube];
+  const gbp = googleBusinessUrl();
+  if (gbp) links.push(gbp);
+  return links;
+}
+
+function departmentSchema(loc: SalonLocation) {
+  return {
+    "@type": "BeautySalon",
+    "@id": `${process.env.NEXT_PUBLIC_APP_URL ?? "https://theglamroom.com"}/locations/${loc.id}`,
+    name: `${BRAND.name} · ${loc.area}`,
+    description: `${BRAND.fullName} in ${loc.area}, ${loc.city}.`,
+    url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://theglamroom.com"}/locations/${loc.id}`,
+    telephone: BRAND.links.phone,
+    email: BRAND.links.email,
+    image: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}${loc.image}`,
+    priceRange: "₵₵₵",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: loc.address,
+      addressLocality: loc.city,
+      addressRegion: BRAND.address.region,
+      addressCountry: loc.country,
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: loc.lat,
+      longitude: loc.lng,
+    },
+    hasMap: loc.mapUrl,
+    openingHoursSpecification: BRAND.hours
+      .filter((h) => !h.closed)
+      .map((h) => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: h.day,
+        opens: h.open,
+        closes: h.close,
+      })),
+  };
+}
+
+export function LocalBusinessJsonLd({ locations = SALON_LOCATIONS }: { locations?: SalonLocation[] }) {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://theglamroom.com";
   const schema = {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
+    "@id": `${baseUrl}/#salon`,
     name: BRAND.fullName,
     description: `${BRAND.fullName}. Luxury hair and beauty salon in ${MARKET.city}, ${MARKET.country}.`,
-    url: process.env.NEXT_PUBLIC_APP_URL ?? "https://theglamroom.com",
+    url: baseUrl,
     telephone: BRAND.links.phone,
     email: BRAND.links.email,
-    image: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/og.png`,
+    image: `${baseUrl}/og.png`,
     priceRange: "₵₵₵",
     address: {
       "@type": "PostalAddress",
@@ -33,7 +82,8 @@ export function LocalBusinessJsonLd() {
         opens: h.open,
         closes: h.close,
       })),
-    sameAs: [BRAND.links.instagram, BRAND.links.tiktok, BRAND.links.youtube],
+    sameAs: sameAsLinks(),
+    department: locations.map(departmentSchema),
   };
 
   return (

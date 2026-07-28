@@ -50,6 +50,16 @@ export async function SiteFooter() {
             >
               WhatsApp
             </a>
+            {process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL ? (
+              <a
+                href={process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
+              >
+                Google
+              </a>
+            ) : null}
           </div>
         </div>
         <div>

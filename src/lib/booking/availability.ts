@@ -7,7 +7,7 @@ export const MAX_BOOKINGS_PER_SLOT = 3;
 /** Max bookings per shop location per calendar day. */
 export const MAX_BOOKINGS_PER_SHOP_PER_DAY = 12;
 
-const ACTIVE_STATUSES = ["pending", "awaiting_approval", "confirmed"] as const;
+const ACTIVE_STATUSES = ["pending", "awaiting_approval", "confirmed", "arrived"] as const;
 
 function bookingDayRange(bookingDate: string) {
   return {

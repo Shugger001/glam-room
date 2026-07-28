@@ -110,6 +110,9 @@ export function BookingsTable({
                 "-"
               );
 
+            const showQuickFloor =
+              b.status === "confirmed" || b.status === "arrived" || b.status === "pending";
+
             return (
               <tr key={b.id} className="hover:bg-white/[0.03]">
                 <td className={tdClass}>{when}</td>
@@ -190,6 +193,36 @@ export function BookingsTable({
                       </option>
                     ))}
                   </select>
+                  {showQuickFloor ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {(
+                        [
+                          ["arrived", "Arrived", "accent"],
+                          ["completed", "Done", "default"],
+                          ["no_show", "No-show", "danger"],
+                        ] as const
+                      ).map(([status, label, tone]) => (
+                        <form key={`${b.id}-${status}`} action={updateBookingStatus}>
+                          <input type="hidden" name="id" value={b.id} />
+                          <input type="hidden" name="status" value={status} />
+                          <button
+                            type="submit"
+                            className={cn(
+                              "rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider transition",
+                              tone === "accent" &&
+                                "border-glam-accent/50 bg-glam-accent/15 text-glam-accent hover:bg-glam-accent/25",
+                              tone === "danger" &&
+                                "border-red-400/40 bg-red-500/10 text-red-200 hover:bg-red-500/20",
+                              tone === "default" &&
+                                "border-white/20 text-white/70 hover:border-white/40 hover:text-white",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        </form>
+                      ))}
+                    </div>
+                  ) : null}
                 </td>
                 {showReschedule ? (
                   <td className={tdClass}>
@@ -224,6 +257,53 @@ export function BookingsTable({
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+export function BookingsByTimeGroups({
+  bookings,
+  updateBookingStatus,
+  staffOptions = [],
+}: {
+  bookings: AdminBookingRow[];
+  updateBookingStatus: (formData: FormData) => Promise<void>;
+  staffOptions?: StaffOption[];
+}) {
+  if (bookings.length === 0) {
+    return <p className="text-sm text-white/55">No appointments match this filter.</p>;
+  }
+
+  const groups = new Map<string, AdminBookingRow[]>();
+  for (const b of bookings) {
+    const key = new Date(b.start_at).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const list = groups.get(key) ?? [];
+    list.push(b);
+    groups.set(key, list);
+  }
+
+  return (
+    <div className="space-y-8">
+      {[...groups.entries()].map(([slot, rows]) => (
+        <section key={slot}>
+          <div className="mb-3 flex items-center gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
+              {slot}
+            </h2>
+            <span className="rounded-full border border-white/15 px-2 py-1 text-[0.65rem] text-white/55">
+              {rows.length} client{rows.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <BookingsTable
+            bookings={rows}
+            updateBookingStatus={updateBookingStatus}
+            staffOptions={staffOptions}
+          />
+        </section>
+      ))}
     </div>
   );
 }

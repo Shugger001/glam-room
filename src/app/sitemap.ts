@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getSalonServiceSlugs } from "@/lib/data/live-services";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://glam-room-gilt.vercel.app";
 
@@ -25,7 +26,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}${path}`,
       lastModified: now,
       changeFrequency: (path === "" ? "weekly" : "monthly") as "weekly" | "monthly",
-      priority: path === "" ? 1 : path === "/book" ? 0.9 : 0.7,
+      priority: path === "" ? 1 : path === "/book" ? 0.9 : path === "/about" ? 0.85 : 0.7,
+    })),
+    ...SALON_LOCATIONS.map((loc) => ({
+      url: `${baseUrl}/locations/${loc.id}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
     })),
     ...serviceSlugs.map((slug) => ({
       url: `${baseUrl}/services/${slug}`,

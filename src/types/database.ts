@@ -4,9 +4,11 @@ export type BookingStatus =
   | "pending"
   | "awaiting_approval"
   | "confirmed"
+  | "arrived"
   | "rejected"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "no_show";
 
 export type BookingLocation = "studio" | "home";
 

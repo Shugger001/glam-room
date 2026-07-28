@@ -6,7 +6,7 @@ import {
   phoneVariants,
 } from "@/lib/booking/phone";
 
-export const LOOKUP_ACTIVE_STATUSES = ["pending", "awaiting_approval", "confirmed"] as const;
+export const LOOKUP_ACTIVE_STATUSES = ["pending", "awaiting_approval", "confirmed", "arrived"] as const;
 export const MANAGEABLE_STATUSES = new Set<string>([...LOOKUP_ACTIVE_STATUSES]);
 
 export type LookupBookingRow = {

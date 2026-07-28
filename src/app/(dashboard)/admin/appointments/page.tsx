@@ -26,7 +26,7 @@ function mapServicesFromRows(
     .filter((s) => s.name && s.durationMinutes);
 }
 import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
-import { BookingsTable, type AdminBookingRow } from "@/components/admin/bookings-table";
+import { BookingsByTimeGroups, type AdminBookingRow } from "@/components/admin/bookings-table";
 import { AppointmentStats } from "@/components/admin/appointment-stats";
 import {
   adminBtnOutline,
@@ -34,6 +34,8 @@ import {
   adminTabClass,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
+import { getShopDailyBookingStatus, MAX_BOOKINGS_PER_SHOP_PER_DAY } from "@/lib/booking/availability";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +44,11 @@ const statusTabs = [
   "pending",
   "awaiting_approval",
   "confirmed",
+  "arrived",
   "rejected",
   "cancelled",
   "completed",
+  "no_show",
 ] as const;
 
 function dayBounds(date = new Date()) {
@@ -112,7 +116,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
   }
 
-  const [{ data }, { data: staffRows }, statsRes, { data: serviceRows }] = await Promise.all([
+  const [{ data }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows] = await Promise.all([
     query.limit(100),
     admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
     (async () => {
@@ -130,6 +134,24 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order")
       .eq("active", true)
       .order("sort_order"),
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const shops = locationScope
+        ? SALON_LOCATIONS.filter((l) => l.id === locationScope)
+        : SALON_LOCATIONS;
+      return Promise.all(
+        shops.map(async (loc) => {
+          const status = await getShopDailyBookingStatus(admin, loc.id, today);
+          return {
+            id: loc.id,
+            area: loc.area,
+            count: status.count,
+            max: status.max ?? MAX_BOOKINGS_PER_SHOP_PER_DAY,
+            fullyBooked: status.fullyBooked,
+          };
+        }),
+      );
+    })(),
   ]);
 
   const services = mapServicesFromRows(serviceRows);
@@ -191,6 +213,32 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
 
       <AppointmentStats stats={stats} activeRange={rangeFilter} />
 
+      {capacityRows.length > 0 ? (
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {capacityRows.map((shop) => (
+            <div
+              key={shop.id}
+              className={`rounded-2xl border px-4 py-3 ${
+                shop.fullyBooked
+                  ? "border-amber-400/40 bg-amber-500/10"
+                  : "border-white/10 bg-black/20"
+              }`}
+            >
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-glam-accent">
+                {shop.area} today
+              </p>
+              <p className="mt-2 text-lg text-white">
+                {shop.count}
+                <span className="text-sm text-white/45"> / {shop.max}</span>
+              </p>
+              <p className="mt-1 text-xs text-white/50">
+                {shop.fullyBooked ? "Fully booked" : `${shop.max - shop.count} openings left`}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-6">
         <WalkInBookingForm
           services={services}
@@ -245,7 +293,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       </div>
 
       <div className="mt-6">
-        <BookingsTable
+        <BookingsByTimeGroups
           bookings={(data ?? []) as AdminBookingRow[]}
           updateBookingStatus={updateBookingStatusAction}
           staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}

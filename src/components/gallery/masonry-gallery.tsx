@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
@@ -20,17 +21,36 @@ type MasonryGalleryProps = {
 
 export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProps) {
   const [activeCategory, setActiveCategory] = useState<GalleryCategory | "all">("all");
-  const [selected, setSelected] = useState<GalleryItem | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const filtered =
-    activeCategory === "all" ? items : items.filter((i) => i.category === activeCategory);
+  const filtered = useMemo(
+    () =>
+      activeCategory === "all" ? items : items.filter((i) => i.category === activeCategory),
+    [activeCategory, items],
+  );
 
-  const closeModal = useCallback(() => setSelected(null), []);
+  const selected = selectedIndex == null ? null : filtered[selectedIndex] ?? null;
+
+  const closeModal = useCallback(() => setSelectedIndex(null), []);
+  const showPrev = useCallback(() => {
+    setSelectedIndex((i) => {
+      if (i == null || filtered.length === 0) return i;
+      return (i - 1 + filtered.length) % filtered.length;
+    });
+  }, [filtered.length]);
+  const showNext = useCallback(() => {
+    setSelectedIndex((i) => {
+      if (i == null || filtered.length === 0) return i;
+      return (i + 1) % filtered.length;
+    });
+  }, [filtered.length]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (selectedIndex == null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeModal();
+      if (e.key === "ArrowLeft") showPrev();
+      if (e.key === "ArrowRight") showNext();
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
@@ -38,7 +58,7 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKey);
     };
-  }, [selected, closeModal]);
+  }, [selectedIndex, closeModal, showPrev, showNext]);
 
   return (
     <>
@@ -67,7 +87,7 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
           <Reveal key={item.id} delay={i * 0.05} className="mb-4 break-inside-avoid">
             <button
               type="button"
-              onClick={() => setSelected(item)}
+              onClick={() => setSelectedIndex(i)}
               className="group relative block w-full overflow-hidden rounded-2xl border border-glam-border/60 bg-glam-secondary shadow-soft transition-all duration-500 hover:border-glam-accent/35 hover:shadow-premium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glam-accent"
               aria-label={`View ${item.alt}`}
             >
@@ -108,6 +128,32 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
             >
               ✕
             </button>
+            {filtered.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showPrev();
+                  }}
+                  className="absolute left-3 top-1/2 z-10 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10 sm:left-6"
+                  aria-label="Previous look"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showNext();
+                  }}
+                  className="absolute right-3 top-1/2 z-10 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10 sm:right-6"
+                  aria-label="Next look"
+                >
+                  →
+                </button>
+              </>
+            ) : null}
             <m.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -121,10 +167,18 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
                 alt={selected.alt}
                 width={selected.width}
                 height={selected.height}
-                className="max-h-[90vh] w-auto rounded-lg object-contain"
+                className="max-h-[80vh] w-auto rounded-lg object-contain"
                 priority
               />
-              <p className="mt-4 text-center text-sm tracking-wide text-white/70">{selected.alt}</p>
+              <div className="mt-4 flex flex-col items-center gap-3 px-4 pb-3 text-center sm:flex-row sm:justify-between sm:text-left">
+                <p className="text-sm tracking-wide text-white/70">{selected.alt}</p>
+                <Link
+                  href="/book"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-glam-accent px-5 text-xs font-semibold uppercase tracking-[0.14em] text-glam-primary transition hover:brightness-105"
+                >
+                  Book this look
+                </Link>
+              </div>
             </m.div>
           </m.div>
         ) : null}

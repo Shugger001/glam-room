@@ -46,6 +46,16 @@ export function ContactSection({ locations = SALON_LOCATIONS }: { locations?: Sa
             <p className="font-medium text-glam-primary">{BRAND.links.phone}</p>
             <p className="mt-1">{BRAND.links.email}</p>
             <p className="mt-3">Mon to Sun · 8am to 8pm</p>
+            {process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL ? (
+              <a
+                href={process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-block font-medium text-glam-accent hover:underline"
+              >
+                Find us on Google
+              </a>
+            ) : null}
           </div>
         </Reveal>
       </div>

@@ -5,7 +5,6 @@ import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
-import { getDirectionsUrl } from "@/lib/maps/directions-url";
 
 export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: SalonLocation[] }) {
   return (
@@ -23,7 +22,7 @@ export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: 
         {locations.map((location, i) => (
           <Reveal key={location.id} delay={i * 0.1}>
             <article className="premium-card group overflow-hidden">
-              <div className="relative aspect-[16/10] overflow-hidden">
+              <Link href={`/locations/${location.id}`} className="relative block aspect-[16/10] overflow-hidden">
                 <ParallaxImage
                   src={location.image}
                   alt={`Glam Room ${location.area}`}
@@ -48,17 +47,15 @@ export function LocationsPreview({ locations = SALON_LOCATIONS }: { locations?: 
                   </h3>
                   <p className="text-sm text-white/70">{location.address}</p>
                 </div>
-              </div>
+              </Link>
               <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <p className="text-sm text-glam-muted">{location.hours}</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <Link
-                    href={getDirectionsUrl(location)}
-                    target="_blank"
-                    rel="noreferrer"
+                    href={`/locations/${location.id}`}
                     className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-glam-border px-4 text-sm font-medium text-glam-primary transition hover:border-glam-accent hover:text-glam-accent"
                   >
-                    Directions
+                    Shop details
                   </Link>
                   <ButtonLink
                     href={`/book?location=${location.id}`}

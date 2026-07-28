@@ -6,8 +6,8 @@ import { BRAND } from "@/lib/constants/brand";
 import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description: `WhatsApp or message ${BRAND.fullName}.`,
+  title: "Contact · Accra hair & beauty salon",
+  description: `WhatsApp ${BRAND.fullName} in Accra — Adenta, Sowutuom, and Madina shops. Book online or message us.`,
 };
 
 export default async function ContactPage() {

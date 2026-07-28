@@ -21,7 +21,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <LocalBusinessJsonLd />
+      <LocalBusinessJsonLd locations={locations} />
       <FaqJsonLd items={faqs} />
       <LandingHero />
       <HomeQuickNav />
@@ -30,6 +30,7 @@ export default async function HomePage() {
         limit={6}
         showFilters={false}
         viewAllHref="/gallery"
+        balanced
       />
       <LocationsPreview locations={locations} />
       <TestimonialsSection testimonials={testimonials} />
