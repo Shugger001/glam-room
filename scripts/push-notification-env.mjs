@@ -71,7 +71,7 @@ for (const [key, value] of Object.entries(values)) {
     // key may not exist yet
   }
   execFileSync("vercel", ["env", "add", key, "production"], {
-    input: `${value}\n`,
+    input: value.trim(),
     stdio: ["pipe", "inherit", "inherit"],
   });
   console.log(`✓ ${key}`);
