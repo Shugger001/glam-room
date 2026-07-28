@@ -18,7 +18,12 @@ export type AdminBookingRow = {
   deposit_amount: number | null;
   paystack_reference?: string | null;
   promotion_code?: string | null;
-  profiles: { full_name?: string; phone?: string } | null;
+  profiles: {
+    full_name?: string;
+    phone?: string;
+    crm_tags?: string[] | null;
+    crm_notes?: string | null;
+  } | null;
   services: { name?: string } | null;
   staff?: { name?: string } | null;
 };
@@ -39,6 +44,7 @@ const selectClass =
 type BookingsTableProps = {
   bookings: AdminBookingRow[];
   updateBookingStatus: (formData: FormData) => Promise<void>;
+  markDepositPaid?: (formData: FormData) => Promise<void>;
   staffOptions?: StaffOption[];
   showReschedule?: boolean;
   showStaff?: boolean;
@@ -49,6 +55,7 @@ type BookingsTableProps = {
 export function BookingsTable({
   bookings,
   updateBookingStatus,
+  markDepositPaid,
   staffOptions = [],
   showReschedule = true,
   showStaff = true,
@@ -113,6 +120,11 @@ export function BookingsTable({
                   )
                 : null;
 
+            const crmTags = Array.isArray(profile?.crm_tags)
+              ? profile.crm_tags.map(String).filter(Boolean)
+              : [];
+            const crmNotes = profile?.crm_notes?.trim() || "";
+
             const depositCell =
               typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0 ? (
                 <div className="space-y-1">
@@ -131,6 +143,17 @@ export function BookingsTable({
                       Chase deposit
                     </a>
                   ) : null}
+                  {depositDue && markDepositPaid ? (
+                    <form action={markDepositPaid}>
+                      <input type="hidden" name="id" value={b.id} />
+                      <button
+                        type="submit"
+                        className="text-xs font-semibold uppercase tracking-wider text-white/55 hover:text-glam-accent"
+                      >
+                        Mark paid
+                      </button>
+                    </form>
+                  ) : null}
                 </div>
               ) : (
                 "-"
@@ -144,6 +167,21 @@ export function BookingsTable({
                 <td className={tdClass}>{when}</td>
                 <td className={tdClass}>
                   <span className="font-medium text-white">{clientName}</span>
+                  {crmTags.length > 0 ? (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {crmTags.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full border border-glam-accent/35 bg-glam-accent/10 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wider text-glam-accent"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {crmNotes ? (
+                    <p className="mt-1 line-clamp-2 text-xs text-glam-accent/80">CRM: {crmNotes}</p>
+                  ) : null}
                   {b.client_notes ? (
                     <p className="mt-1 line-clamp-2 text-xs text-white/45">{b.client_notes}</p>
                   ) : null}
@@ -290,10 +328,12 @@ export function BookingsTable({
 export function BookingsByTimeGroups({
   bookings,
   updateBookingStatus,
+  markDepositPaid,
   staffOptions = [],
 }: {
   bookings: AdminBookingRow[];
   updateBookingStatus: (formData: FormData) => Promise<void>;
+  markDepositPaid?: (formData: FormData) => Promise<void>;
   staffOptions?: StaffOption[];
 }) {
   if (bookings.length === 0) {
@@ -326,6 +366,7 @@ export function BookingsByTimeGroups({
           <BookingsTable
             bookings={rows}
             updateBookingStatus={updateBookingStatus}
+            markDepositPaid={markDepositPaid}
             staffOptions={staffOptions}
           />
         </section>

@@ -6,14 +6,17 @@ import {
   type AdminAccess,
 } from "@/lib/admin/access";
 import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
+import { markDepositPaidAction } from "@/lib/admin/mark-deposit-paid";
 import { createWalkInBookingAction } from "@/lib/admin/walk-in-booking-action";
 import { loadShopCapacityToday } from "@/lib/admin/load-shop-capacity";
+import { enrichBookingsWithCrm } from "@/lib/admin/enrich-bookings-crm";
 import {
   BookingsByTimeGroups,
   type AdminBookingRow,
 } from "@/components/admin/bookings-table";
 import { WalkInBookingForm } from "@/components/admin/walk-in-booking-form";
 import { BulkApproveBar } from "@/components/admin/bulk-approve-bar";
+import { BulkChaseDepositsBar, type ChaseDepositTarget } from "@/components/admin/bulk-chase-deposits-bar";
 import { ShopCapacityStrip } from "@/components/admin/shop-capacity-strip";
 import { AdminQuickLinks } from "@/components/admin/admin-quick-links";
 import {
@@ -31,7 +34,7 @@ export const metadata: Metadata = { title: "Admin" };
 export const dynamic = "force-dynamic";
 
 const bookingSelect =
-  "id, start_at, status, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone), services(name), staff(name)";
+  "id, start_at, status, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone,crm_tags,admin_notes), services(name), staff(name)";
 
 function dayBounds(date = new Date()) {
   const start = new Date(date);
@@ -113,7 +116,27 @@ async function loadTodayBookings(
     .limit(80);
   if (locationScope) query = query.eq("location_id", locationScope);
   const { data } = await query;
-  return (data ?? []) as AdminBookingRow[];
+  return enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
+}
+
+function chaseTargetsFromBookings(bookings: AdminBookingRow[]): ChaseDepositTarget[] {
+  return bookings
+    .filter(
+      (b) =>
+        !b.deposit_paid &&
+        typeof b.deposit_amount === "number" &&
+        Number(b.deposit_amount) > 0 &&
+        (b.status === "awaiting_approval" || b.status === "confirmed" || b.status === "pending") &&
+        Boolean(b.client_phone ?? b.profiles?.phone),
+    )
+    .map((b) => ({
+      id: b.id,
+      clientName: b.client_name ?? b.profiles?.full_name ?? "Guest",
+      clientPhone: b.client_phone ?? b.profiles?.phone ?? "",
+      serviceName: b.services?.name ?? "Service",
+      when: new Date(b.start_at).toLocaleString(),
+      amountLabel: `₵${Number(b.deposit_amount).toFixed(0)}`,
+    }));
 }
 
 async function StaffDashboard({ access }: { access: AdminAccess }) {
@@ -136,6 +159,7 @@ async function StaffDashboard({ access }: { access: AdminAccess }) {
   ]);
 
   const [{ data: staffRows }, { data: serviceRows }] = staffService;
+  const chaseTargets = chaseTargetsFromBookings(todayBookings);
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "scheduled", href: "/admin/appointments?range=today" },
@@ -157,6 +181,7 @@ async function StaffDashboard({ access }: { access: AdminAccess }) {
       </div>
       <ShopCapacityStrip shops={capacityRows} />
       <BulkApproveBar paidAwaitingCount={paidAwaitingCount} locationId={access.assignedLocationId} />
+      <BulkChaseDepositsBar targets={chaseTargets} />
       <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
         <WalkInBookingForm
           services={mapServices(serviceRows)}
@@ -182,6 +207,7 @@ async function StaffDashboard({ access }: { access: AdminAccess }) {
           <BookingsByTimeGroups
             bookings={todayBookings}
             updateBookingStatus={updateBookingStatusAction}
+            markDepositPaid={markDepositPaidAction}
             staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
           />
         </div>
@@ -224,6 +250,7 @@ async function SuperAdminDashboard() {
   ]);
 
   const [{ data: staffRows }, { data: serviceRows }] = staffService;
+  const chaseTargets = chaseTargetsFromBookings(todayBookings);
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "all shops", href: "/admin/appointments?range=today" },
@@ -248,6 +275,7 @@ async function SuperAdminDashboard() {
       </div>
       <ShopCapacityStrip shops={capacityRows} />
       <BulkApproveBar paidAwaitingCount={paidAwaitingCount} />
+      <BulkChaseDepositsBar targets={chaseTargets} />
       <AdminIntegrationSnapshot health={integrationHealth} />
       <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
         <WalkInBookingForm
@@ -273,6 +301,7 @@ async function SuperAdminDashboard() {
           <BookingsByTimeGroups
             bookings={todayBookings}
             updateBookingStatus={updateBookingStatusAction}
+            markDepositPaid={markDepositPaidAction}
             staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
           />
         </div>

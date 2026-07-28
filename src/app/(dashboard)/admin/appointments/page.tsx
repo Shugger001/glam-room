@@ -26,10 +26,13 @@ function mapServicesFromRows(
     .filter((s) => s.name && s.durationMinutes);
 }
 import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
+import { markDepositPaidAction } from "@/lib/admin/mark-deposit-paid";
 import { loadShopCapacityToday } from "@/lib/admin/load-shop-capacity";
+import { enrichBookingsWithCrm } from "@/lib/admin/enrich-bookings-crm";
 import { BookingsByTimeGroups, type AdminBookingRow } from "@/components/admin/bookings-table";
 import { AppointmentStats } from "@/components/admin/appointment-stats";
 import { BulkApproveBar } from "@/components/admin/bulk-approve-bar";
+import { BulkChaseDepositsBar, type ChaseDepositTarget } from "@/components/admin/bulk-chase-deposits-bar";
 import { ShopCapacityStrip } from "@/components/admin/shop-capacity-strip";
 import {
   adminBtnOutline,
@@ -37,6 +40,7 @@ import {
   adminTabClass,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +81,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   }
 
   const access = await requireAdminAccess();
-  const locationScope = bookingLocationScope(access);
+  const staffLocationScope = bookingLocationScope(access);
 
   const params = await searchParams;
   const statusParam = typeof params.status === "string" ? params.status : "all";
@@ -90,11 +94,17 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const toDate = typeof params.to === "string" ? params.to : "";
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const staffParam = typeof params.staff === "string" ? params.staff : "all";
+  const locationParam = typeof params.location === "string" ? params.location : "all";
+  const locationFilter =
+    access.isSuperAdmin && SALON_LOCATIONS.some((l) => l.id === locationParam)
+      ? locationParam
+      : "all";
+  const locationScope = staffLocationScope ?? (locationFilter === "all" ? null : locationFilter);
 
   const admin = createAdminClient();
 
   const bookingSelect =
-    "id, start_at, status, location_type, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone), services(name), staff(name)";
+    "id, start_at, status, location_type, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone,crm_tags,admin_notes), services(name), staff(name)";
 
   let query = admin.from("bookings").select(bookingSelect).order("start_at", { ascending: true });
   if (locationScope) query = query.eq("location_id", locationScope);
@@ -150,7 +160,27 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     })(),
   ]);
 
+  const bookings = await enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
+
   const services = mapServicesFromRows(serviceRows);
+
+  const chaseTargets: ChaseDepositTarget[] = bookings
+    .filter(
+      (b) =>
+        !b.deposit_paid &&
+        typeof b.deposit_amount === "number" &&
+        Number(b.deposit_amount) > 0 &&
+        (b.status === "awaiting_approval" || b.status === "confirmed" || b.status === "pending") &&
+        Boolean(b.client_phone ?? b.profiles?.phone),
+    )
+    .map((b) => ({
+      id: b.id,
+      clientName: b.client_name ?? b.profiles?.full_name ?? "Guest",
+      clientPhone: b.client_phone ?? b.profiles?.phone ?? "",
+      serviceName: b.services?.name ?? "Service",
+      when: new Date(b.start_at).toLocaleString(),
+      amountLabel: `₵${Number(b.deposit_amount).toFixed(0)}`,
+    }));
 
   const todayRows = statsRes.data ?? [];
   const stats = [
@@ -191,6 +221,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     if (toDate) qs.set("to", toDate);
     if (q) qs.set("q", q);
     if (staffParam !== "all") qs.set("staff", staffParam);
+    if (locationFilter !== "all") qs.set("location", locationFilter);
     Object.entries(next).forEach(([k, v]) => {
       if (v) qs.set(k, v);
       else qs.delete(k);
@@ -215,6 +246,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       <div className="mt-6 space-y-4">
         <ShopCapacityStrip shops={capacityRows} />
         <BulkApproveBar paidAwaitingCount={paidAwaitingCount} locationId={locationScope} />
+        <BulkChaseDepositsBar targets={chaseTargets} />
       </div>
 
       <div className="mt-6">
@@ -230,6 +262,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
         <input type="hidden" name="range" value={rangeFilter} />
         <input type="hidden" name="status" value={statusFilter} />
         {staffParam !== "all" ? <input type="hidden" name="staff" value={staffParam} /> : null}
+        {locationFilter !== "all" ? <input type="hidden" name="location" value={locationFilter} /> : null}
         <label className="text-xs text-white/65">
           Search client
           <input
@@ -263,6 +296,24 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
         </button>
       </form>
 
+      {access.isSuperAdmin ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Shop</span>
+          <a href={buildHref({ location: "" })} className={adminTabClass(locationFilter === "all")}>
+            All shops
+          </a>
+          {SALON_LOCATIONS.map((loc) => (
+            <a
+              key={loc.id}
+              href={buildHref({ location: loc.id })}
+              className={adminTabClass(locationFilter === loc.id)}
+            >
+              {loc.area}
+            </a>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-2">
         {statusTabs.map((tab) => (
           <a key={tab} href={buildHref({ status: tab === "all" ? "" : tab })} className={adminTabClass(statusFilter === tab)}>
@@ -291,8 +342,9 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
 
       <div className="mt-6">
         <BookingsByTimeGroups
-          bookings={(data ?? []) as AdminBookingRow[]}
+          bookings={bookings}
           updateBookingStatus={updateBookingStatusAction}
+          markDepositPaid={markDepositPaidAction}
           staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
         />
       </div>

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { bookingLocationScope, requireAdminAccess } from "@/lib/admin/access";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 
 /** Confirm all deposit-paid bookings still awaiting approval (optionally scoped to one shop). */
 export async function bulkConfirmPaidBookingsAction(formData: FormData): Promise<void> {
@@ -13,17 +14,16 @@ export async function bulkConfirmPaidBookingsAction(formData: FormData): Promise
   const admin = createAdminClient();
   let query = admin
     .from("bookings")
-    .select("id")
+    .select("id, user_id, client_name, client_phone, start_at, services(name)")
     .in("status", ["pending", "awaiting_approval"])
     .eq("deposit_paid", true);
 
   if (locationId) query = query.eq("location_id", locationId);
 
   const { data, error } = await query;
-  if (error) return;
+  if (error || !data || data.length === 0) return;
 
-  const ids = (data ?? []).map((r) => r.id);
-  if (ids.length === 0) return;
+  const ids = data.map((r) => r.id);
 
   const { error: updateError } = await admin
     .from("bookings")
@@ -31,6 +31,43 @@ export async function bulkConfirmPaidBookingsAction(formData: FormData): Promise
     .in("id", ids);
 
   if (updateError) return;
+
+  await Promise.all(
+    data.map(async (booking) => {
+      const serviceName =
+        booking.services && typeof booking.services === "object" && "name" in booking.services
+          ? String((booking.services as { name?: string }).name ?? "appointment")
+          : "appointment";
+      const when = new Date(booking.start_at).toLocaleString();
+      const body = `Hi ${booking.client_name ?? "there"}, your Glam Room ${serviceName} on ${when} is confirmed. See you soon!`;
+
+      if (booking.user_id) {
+        await admin.from("notifications").insert({
+          user_id: booking.user_id,
+          title: "Booking confirmed",
+          body,
+          type: "booking_status",
+        });
+      }
+
+      let notifyPhone = booking.client_phone;
+      if (!notifyPhone && booking.user_id) {
+        const { data: profile } = await admin
+          .from("profiles")
+          .select("phone")
+          .eq("id", booking.user_id)
+          .maybeSingle();
+        notifyPhone = profile?.phone ?? null;
+      }
+
+      await sendTransactionalMessage({
+        toPhone: notifyPhone,
+        subject: "Glam Room booking confirmed",
+        html: `<p>${body}</p>`,
+        smsText: body,
+      });
+    }),
+  );
 
   revalidatePath("/admin");
   revalidatePath("/admin/appointments");

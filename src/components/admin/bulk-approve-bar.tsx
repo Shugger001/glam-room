@@ -19,7 +19,7 @@ export function BulkApproveBar({ paidAwaitingCount, locationId }: BulkApproveBar
           {paidAwaitingCount} booking{paidAwaitingCount === 1 ? "" : "s"} paid deposit · awaiting confirm
         </p>
         <p className="mt-1 text-xs text-white/55">
-          One tap confirms all deposit-paid requests to confirmed.
+          Confirms all deposit-paid requests and notifies each client.
         </p>
       </div>
       {locationId ? <input type="hidden" name="location_id" value={locationId} /> : null}
