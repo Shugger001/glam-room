@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import path from "path";
 import withPWAInit from "@ducanh2912/next-pwa";
-import { securityHeaders } from "./src/lib/security/headers";
+import { staticSecurityHeaders } from "./src/lib/security/headers";
 
 /**
  * Do not run next-pwa at all unless explicitly enabled. Wrapping with `disable: true` still
@@ -27,8 +27,9 @@ const baseConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Static headers only — CSP is set per-request with a nonce in src/proxy.ts
         source: "/:path*",
-        headers: securityHeaders,
+        headers: staticSecurityHeaders,
       },
       {
         source: "/",

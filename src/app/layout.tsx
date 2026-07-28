@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics/analytics-scripts";
@@ -83,11 +84,13 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang={MARKET.htmlLocale}
@@ -95,7 +98,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
-        <AnalyticsScripts />
+        <AnalyticsScripts nonce={nonce} />
         <AppProviders>{children}</AppProviders>
         <VercelTrafficAnalytics />
       </body>
