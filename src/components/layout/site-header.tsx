@@ -63,20 +63,30 @@ export function SiteHeader() {
             )}
             aria-label="Primary"
           >
-            {PRIMARY_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "relative tracking-wide transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-gradient-to-r after:from-glam-accent-deep after:to-glam-accent-light after:transition-transform hover:after:scale-x-100",
-                  showSolidHeader
-                    ? "hover:text-glam-primary"
-                    : "hover:text-glam-secondary",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {PRIMARY_NAV.map((item) => {
+              const active =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "relative tracking-wide transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:bg-glam-accent after:transition-transform",
+                    active ? "after:scale-x-100" : "after:scale-x-0 hover:after:scale-x-100",
+                    showSolidHeader
+                      ? active
+                        ? "text-glam-primary"
+                        : "hover:text-glam-primary"
+                      : active
+                        ? "text-glam-secondary"
+                        : "hover:text-glam-secondary",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -179,7 +189,16 @@ export function SiteHeader() {
                   >
                     <Link
                       href={item.href}
-                      className="flex min-h-12 items-center rounded-xl px-4 text-lg font-medium tracking-tight text-glam-primary transition hover:bg-glam-accent/10"
+                      aria-current={
+                        pathname === item.href || pathname.startsWith(`${item.href}/`)
+                          ? "page"
+                          : undefined
+                      }
+                      className={cn(
+                        "flex min-h-12 items-center rounded-xl px-4 text-lg font-medium tracking-tight text-glam-primary transition hover:bg-glam-accent/10",
+                        (pathname === item.href || pathname.startsWith(`${item.href}/`)) &&
+                          "bg-glam-accent/10 text-glam-accent-deep",
+                      )}
                       onClick={() => setMenuOpen(false)}
                     >
                       {item.label}

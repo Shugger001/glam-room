@@ -32,7 +32,7 @@ export function GalleryPreview({
           eyebrow="Gallery"
           title="Recent work"
           description="Looks from our Accra shops."
-          align="center"
+          align="left"
         />
       </div>
       <div className="container-wide px-5 sm:px-8">

@@ -9,13 +9,14 @@ type PageHeroProps = {
 
 export function PageHero({ eyebrow, title, description }: PageHeroProps) {
   return (
-    <Section background="dark" className="!pb-8 sm:!pb-10">
-      <Reveal className="mx-auto max-w-3xl text-center">
-        <p className="eyebrow-label text-glam-accent">{eyebrow}</p>
-        <span className="gold-rule mx-auto" aria-hidden />
-        <h1 className="heading-display mt-6 text-4xl text-glam-secondary sm:text-5xl">{title}</h1>
+    <Section background="warm" className="!pb-8 !pt-10 sm:!pb-12 sm:!pt-14">
+      <Reveal className="max-w-2xl">
+        <p className="font-[family-name:var(--font-cormorant)] text-base italic text-glam-muted sm:text-lg">
+          {eyebrow}
+        </p>
+        <h1 className="heading-display mt-2 text-4xl text-glam-primary sm:text-5xl">{title}</h1>
         {description ? (
-          <p className="mt-4 text-base leading-relaxed text-white/60">{description}</p>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-glam-muted">{description}</p>
         ) : null}
       </Reveal>
     </Section>

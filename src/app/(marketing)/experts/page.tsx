@@ -19,8 +19,8 @@ export default async function ExpertsPage() {
   return (
     <>
       <PageHero eyebrow="Team" title="Our stylists" description="Meet the team." />
-      <Section background="white" className="!pt-0">
-        <div className="mx-auto grid max-w-5xl gap-8 sm:grid-cols-2">
+      <Section background="default" className="!pt-0">
+        <div className="grid gap-10 sm:grid-cols-2 lg:gap-12">
           {staff.map((member, i) => (
             <TeamCard key={member.id} member={member} index={i} />
           ))}

@@ -7,28 +7,27 @@ const ABOUT_IMAGE = "/images/asantewaa-gown-smile.png";
 
 export function AboutPreview() {
   return (
-    <Section id="about">
-      <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-        <Reveal className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-premium">
+    <Section id="about" background="default">
+      <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
+        <Reveal className="relative aspect-[4/5] overflow-hidden lg:col-span-5 lg:col-start-1">
           <ParallaxImage
             src={ABOUT_IMAGE}
             alt="Asantewaa at Glam Room by Asantewaa"
-            sizes="(max-width: 1024px) 100vw, 50vw"
+            sizes="(max-width: 1024px) 100vw, 42vw"
             className="absolute inset-0"
-            yRange={["-8%", "8%"]}
-            scaleRange={[1.08, 1.14]}
+            yRange={["-6%", "6%"]}
+            scaleRange={[1.06, 1.1]}
           />
-          <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20" />
-          <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-glam-accent/20" />
         </Reveal>
-        <div>
+        <div className="lg:col-span-6 lg:col-start-7">
           <SectionHeader
             eyebrow="Glam Room"
             title="About us"
             description={BRAND.copy.aboutIntro[0]}
+            className="!mb-6"
           />
-          <Reveal delay={0.15}>
-            <p className="text-base leading-relaxed text-glam-muted">
+          <Reveal delay={0.12}>
+            <p className="max-w-md text-base leading-relaxed text-glam-muted">
               {BRAND.copy.aboutIntro[1]}
             </p>
           </Reveal>

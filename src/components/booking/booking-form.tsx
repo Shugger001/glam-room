@@ -306,7 +306,7 @@ export function BookingForm({
 
       setSubmitted(true);
       form.reset();
-      toast.success("Booking request sent!", {
+      toast.success("Booking request sent", {
         description: "Asantewaa will confirm via WhatsApp shortly.",
       });
     } finally {
@@ -327,22 +327,23 @@ export function BookingForm({
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-glam-accent/25 bg-glam-secondary/95 p-8 text-center shadow-premium backdrop-blur-md sm:p-10">
-        <p className="eyebrow-label">Request received</p>
-        <span className="gold-rule mx-auto" aria-hidden />
-        <h2 className="heading-display mt-5 text-3xl text-glam-primary sm:text-4xl">
+      <div className="mx-auto max-w-lg border border-glam-border/70 bg-glam-secondary px-6 py-10 text-center sm:px-10 sm:py-12">
+        <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-glam-muted">
+          Request received
+        </p>
+        <h2 className="heading-display mt-3 text-3xl text-glam-primary sm:text-4xl">
           You&apos;re on the list
         </h2>
-        <p className="mt-4 text-glam-muted">
+        <p className="mt-4 text-sm leading-relaxed text-glam-muted sm:text-base">
           Your booking request has been received. We&apos;ll confirm via WhatsApp at{" "}
           {BRAND.links.phone}.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <ButtonLink href={BRAND.links.whatsapp} variant="accent">
+          <ButtonLink href={BRAND.links.whatsapp} variant="accent" className="!rounded-none">
             Chat on WhatsApp
           </ButtonLink>
-          <ButtonLink href="/track" variant="outline">
-            Find My Booking
+          <ButtonLink href="/track" variant="outline" className="!rounded-none">
+            Find my booking
           </ButtonLink>
         </div>
       </div>
@@ -350,14 +351,14 @@ export function BookingForm({
   }
 
   const inputClass =
-    "mt-2 w-full rounded-xl border border-glam-border bg-glam-secondary px-4 py-3 text-sm text-glam-primary outline-none transition focus:border-glam-accent focus:ring-2 focus:ring-glam-accent/25 touch-manipulation";
+    "mt-2 w-full border border-glam-border bg-glam-secondary px-4 py-3 text-sm text-glam-primary outline-none transition duration-200 focus:border-glam-accent focus:ring-2 focus:ring-glam-accent/20 touch-manipulation";
 
   const choiceCardClass =
-    "rounded-xl border px-4 py-3 text-left text-sm transition duration-300 touch-manipulation";
+    "border px-4 py-3 text-left text-sm transition duration-200 ease-out touch-manipulation active:scale-[0.98]";
   const choiceSelected =
-    "border-glam-accent bg-glam-accent/10 shadow-[var(--shadow-gold)] ring-1 ring-glam-accent/40";
+    "border-glam-accent bg-glam-accent/10 ring-1 ring-glam-accent/30";
   const choiceIdle =
-    "border-glam-border bg-glam-secondary hover:border-glam-accent/40 hover:bg-glam-background";
+    "border-glam-border bg-glam-secondary hover:border-glam-accent/50";
 
   const steps = [
     { n: 1, label: "You" },
@@ -368,34 +369,35 @@ export function BookingForm({
 
   const locationsPanel = (
     <>
-      <p className="eyebrow-label text-glam-accent">Locations</p>
-      <span className="gold-rule" aria-hidden />
-      <ul className="mt-5 space-y-4 text-sm text-white/70">
+      <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-glam-muted">
+        Locations
+      </p>
+      <ul className="mt-5 space-y-4 text-sm text-glam-muted">
         {locations.map((loc) => (
           <li key={loc.id}>
-            <p className="font-medium text-white">
+            <p className="font-medium text-glam-primary">
               {loc.area}
               {loc.badge ? (
-                <span className="ml-2 rounded-full bg-glam-accent/20 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
+                <span className="ml-2 bg-glam-accent/20 px-2 py-0.5 text-[0.65rem] font-semibold text-glam-accent-deep">
                   {loc.badge}
                 </span>
               ) : null}
             </p>
-            <p className="text-white/60">{loc.address}</p>
+            <p>{loc.address}</p>
           </li>
         ))}
-        <li className="border-t border-white/20 pt-4">
-          <p className="font-medium text-white">Opening hours</p>
-          <p className="text-white/60">Mon to Sun: 8am to 8pm</p>
+        <li className="border-t border-glam-border pt-4">
+          <p className="font-medium text-glam-primary">Opening hours</p>
+          <p>Mon to Sun: 8am to 8pm</p>
         </li>
       </ul>
     </>
   );
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,280px)_1fr] lg:gap-12">
-      <details className="group rounded-2xl border border-white/20 bg-transparent p-5 lg:hidden">
-        <summary className="cursor-pointer list-none text-sm font-semibold text-white marker:content-none [&::-webkit-details-marker]:hidden">
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,260px)_1fr] lg:gap-12">
+      <details className="group border border-glam-border/70 bg-glam-secondary/80 p-5 lg:hidden">
+        <summary className="cursor-pointer list-none text-sm font-semibold text-glam-primary marker:content-none [&::-webkit-details-marker]:hidden">
           <span className="flex items-center justify-between gap-3">
             Salon locations & hours
             <span className="text-glam-accent transition group-open:rotate-180" aria-hidden>
@@ -403,26 +405,25 @@ export function BookingForm({
             </span>
           </span>
         </summary>
-        <div className="mt-4 border-t border-white/20 pt-4">{locationsPanel}</div>
+        <div className="mt-4 border-t border-glam-border pt-4">{locationsPanel}</div>
       </details>
 
-      <aside className="hidden rounded-2xl border border-white/20 bg-transparent p-6 lg:block">
+      <aside className="hidden border border-glam-border/70 bg-glam-secondary/60 p-6 lg:block">
         {locationsPanel}
       </aside>
 
-      <div className="rounded-2xl border border-glam-border/80 bg-glam-secondary/95 p-6 shadow-premium backdrop-blur-md sm:p-8">
-        <div className="mb-2">
-          <p className="eyebrow-label">Booking</p>
-          <span className="gold-rule" aria-hidden />
-        </div>
-        <h1 className="heading-display mt-4 text-3xl text-glam-primary sm:text-4xl">
+      <div className="border border-glam-border/70 bg-glam-secondary p-6 sm:p-8">
+        <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-glam-muted">
+          Booking
+        </p>
+        <h1 className="heading-display mt-2 text-3xl text-glam-primary sm:text-4xl">
           Book appointment
         </h1>
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-glam-muted sm:text-base">
-          Four quick steps — we&apos;ll confirm on WhatsApp.
+          Four steps — we confirm on WhatsApp.
         </p>
 
-        <ol className="mt-8 flex flex-wrap gap-2 sm:gap-3" aria-label="Booking progress">
+        <ol className="mt-8 flex gap-1 sm:gap-2" aria-label="Booking progress">
           {steps.map((step) => {
             const done =
               (step.n === 1 && detailsComplete) ||
@@ -434,15 +435,13 @@ export function BookingForm({
               <li
                 key={step.n}
                 className={cn(
-                  "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.14em] transition sm:px-4 sm:text-xs",
-                  done && "border-glam-accent/50 bg-glam-accent/15 text-glam-primary",
-                  current && !done && "border-glam-accent bg-glam-accent/10 text-glam-primary shadow-[var(--shadow-gold)]",
-                  !done && !current && "border-glam-border text-glam-muted",
+                  "flex flex-1 flex-col items-center gap-1.5 border-b-2 pb-2 text-center transition duration-200",
+                  done || current ? "border-glam-accent" : "border-glam-border",
                 )}
               >
                 <span
                   className={cn(
-                    "flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem]",
+                    "flex h-6 w-6 items-center justify-center text-[0.7rem] font-semibold tabular-nums",
                     done || current
                       ? "bg-glam-accent text-glam-primary"
                       : "bg-glam-background text-glam-muted",
@@ -451,7 +450,14 @@ export function BookingForm({
                 >
                   {done ? "✓" : step.n}
                 </span>
-                {step.label}
+                <span
+                  className={cn(
+                    "text-[0.65rem] font-medium sm:text-xs",
+                    current || done ? "text-glam-primary" : "text-glam-muted",
+                  )}
+                >
+                  {step.label}
+                </span>
               </li>
             );
           })}
@@ -459,12 +465,12 @@ export function BookingForm({
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-10 space-y-10">
           <section className="space-y-5" aria-labelledby="booking-step-you">
-            <div>
-              <h2 id="booking-step-you" className="eyebrow-label">
-                01 · You
-              </h2>
-              <span className="gold-rule" aria-hidden />
-            </div>
+            <h2
+              id="booking-step-you"
+              className="heading-display text-xl text-glam-primary sm:text-2xl"
+            >
+              1. You
+            </h2>
 
             <label className="block text-sm font-medium">
               Full name
@@ -511,12 +517,12 @@ export function BookingForm({
           </section>
 
           <section className="space-y-5" aria-labelledby="booking-step-service">
-            <div>
-              <h2 id="booking-step-service" className="eyebrow-label">
-                02 · Service
-              </h2>
-              <span className="gold-rule" aria-hidden />
-            </div>
+            <h2
+              id="booking-step-service"
+              className="heading-display text-xl text-glam-primary sm:text-2xl"
+            >
+              2. Service
+            </h2>
 
             <fieldset>
               <legend className="text-sm font-medium">Location</legend>
@@ -557,7 +563,7 @@ export function BookingForm({
                       key={cat}
                       type="button"
                       className={cn(
-                        "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition",
+                        "border px-4 py-2 text-xs font-medium transition duration-200 active:scale-[0.98]",
                         selected ? choiceSelected : choiceIdle,
                       )}
                       aria-pressed={selected}
@@ -627,7 +633,7 @@ export function BookingForm({
             ) : null}
 
             <p
-              className="rounded-xl border border-glam-border/60 bg-glam-background px-4 py-3 text-sm text-glam-muted"
+              className="border border-glam-border/60 bg-glam-background px-4 py-3 text-sm text-glam-muted"
               role="note"
             >
               {braidsNotice}
@@ -635,12 +641,12 @@ export function BookingForm({
           </section>
 
           <section className="space-y-5" aria-labelledby="booking-step-schedule">
-            <div>
-              <h2 id="booking-step-schedule" className="eyebrow-label">
-                03 · Schedule
-              </h2>
-              <span className="gold-rule" aria-hidden />
-            </div>
+            <h2
+              id="booking-step-schedule"
+              className="heading-display text-xl text-glam-primary sm:text-2xl"
+            >
+              3. Schedule
+            </h2>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <label className="block text-sm font-medium">
@@ -734,25 +740,27 @@ export function BookingForm({
           </section>
 
           <section className="space-y-5" aria-labelledby="booking-step-confirm">
-            <div>
-              <h2 id="booking-step-confirm" className="eyebrow-label">
-                04 · Confirm
-              </h2>
-              <span className="gold-rule" aria-hidden />
-            </div>
+            <h2
+              id="booking-step-confirm"
+              className="heading-display text-xl text-glam-primary sm:text-2xl"
+            >
+              4. Confirm
+            </h2>
 
             <div
               className={cn(
-                "rounded-xl border px-5 py-4 text-sm transition",
+                "border px-5 py-4 text-sm transition duration-200",
                 summaryReady
-                  ? "border-glam-accent/40 bg-glam-accent/10 text-glam-primary shadow-[var(--shadow-gold)]"
+                  ? "border-glam-accent/40 bg-glam-accent/10 text-glam-primary"
                   : "border-glam-border bg-glam-background text-glam-muted",
               )}
             >
               {summaryReady && selectedService && selectedLocation ? (
                 <>
-                  <p className="eyebrow-label text-[0.65rem]">Summary</p>
-                  <p className="mt-3 heading-display text-2xl text-glam-primary">
+                  <p className="font-[family-name:var(--font-cormorant)] italic text-glam-muted">
+                    Summary
+                  </p>
+                  <p className="mt-2 heading-display text-2xl text-glam-primary">
                     {selectedService.name}
                   </p>
                   <p className="mt-2">
@@ -788,7 +796,7 @@ export function BookingForm({
               type="submit"
               variant="accent"
               size="lg"
-              className="w-full"
+              className="w-full !rounded-none"
               disabled={submitting || dateFullyBooked || checkingDateCapacity}
             >
               {submitting

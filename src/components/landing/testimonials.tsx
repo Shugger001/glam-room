@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { m, AnimatePresence } from "framer-motion";
 import { Reveal } from "@/components/motion/reveal";
 import { Section, SectionHeader } from "@/components/ui/section";
 import type { Testimonial } from "@/lib/constants/testimonials";
@@ -9,11 +5,11 @@ import { cn } from "@/lib/utils/cn";
 
 function StarRating({ rating }: { rating: number }) {
   return (
-    <div className="flex gap-1" aria-label={`${rating} out of 5 stars`}>
+    <div className="flex gap-0.5" aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <span
           key={i}
-          className={cn("text-sm", i < rating ? "text-glam-accent" : "text-glam-border")}
+          className={cn("text-xs", i < rating ? "text-glam-accent" : "text-glam-border")}
           aria-hidden
         >
           ★
@@ -23,93 +19,65 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export function TestimonialsSection({ testimonials }: { testimonials: Testimonial[] }) {
-  const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const current = testimonials[active];
+export function TestimonialsSection({
+  testimonials,
+  showHeader = true,
+}: {
+  testimonials: Testimonial[];
+  showHeader?: boolean;
+}) {
+  if (!testimonials.length) return null;
 
-  useEffect(() => {
-    if (testimonials.length <= 1 || paused) return;
-    const id = window.setInterval(() => {
-      setActive((currentIndex) => (currentIndex + 1) % testimonials.length);
-    }, 6000);
-    return () => window.clearInterval(id);
-  }, [paused, testimonials.length]);
-
-  if (!current) return null;
+  const [lead, ...rest] = testimonials;
+  const wall = rest.slice(0, 4);
 
   return (
-    <Section id="testimonials" background="dark">
-      <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <SectionHeader
-        eyebrow="Love Notes"
-        title="What the Girls Are Saying"
-        description="Don't just take our word for it. Hear from the queens who've sat in our chair."
-        align="center"
-        className="[&_h2]:text-glam-secondary [&_p]:text-white/60 [&_span]:text-glam-accent"
-      />
+    <Section id="testimonials" background="default" className={!showHeader ? "!pt-0" : undefined}>
+      {showHeader ? (
+        <SectionHeader
+          eyebrow="Client notes"
+          title="What they leave with"
+          description="Real words from clients who sat in our chairs across Accra."
+          align="left"
+        />
+      ) : null}
 
-      <Reveal className="mx-auto max-w-3xl text-center">
-        <AnimatePresence mode="wait">
-          <m.blockquote
-            key={current.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <StarRating rating={current.rating} />
-            <span className="mx-auto mt-4 block h-px w-10 bg-gradient-to-r from-transparent via-glam-accent/70 to-transparent" aria-hidden />
-            <p className="heading-display mt-6 text-2xl leading-relaxed text-glam-secondary sm:text-3xl lg:text-4xl">
-              &ldquo;{current.quote}&rdquo;
-            </p>
-            <footer className="mt-8">
-              <cite className="not-italic">
-                <span className="block text-base font-semibold text-glam-secondary">
-                  {current.name}
-                </span>
-                <span className="mt-1 block text-sm text-glam-accent">{current.service}</span>
-              </cite>
-            </footer>
-          </m.blockquote>
-        </AnimatePresence>
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+        {lead ? (
+          <Reveal className="lg:col-span-5">
+            <blockquote className="border-l border-glam-accent/50 pl-6">
+              <StarRating rating={lead.rating} />
+              <p className="heading-display mt-5 text-3xl leading-snug text-glam-primary sm:text-4xl">
+                &ldquo;{lead.quote}&rdquo;
+              </p>
+              <footer className="mt-8">
+                <cite className="not-italic">
+                  <span className="block text-sm font-semibold text-glam-primary">{lead.name}</span>
+                  <span className="mt-1 block text-sm text-glam-muted">{lead.service}</span>
+                </cite>
+              </footer>
+            </blockquote>
+          </Reveal>
+        ) : null}
 
-        <div className="mt-10 flex items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={() =>
-              setActive((currentIndex) => (currentIndex - 1 + testimonials.length) % testimonials.length)
-            }
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent touch-manipulation"
-            aria-label="Previous testimonial"
-          >
-            ←
-          </button>
-          <div className="flex gap-2">
-          {testimonials.map((t, i) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActive(i)}
-              className={cn(
-                "h-2 rounded-full transition-all duration-300",
-                i === active ? "w-8 bg-glam-accent" : "w-2 bg-white/30 hover:bg-white/50",
-              )}
-              aria-label={`View testimonial from ${t.name}`}
-              aria-current={i === active ? "true" : undefined}
-            />
+        <div className="grid gap-8 sm:grid-cols-2 lg:col-span-7">
+          {wall.map((item, i) => (
+            <Reveal key={item.id} delay={0.06 + i * 0.05}>
+              <blockquote className="h-full">
+                <StarRating rating={item.rating} />
+                <p className="mt-3 text-base leading-relaxed text-glam-primary/85">
+                  &ldquo;{item.quote}&rdquo;
+                </p>
+                <footer className="mt-4">
+                  <cite className="not-italic">
+                    <span className="block text-sm font-medium text-glam-primary">{item.name}</span>
+                    <span className="mt-0.5 block text-xs text-glam-muted">{item.service}</span>
+                  </cite>
+                </footer>
+              </blockquote>
+            </Reveal>
           ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setActive((currentIndex) => (currentIndex + 1) % testimonials.length)}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 text-white/70 transition hover:border-glam-accent hover:text-glam-accent touch-manipulation"
-            aria-label="Next testimonial"
-          >
-            →
-          </button>
         </div>
-      </Reveal>
       </div>
     </Section>
   );

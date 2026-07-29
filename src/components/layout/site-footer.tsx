@@ -7,22 +7,22 @@ import { getLiveLocations } from "@/lib/data/live-site-content";
 
 export async function SiteFooter() {
   const locations = await getLiveLocations();
+  const compactNav = [...FOOTER_NAV.salon.slice(0, 4), ...FOOTER_NAV.book.slice(0, 3)];
 
   return (
-    <footer className="relative border-t border-white/10 bg-glam-primary text-glam-secondary">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-glam-accent/60 to-transparent" aria-hidden />
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:grid-cols-2 sm:px-8 lg:grid-cols-4">
-        <div className="space-y-4">
-          <GlamLogo variant="onDark" asLink={false} />
-          <p className="max-w-xs text-sm leading-relaxed text-white/60">
+    <footer className="relative border-t border-glam-border/40 bg-glam-background-warm text-glam-primary">
+      <div className="mx-auto grid max-w-6xl gap-12 px-5 py-14 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:py-16">
+        <div className="space-y-4 lg:col-span-5">
+          <GlamLogo variant="default" asLink={false} />
+          <p className="max-w-xs text-sm leading-relaxed text-glam-muted">
             {BRAND.copy.heroTagline}
           </p>
-          <div className="flex flex-wrap gap-4 pt-2">
+          <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1 text-sm text-glam-muted">
             <a
               href={BRAND.links.instagram}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
+              className="transition hover:text-glam-accent"
             >
               Instagram
             </a>
@@ -30,7 +30,7 @@ export async function SiteFooter() {
               href={BRAND.links.tiktok}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
+              className="transition hover:text-glam-accent"
             >
               TikTok
             </a>
@@ -38,7 +38,7 @@ export async function SiteFooter() {
               href={BRAND.links.youtube}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
+              className="transition hover:text-glam-accent"
             >
               YouTube
             </a>
@@ -46,80 +46,65 @@ export async function SiteFooter() {
               href={BRAND.links.whatsapp}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
+              className="transition hover:text-glam-accent"
             >
               WhatsApp
             </a>
-            {process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL ? (
-              <a
-                href={process.env.NEXT_PUBLIC_GOOGLE_BUSINESS_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-semibold uppercase tracking-wider text-glam-accent transition hover:text-white"
-              >
-                Google
-              </a>
-            ) : null}
           </div>
         </div>
-        <div>
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
-            Salon
+
+        <div className="lg:col-span-3">
+          <p className="font-[family-name:var(--font-cormorant)] text-base italic text-glam-muted">
+            Navigate
           </p>
-          <ul className="space-y-2 text-sm text-white/70">
-            {FOOTER_NAV.salon.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="transition hover:text-white">
+          <ul className="mt-4 flex flex-col gap-2 text-sm text-glam-primary/80">
+            {compactNav.map((item) => (
+              <li key={`${item.href}-${item.label}`}>
+                <Link href={item.href} className="transition hover:text-glam-accent">
                   {item.label}
                 </Link>
               </li>
             ))}
           </ul>
         </div>
-        <div>
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
+
+        <div className="lg:col-span-4">
+          <p className="font-[family-name:var(--font-cormorant)] text-base italic text-glam-muted">
             Visit
-          </p>
-          <ul className="space-y-2 text-sm text-white/70">
-            {FOOTER_NAV.book.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="transition hover:text-white">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
-            Contact
           </p>
           <a
             href={BRAND.links.whatsapp}
             target="_blank"
             rel="noreferrer"
-            className="block text-sm text-white/70 transition hover:text-white"
+            className="mt-4 block text-sm text-glam-primary/80 transition hover:text-glam-accent"
           >
-            WhatsApp: {BRAND.links.phone}
+            WhatsApp {BRAND.links.phone}
           </a>
-          {locations.map((loc) => (
-            <div key={loc.id} className="mt-4">
-              <p className="text-sm font-medium text-white/80">Glam Room · {loc.area}</p>
-              <p className="text-sm text-white/50">{loc.address}</p>
-              <a
-                href={getDirectionsUrl(loc)}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-block text-sm text-glam-accent transition hover:text-white"
-              >
-                Get Directions
-              </a>
-            </div>
-          ))}
+          <ul className="mt-5 space-y-4">
+            {locations.map((loc) => (
+              <li key={loc.id}>
+                <p className="text-sm font-medium text-glam-primary">
+                  Glam Room · {loc.area}
+                </p>
+                <p className="text-sm text-glam-muted">{loc.address}</p>
+                <a
+                  href={getDirectionsUrl(loc)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-block text-sm text-glam-accent transition hover:text-glam-accent-deep"
+                >
+                  Directions
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-      <div className="border-t border-white/10 py-6 text-center text-xs text-white/40">
-        <p>© {new Date().getFullYear()} {BRAND.fullName}. All rights reserved.</p>
+
+      <div className="border-t border-glam-border/50 py-6 text-center text-xs text-glam-muted">
+        <p>
+          © {new Date().getFullYear()} {BRAND.fullName}. All rights reserved.
+        </p>
         <p className="mt-1">{BRAND.copy.footerTagline}</p>
       </div>
     </footer>

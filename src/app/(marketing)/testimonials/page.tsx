@@ -22,7 +22,7 @@ export default async function TestimonialsPage() {
         title="Client reviews"
         description="What Accra says after sitting in our chair."
       />
-      <TestimonialsSection testimonials={testimonials} />
+      <TestimonialsSection testimonials={testimonials} showHeader={false} />
       <CtaBand />
     </>
   );

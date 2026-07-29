@@ -6,7 +6,7 @@ type SectionProps = {
   children: ReactNode;
   className?: string;
   id?: string;
-  background?: "default" | "white" | "dark" | "accent";
+  background?: "default" | "white" | "dark" | "accent" | "warm";
   narrow?: boolean;
 };
 
@@ -14,7 +14,16 @@ const bgStyles = {
   default: "bg-glam-background",
   white: "bg-glam-secondary",
   dark: "bg-glam-primary text-glam-secondary",
-  accent: "bg-glam-accent/10",
+  accent: "bg-glam-accent/8",
+  warm: "bg-glam-background-warm",
+};
+
+type SectionHeaderProps = {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  align?: "left" | "center";
+  className?: string;
 };
 
 export function Section({
@@ -31,14 +40,6 @@ export function Section({
   );
 }
 
-type SectionHeaderProps = {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  align?: "left" | "center";
-  className?: string;
-};
-
 export function SectionHeader({
   eyebrow,
   title,
@@ -47,18 +48,22 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <Reveal className={cn(align === "center" && "text-center", "mb-12 sm:mb-16", className)}>
+    <Reveal className={cn(align === "center" && "text-center", "mb-10 sm:mb-14", className)}>
       {eyebrow ? (
-        <div className={cn("mb-5", align === "center" && "flex flex-col items-center")}>
-          <p className="eyebrow-label">{eyebrow}</p>
-          <span className="gold-rule" aria-hidden />
-        </div>
+        <p
+          className={cn(
+            "mb-3 font-[family-name:var(--font-cormorant)] text-base italic text-glam-muted sm:text-lg",
+            align === "center" && "mx-auto",
+          )}
+        >
+          {eyebrow}
+        </p>
       ) : null}
-      <h2 className="heading-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl">{title}</h2>
+      <h2 className="heading-display text-3xl sm:text-4xl lg:text-5xl">{title}</h2>
       {description ? (
         <p
           className={cn(
-            "mt-4 max-w-2xl text-base leading-relaxed text-glam-muted sm:text-lg",
+            "mt-4 max-w-xl text-base leading-relaxed text-glam-muted sm:text-lg",
             align === "center" && "mx-auto",
           )}
         >

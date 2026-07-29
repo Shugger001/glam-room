@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { ParallaxImage } from "@/components/motion/parallax-image";
 import { Reveal } from "@/components/motion/reveal";
-import { Section, SectionHeader } from "@/components/ui/section";
+import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/constants/brand";
 import { cn } from "@/lib/utils/cn";
@@ -23,6 +22,9 @@ type LookupResult = {
   booking_time: string;
   can_manage: boolean;
 };
+
+const inputClass =
+  "w-full border border-glam-border bg-glam-secondary px-4 py-3 text-sm outline-none transition duration-200 focus:border-glam-accent focus:ring-2 focus:ring-glam-accent/20";
 
 export function FindBookingTracker({
   timeSlots = BOOKING_TIME_SLOTS,
@@ -53,14 +55,14 @@ export function FindBookingTracker({
       });
       const data = (await res.json()) as { bookings?: LookupResult[]; error?: string };
       if (!res.ok || data.error) {
-        setError(data.error ?? "Something went wrong. Please try again.");
+        setError(data.error ?? "Could not look up your booking. Please try again.");
         setResults(null);
         return;
       }
       setResults(data.bookings ?? []);
       setError(null);
     } catch {
-      setError("Something went wrong. Please try again or WhatsApp Glam Room.");
+      setError("Could not look up your booking. Please try again or WhatsApp Glam Room.");
       setResults(null);
     } finally {
       setLoading(false);
@@ -122,7 +124,7 @@ export function FindBookingTracker({
         toast.error(data.error ?? "Could not reschedule.");
         return;
       }
-      toast.success("Booking rescheduled!");
+      toast.success("Booking rescheduled.");
       setRescheduleFor(null);
       setNewDate("");
       setNewTime("");
@@ -135,171 +137,180 @@ export function FindBookingTracker({
   }
 
   return (
-    <Section id="track-booking" background="white" className={showHeader ? undefined : "!pt-0"}>
-      <div
-        className={cn(
-          "flex flex-col gap-10",
-          showHeader && "lg:grid lg:grid-cols-2 lg:items-center lg:gap-16",
-        )}
-      >
-        <div className={showHeader ? "order-1 lg:order-2" : undefined}>
-          {showHeader ? (
-            <SectionHeader
-              eyebrow="Track"
-              title="Find My Booking"
-              description="Phone + last 4 letters of your name."
-            />
-          ) : null}
-          <Reveal delay={0.1}>
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="lookup-phone" className="mb-1.5 block text-sm font-medium">
-                  WhatsApp / phone number
-                </label>
-                <input
-                  id="lookup-phone"
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="024 XXX XXXX or +233 XX XXX XXXX"
-                  className="w-full rounded-xl border border-glam-border px-4 py-3 text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="lookup-name" className="mb-1.5 block text-sm font-medium">
-                  Last 4 letters of your name
-                </label>
-                <input
-                  id="lookup-name"
-                  type="text"
-                  required
-                  maxLength={4}
-                  value={nameSuffix}
-                  onChange={(e) => setNameSuffix(e.target.value.replace(/[^a-zA-Z]/g, "").slice(0, 4))}
-                  placeholder="Last 4 letters of your name"
-                  className="w-full rounded-xl border border-glam-border px-4 py-3 text-sm uppercase"
-                />
-              </div>
-              <Button type="submit" variant="accent" disabled={loading} className="w-full sm:w-auto">
-                {loading ? "Checking…" : "Check Status"}
-              </Button>
-            </form>
-
-            {error ? (
-              <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-
-            {results && results.length > 0 ? (
-              <ul className="mt-6 space-y-4">
-                {results.map((booking) => (
-                  <li
-                    key={booking.id}
-                    className="rounded-xl border border-glam-border bg-glam-background px-4 py-4 text-sm leading-relaxed text-glam-primary"
-                  >
-                    <p>
-                      <strong>{booking.service}</strong> · {booking.date} at {booking.time}
-                    </p>
-                    <p className="mt-1 text-glam-muted">
-                      Status: <strong>{booking.status}</strong>
-                      {booking.location ? <> · {booking.location}</> : null}
-                    </p>
-
-                    {booking.can_manage ? (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={managingId === booking.id}
-                          onClick={() => {
-                            setRescheduleFor(rescheduleFor === booking.id ? null : booking.id);
-                            setNewDate(booking.booking_date);
-                            setNewTime(booking.booking_time);
-                          }}
-                        >
-                          Reschedule
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={managingId === booking.id}
-                          onClick={() => void cancelBooking(booking.id)}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : null}
-
-                    {rescheduleFor === booking.id ? (
-                      <div className="mt-4 grid gap-3 rounded-lg border border-glam-border bg-white p-3 sm:grid-cols-2">
-                        <label className="block text-xs font-medium">
-                          New date
-                          <input
-                            type="date"
-                            min={new Date().toISOString().slice(0, 10)}
-                            value={newDate}
-                            onChange={(e) => setNewDate(e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-glam-border px-3 py-2 text-sm"
-                          />
-                        </label>
-                        <label className="block text-xs font-medium">
-                          New time
-                          <select
-                            value={newTime}
-                            onChange={(e) => setNewTime(e.target.value)}
-                            className="mt-1 w-full rounded-lg border border-glam-border px-3 py-2 text-sm"
-                          >
-                            {timeSlots.map((slot) => (
-                              <option key={slot.value} value={slot.value}>
-                                {slot.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <div className="sm:col-span-2">
-                          <Button
-                            type="button"
-                            variant="accent"
-                            size="sm"
-                            disabled={managingId === booking.id}
-                            onClick={() => void rescheduleBooking(booking.id)}
-                          >
-                            {managingId === booking.id ? "Saving…" : "Confirm new time"}
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-
-            <p className="mt-6 text-sm text-glam-muted">
-              Prefer WhatsApp?{" "}
-              <a href={BRAND.links.whatsapp} className="font-medium text-glam-accent hover:underline">
-                Chat with Glam Room directly
-              </a>
-            </p>
-          </Reveal>
-        </div>
-
+    <Section
+      id="track-booking"
+      background="default"
+      className={cn(!showHeader && "!pt-0")}
+    >
+      <div className="mx-auto max-w-lg">
         {showHeader ? (
-          <Reveal className="relative order-2 aspect-[4/3] overflow-hidden rounded-2xl lg:order-1">
-            <ParallaxImage
-              src="/images/glam-red-indoor.png"
-              alt="Find your Glam Room booking"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="absolute inset-0"
-              yRange={["-6%", "6%"]}
-              scaleRange={[1.06, 1.12]}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-glam-primary/70 via-glam-primary/20 to-transparent" />
-          </Reveal>
+          <div className="mb-8">
+            <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-glam-muted">
+              Track
+            </p>
+            <h2 className="heading-display mt-1 text-3xl text-glam-primary sm:text-4xl">
+              Find my booking
+            </h2>
+            <p className="mt-3 text-sm text-glam-muted">
+              Phone plus the last 4 letters of your name.
+            </p>
+          </div>
         ) : null}
+
+        <Reveal delay={0.05}>
+          <form
+            onSubmit={onSubmit}
+            className="space-y-4 border border-glam-border/70 bg-glam-secondary p-5 sm:p-6"
+          >
+            <div>
+              <label htmlFor="lookup-phone" className="mb-1.5 block text-sm font-medium">
+                WhatsApp / phone number
+              </label>
+              <input
+                id="lookup-phone"
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="024 XXX XXXX or +233 XX XXX XXXX"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="lookup-name" className="mb-1.5 block text-sm font-medium">
+                Last 4 letters of your name
+              </label>
+              <input
+                id="lookup-name"
+                type="text"
+                required
+                maxLength={4}
+                value={nameSuffix}
+                onChange={(e) =>
+                  setNameSuffix(e.target.value.replace(/[^a-zA-Z]/g, "").slice(0, 4))
+                }
+                placeholder="Last 4 letters of your name"
+                className={cn(inputClass, "uppercase")}
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="accent"
+              disabled={loading}
+              className="w-full !rounded-none sm:w-auto"
+            >
+              {loading ? "Checking…" : "Check status"}
+            </Button>
+          </form>
+
+          {error ? (
+            <p className="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </p>
+          ) : null}
+
+          {results && results.length === 0 ? (
+            <p className="mt-4 border border-glam-border bg-glam-background px-4 py-3 text-sm text-glam-muted">
+              No bookings found for that phone and name. Check the details or WhatsApp us.
+            </p>
+          ) : null}
+
+          {results && results.length > 0 ? (
+            <ul className="mt-6 space-y-3">
+              {results.map((booking) => (
+                <li
+                  key={booking.id}
+                  className="border border-glam-border bg-glam-secondary px-4 py-4 text-sm leading-relaxed text-glam-primary"
+                >
+                  <p>
+                    <strong>{booking.service}</strong> · {booking.date} at {booking.time}
+                  </p>
+                  <p className="mt-1 text-glam-muted">
+                    Status: <strong>{booking.status}</strong>
+                    {booking.location ? <> · {booking.location}</> : null}
+                  </p>
+
+                  {booking.can_manage ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="!rounded-none"
+                        disabled={managingId === booking.id}
+                        onClick={() => {
+                          setRescheduleFor(rescheduleFor === booking.id ? null : booking.id);
+                          setNewDate(booking.booking_date);
+                          setNewTime(booking.booking_time);
+                        }}
+                      >
+                        Reschedule
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="!rounded-none"
+                        disabled={managingId === booking.id}
+                        onClick={() => void cancelBooking(booking.id)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : null}
+
+                  {rescheduleFor === booking.id ? (
+                    <div className="mt-4 grid gap-3 border border-glam-border bg-glam-background p-3 sm:grid-cols-2">
+                      <label className="block text-xs font-medium">
+                        New date
+                        <input
+                          type="date"
+                          min={new Date().toISOString().slice(0, 10)}
+                          value={newDate}
+                          onChange={(e) => setNewDate(e.target.value)}
+                          className="mt-1 w-full border border-glam-border px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="block text-xs font-medium">
+                        New time
+                        <select
+                          value={newTime}
+                          onChange={(e) => setNewTime(e.target.value)}
+                          className="mt-1 w-full border border-glam-border px-3 py-2 text-sm"
+                        >
+                          {timeSlots.map((slot) => (
+                            <option key={slot.value} value={slot.value}>
+                              {slot.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="sm:col-span-2">
+                        <Button
+                          type="button"
+                          variant="accent"
+                          size="sm"
+                          className="!rounded-none"
+                          disabled={managingId === booking.id}
+                          onClick={() => void rescheduleBooking(booking.id)}
+                        >
+                          {managingId === booking.id ? "Saving…" : "Confirm new time"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <p className="mt-6 text-sm text-glam-muted">
+            Prefer WhatsApp?{" "}
+            <a href={BRAND.links.whatsapp} className="font-medium text-glam-accent hover:underline">
+              Chat with Glam Room
+            </a>
+          </p>
+        </Reveal>
       </div>
     </Section>
   );

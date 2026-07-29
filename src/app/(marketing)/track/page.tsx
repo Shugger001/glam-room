@@ -17,7 +17,7 @@ export default async function TrackPage() {
       <PageHero
         eyebrow="My booking"
         title="Find my booking"
-        description="Enter phone and name to check, cancel, or change time."
+        description="Enter your phone and name to check, cancel, or change time."
       />
       <FindBookingTracker timeSlots={salonConfig.bookingTimeSlots} showHeader={false} />
     </>
