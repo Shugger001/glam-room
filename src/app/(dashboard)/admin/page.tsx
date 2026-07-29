@@ -325,10 +325,7 @@ async function StaffDashboard({
         title="Today's schedule"
         description="Grouped by time — WhatsApp and floor actions on each card."
         action={
-          <a
-            href="/admin/appointments?range=today"
-            className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
-          >
+          <a href="/admin/appointments?range=today" className={adminBtnOutline}>
             Full appointments
           </a>
         }
@@ -427,10 +424,7 @@ async function SuperAdminDashboard({
         title="Today's schedule"
         description="All shops · grouped by appointment time."
         action={
-          <a
-            href="/admin/appointments?range=today"
-            className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
-          >
+          <a href="/admin/appointments?range=today" className={adminBtnOutline}>
             Manage appointments
           </a>
         }

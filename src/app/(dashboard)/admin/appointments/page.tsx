@@ -36,6 +36,8 @@ import { BulkChaseDepositsBar, type ChaseDepositTarget } from "@/components/admi
 import { ShopCapacityStrip } from "@/components/admin/shop-capacity-strip";
 import {
   adminBtnOutline,
+  AdminFilterBar,
+  AdminPageHeader,
   AdminPanel,
   adminTabClass,
   AdminSetupNotice,
@@ -264,38 +266,40 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const paidAwaitingCount = paidAwaitingRes.count ?? 0;
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Appointments</h1>
-      {!access.isSuperAdmin && access.assignedLocationLabel ? (
-        <p className="mt-2 text-sm text-white/55">
-          Showing bookings for <span className="text-glam-accent">{access.assignedLocationLabel}</span> only
-        </p>
-      ) : null}
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Appointments"
+        description={
+          !access.isSuperAdmin && access.assignedLocationLabel
+            ? `Showing bookings for ${access.assignedLocationLabel} only`
+            : "Search, filter, and run the floor across shops."
+        }
+      />
 
       <AppointmentStats stats={stats} activeRange={rangeFilter} />
 
-      <div className="mt-6 space-y-4">
+      <div className="space-y-3">
         <ShopCapacityStrip shops={capacityRows} />
         <BulkApproveBar paidAwaitingCount={paidAwaitingCount} locationId={locationScope} />
         <BulkChaseDepositsBar targets={chaseTargets} />
       </div>
 
-      <div className="mt-6">
-        <WalkInBookingForm
-          services={services}
-          staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
-          defaultLocationId={locationScope}
-          defaults={{
-            open: walkinOpen,
-            clientName: walkinName,
-            clientPhone: walkinPhone,
-            locationId: walkinShop || locationScope,
-          }}
-          createWalkInBooking={createWalkInBookingAction}
-        />
-      </div>
+      <WalkInBookingForm
+        services={services}
+        staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        defaultLocationId={locationScope}
+        defaults={{
+          open: walkinOpen,
+          clientName: walkinName,
+          clientPhone: walkinPhone,
+          locationId: walkinShop || locationScope,
+        }}
+        createWalkInBooking={createWalkInBookingAction}
+      />
 
-      <form action="/admin/appointments" className="mt-6 flex flex-wrap items-end gap-3">
+      <AdminPanel>
+      <form action="/admin/appointments">
+        <AdminFilterBar>
         <input type="hidden" name="range" value={rangeFilter} />
         <input type="hidden" name="status" value={statusFilter} />
         {depositFilter !== "all" ? <input type="hidden" name="deposit" value={depositFilter} /> : null}
@@ -337,6 +341,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
             Clear all
           </a>
         ) : null}
+        </AdminFilterBar>
       </form>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -434,6 +439,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
         />
       </div>
-    </AdminPanel>
+      </AdminPanel>
+    </div>
   );
 }
