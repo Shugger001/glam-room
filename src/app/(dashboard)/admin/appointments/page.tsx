@@ -93,6 +93,9 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const fromDate = typeof params.from === "string" ? params.from : "";
   const toDate = typeof params.to === "string" ? params.to : "";
   const q = typeof params.q === "string" ? params.q.trim() : "";
+  const depositParam = typeof params.deposit === "string" ? params.deposit : "all";
+  const depositFilter =
+    depositParam === "paid" || depositParam === "unpaid" ? depositParam : "all";
   const staffParam = typeof params.staff === "string" ? params.staff : "all";
   const locationParam = typeof params.location === "string" ? params.location : "all";
   const walkinOpen =
@@ -168,7 +171,16 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     })(),
   ]);
 
-  const bookings = await enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
+  const bookingsRaw = await enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
+  const bookings =
+    depositFilter === "all"
+      ? bookingsRaw
+      : bookingsRaw.filter((b) => {
+          const due =
+            typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0;
+          if (!due) return depositFilter === "paid" ? Boolean(b.deposit_paid) : false;
+          return depositFilter === "paid" ? Boolean(b.deposit_paid) : !b.deposit_paid;
+        });
 
   const services = mapServicesFromRows(serviceRows);
 
@@ -217,7 +229,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           Number(r.deposit_amount) > 0 &&
           (r.status === "awaiting_approval" || r.status === "confirmed" || r.status === "pending"),
       ).length,
-      href: "/admin/appointments?range=today&status=awaiting_approval",
+      href: "/admin/appointments?range=today&deposit=unpaid",
     },
   ];
 
@@ -228,6 +240,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     if (fromDate) qs.set("from", fromDate);
     if (toDate) qs.set("to", toDate);
     if (q) qs.set("q", q);
+    if (depositFilter !== "all") qs.set("deposit", depositFilter);
     if (staffParam !== "all") qs.set("staff", staffParam);
     if (locationFilter !== "all") qs.set("location", locationFilter);
     Object.entries(next).forEach(([k, v]) => {
@@ -237,6 +250,16 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     const s = qs.toString();
     return s ? `/admin/appointments?${s}` : "/admin/appointments";
   }
+
+  const hasActiveFilters =
+    statusFilter !== "all" ||
+    rangeFilter !== "today" ||
+    Boolean(fromDate) ||
+    Boolean(toDate) ||
+    Boolean(q) ||
+    depositFilter !== "all" ||
+    staffParam !== "all" ||
+    locationFilter !== "all";
 
   const paidAwaitingCount = paidAwaitingRes.count ?? 0;
 
@@ -275,16 +298,17 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       <form action="/admin/appointments" className="mt-6 flex flex-wrap items-end gap-3">
         <input type="hidden" name="range" value={rangeFilter} />
         <input type="hidden" name="status" value={statusFilter} />
+        {depositFilter !== "all" ? <input type="hidden" name="deposit" value={depositFilter} /> : null}
         {staffParam !== "all" ? <input type="hidden" name="staff" value={staffParam} /> : null}
         {locationFilter !== "all" ? <input type="hidden" name="location" value={locationFilter} /> : null}
         <label className="text-xs text-white/65">
-          Search client
+          Search
           <input
             type="search"
             name="q"
             defaultValue={q}
             placeholder="Name or phone"
-            className="mt-1 block w-48 rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            className="mt-1 block w-56 rounded-md border border-white/20 bg-transparent px-3 py-2 text-sm text-white sm:w-72"
           />
         </label>
         <label className="text-xs text-white/65">
@@ -293,7 +317,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
             type="date"
             name="from"
             defaultValue={fromDate}
-            className="mt-1 block rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            className="mt-1 block rounded-md border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
           />
         </label>
         <label className="text-xs text-white/65">
@@ -302,13 +326,56 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
             type="date"
             name="to"
             defaultValue={toDate}
-            className="mt-1 block rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            className="mt-1 block rounded-md border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
           />
         </label>
         <button type="submit" className={adminBtnOutline}>
           Apply
         </button>
+        {hasActiveFilters ? (
+          <a href="/admin/appointments" className="text-xs font-semibold uppercase tracking-wider text-glam-accent hover:text-white">
+            Clear all
+          </a>
+        ) : null}
       </form>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Range</span>
+        {(
+          [
+            ["today", "Today"],
+            ["week", "This week"],
+            ["all", "All"],
+          ] as const
+        ).map(([value, label]) => (
+          <a
+            key={value}
+            href={buildHref({ range: value === "today" ? "" : value, from: "", to: "" })}
+            className={adminTabClass(rangeFilter === value && !fromDate && !toDate)}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Deposit</span>
+        {(
+          [
+            ["all", "All"],
+            ["unpaid", "Unpaid"],
+            ["paid", "Paid"],
+          ] as const
+        ).map(([value, label]) => (
+          <a
+            key={value}
+            href={buildHref({ deposit: value === "all" ? "" : value })}
+            className={adminTabClass(depositFilter === value)}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
 
       {access.isSuperAdmin ? (
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -354,7 +421,12 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
         </div>
       ) : null}
 
-      <div className="mt-6">
+      <div className="mt-5">
+        <p className="mb-3 text-xs text-white/45">
+          {bookings.length} booking{bookings.length === 1 ? "" : "s"}
+          {q ? ` matching “${q}”` : ""}
+          {depositFilter !== "all" ? ` · deposit ${depositFilter}` : ""}
+        </p>
         <BookingsByTimeGroups
           bookings={bookings}
           updateBookingStatus={updateBookingStatusAction}

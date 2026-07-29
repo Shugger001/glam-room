@@ -26,7 +26,10 @@ import {
 import {
   AdminKpi,
   AdminPageHeader,
+  AdminSection,
   AdminSetupNotice,
+  adminBtnOutline,
+  adminTabClass,
 } from "@/components/admin/admin-ui";
 import { SALON_SERVICES, type SalonService } from "@/lib/constants/services";
 
@@ -36,12 +39,40 @@ export const dynamic = "force-dynamic";
 const bookingSelect =
   "id, start_at, status, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone,crm_tags,admin_notes), services(name), staff(name)";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 function dayBounds(date = new Date()) {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
   const end = new Date(date);
   end.setHours(23, 59, 59, 999);
   return { start, end };
+}
+
+function filterTodayBoard(
+  bookings: AdminBookingRow[],
+  q: string,
+  depositFilter: "all" | "paid" | "unpaid",
+  statusFilter: string,
+) {
+  const needle = q.toLowerCase();
+  return bookings.filter((b) => {
+    if (statusFilter !== "all" && b.status !== statusFilter) return false;
+
+    if (depositFilter !== "all") {
+      const due = typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0;
+      if (!due) {
+        if (depositFilter === "unpaid") return false;
+      } else if (depositFilter === "paid" ? !b.deposit_paid : Boolean(b.deposit_paid)) {
+        return false;
+      }
+    }
+
+    if (!needle) return true;
+    const name = (b.client_name ?? b.profiles?.full_name ?? "").toLowerCase();
+    const phone = (b.client_phone ?? b.profiles?.phone ?? "").toLowerCase();
+    return name.includes(needle) || phone.includes(needle);
+  });
 }
 
 async function loadTodayStats(admin: ReturnType<typeof createAdminClient>, locationScope: string | null) {
@@ -139,7 +170,108 @@ function chaseTargetsFromBookings(bookings: AdminBookingRow[]): ChaseDepositTarg
     }));
 }
 
-async function StaffDashboard({ access }: { access: AdminAccess }) {
+function TodayBoardFilters({
+  q,
+  depositFilter,
+  statusFilter,
+}: {
+  q: string;
+  depositFilter: "all" | "paid" | "unpaid";
+  statusFilter: string;
+}) {
+  const statusTabs = [
+    "all",
+    "pending",
+    "awaiting_approval",
+    "confirmed",
+    "arrived",
+    "completed",
+    "no_show",
+  ] as const;
+
+  function href(next: Record<string, string>) {
+    const qs = new URLSearchParams();
+    if (q) qs.set("q", q);
+    if (depositFilter !== "all") qs.set("deposit", depositFilter);
+    if (statusFilter !== "all") qs.set("status", statusFilter);
+    Object.entries(next).forEach(([k, v]) => {
+      if (v) qs.set(k, v);
+      else qs.delete(k);
+    });
+    const s = qs.toString();
+    return s ? `/admin?${s}` : "/admin";
+  }
+
+  return (
+    <div className="mb-4 space-y-3">
+      <form action="/admin" className="flex flex-wrap items-end gap-2">
+        {depositFilter !== "all" ? <input type="hidden" name="deposit" value={depositFilter} /> : null}
+        {statusFilter !== "all" ? <input type="hidden" name="status" value={statusFilter} /> : null}
+        <label className="text-xs text-white/65">
+          Search today
+          <input
+            type="search"
+            name="q"
+            defaultValue={q}
+            placeholder="Name or phone"
+            className="mt-1 block w-52 rounded-md border border-white/20 bg-transparent px-3 py-2 text-sm text-white sm:w-64"
+          />
+        </label>
+        <button type="submit" className={adminBtnOutline}>
+          Filter
+        </button>
+        {q || depositFilter !== "all" || statusFilter !== "all" ? (
+          <a href="/admin" className="text-xs font-semibold uppercase tracking-wider text-glam-accent hover:text-white">
+            Clear
+          </a>
+        ) : null}
+      </form>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Deposit</span>
+        {(
+          [
+            ["all", "All"],
+            ["unpaid", "Unpaid"],
+            ["paid", "Paid"],
+          ] as const
+        ).map(([value, label]) => (
+          <a
+            key={value}
+            href={href({ deposit: value === "all" ? "" : value })}
+            className={adminTabClass(depositFilter === value)}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {statusTabs.map((tab) => (
+          <a
+            key={tab}
+            href={href({ status: tab === "all" ? "" : tab })}
+            className={adminTabClass(statusFilter === tab)}
+          >
+            {tab.replaceAll("_", " ")}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+async function StaffDashboard({
+  access,
+  q,
+  depositFilter,
+  statusFilter,
+}: {
+  access: AdminAccess;
+  q: string;
+  depositFilter: "all" | "paid" | "unpaid";
+  statusFilter: string;
+}) {
   const admin = createAdminClient();
   const locationScope = bookingLocationScope(access);
 
@@ -159,22 +291,23 @@ async function StaffDashboard({ access }: { access: AdminAccess }) {
   ]);
 
   const [{ data: staffRows }, { data: serviceRows }] = staffService;
+  const visibleBookings = filterTodayBoard(todayBookings, q, depositFilter, statusFilter);
   const chaseTargets = chaseTargetsFromBookings(todayBookings);
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "scheduled", href: "/admin/appointments?range=today" },
     { label: "Awaiting", value: `${stats.awaiting}`, href: "/admin/appointments?range=today&status=awaiting_approval" },
     { label: "On floor", value: `${stats.arrived}`, href: "/admin/appointments?range=today&status=arrived" },
-    { label: "Unpaid deposits", value: `${stats.unpaidDeposits}`, href: "/admin/appointments?range=today&status=awaiting_approval" },
+    { label: "Unpaid deposits", value: `${stats.unpaidDeposits}`, href: "/admin?deposit=unpaid" },
   ];
 
   return (
-    <div className="space-y-10 w-full max-w-none">
+    <div className="w-full max-w-none space-y-6">
       <AdminPageHeader
         title={`Today · ${access.assignedLocationLabel ?? "Shop"}`}
-        description="Your shop schedule. Confirm walk-ins, update status, and message clients on WhatsApp."
+        description="Confirm walk-ins, update status, and message clients on WhatsApp."
       />
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((k) => (
           <AdminKpi key={k.label} {...k} />
         ))}
@@ -182,41 +315,48 @@ async function StaffDashboard({ access }: { access: AdminAccess }) {
       <ShopCapacityStrip shops={capacityRows} />
       <BulkApproveBar paidAwaitingCount={paidAwaitingCount} locationId={access.assignedLocationId} />
       <BulkChaseDepositsBar targets={chaseTargets} />
-      <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
-        <WalkInBookingForm
-          services={mapServices(serviceRows)}
-          staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
-          defaultLocationId={access.assignedLocationId}
-          createWalkInBooking={createWalkInBookingAction}
-        />
-      </section>
-      <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl">Today&apos;s schedule</h2>
-            <p className="mt-2 text-sm text-white/55">Grouped by time — tap status or WhatsApp as clients arrive.</p>
-          </div>
+      <WalkInBookingForm
+        services={mapServices(serviceRows)}
+        staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        defaultLocationId={access.assignedLocationId}
+        createWalkInBooking={createWalkInBookingAction}
+      />
+      <AdminSection
+        title="Today's schedule"
+        description="Grouped by time — WhatsApp and floor actions on each card."
+        action={
           <a
             href="/admin/appointments?range=today"
-            className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
+            className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
           >
             Full appointments
           </a>
-        </div>
-        <div className="mt-5">
-          <BookingsByTimeGroups
-            bookings={todayBookings}
-            updateBookingStatus={updateBookingStatusAction}
-            markDepositPaid={markDepositPaidAction}
-            staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
-          />
-        </div>
-      </section>
+        }
+      >
+        <TodayBoardFilters q={q} depositFilter={depositFilter} statusFilter={statusFilter} />
+        <p className="mb-3 text-xs text-white/45">
+          {visibleBookings.length} of {todayBookings.length} today
+        </p>
+        <BookingsByTimeGroups
+          bookings={visibleBookings}
+          updateBookingStatus={updateBookingStatusAction}
+          markDepositPaid={markDepositPaidAction}
+          staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        />
+      </AdminSection>
     </div>
   );
 }
 
-async function SuperAdminDashboard() {
+async function SuperAdminDashboard({
+  q,
+  depositFilter,
+  statusFilter,
+}: {
+  q: string;
+  depositFilter: "all" | "paid" | "unpaid";
+  statusFilter: string;
+}) {
   const admin = createAdminClient();
 
   const [
@@ -250,6 +390,7 @@ async function SuperAdminDashboard() {
   ]);
 
   const [{ data: staffRows }, { data: serviceRows }] = staffService;
+  const visibleBookings = filterTodayBoard(todayBookings, q, depositFilter, statusFilter);
   const chaseTargets = chaseTargetsFromBookings(todayBookings);
 
   const kpis = [
@@ -258,17 +399,17 @@ async function SuperAdminDashboard() {
     { label: "On floor", value: `${stats.arrived}`, href: "/admin/appointments?range=today&status=arrived" },
     { label: "Done today", value: `${stats.completed}`, href: "/admin/appointments?range=today&status=completed" },
     { label: "Unread messages", value: `${messagesRes.count ?? 0}`, href: "/admin/messages?filter=unread" },
-    { label: "Unpaid deposits", value: `${stats.unpaidDeposits}`, href: "/admin/appointments?status=awaiting_approval" },
+    { label: "Unpaid deposits", value: `${stats.unpaidDeposits}`, href: "/admin?deposit=unpaid" },
   ];
 
   return (
-    <div className="space-y-10 w-full max-w-none">
+    <div className="w-full max-w-none space-y-6">
       <AdminPageHeader
         title="At-a-glance"
         description="Today's salon operations across all shops — capacity, approvals, and floor status."
       />
       <AdminQuickLinks />
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {kpis.map((k) => (
           <AdminKpi key={k.label} {...k} />
         ))}
@@ -277,48 +418,64 @@ async function SuperAdminDashboard() {
       <BulkApproveBar paidAwaitingCount={paidAwaitingCount} />
       <BulkChaseDepositsBar targets={chaseTargets} />
       <AdminIntegrationSnapshot health={integrationHealth} />
-      <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
-        <WalkInBookingForm
-          services={mapServices(serviceRows)}
-          staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
-          createWalkInBooking={createWalkInBookingAction}
-        />
-      </section>
-      <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 lg:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl">Today&apos;s schedule</h2>
-            <p className="mt-2 text-sm text-white/55">All shops · grouped by appointment time.</p>
-          </div>
+      <WalkInBookingForm
+        services={mapServices(serviceRows)}
+        staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        createWalkInBooking={createWalkInBookingAction}
+      />
+      <AdminSection
+        title="Today's schedule"
+        description="All shops · grouped by appointment time."
+        action={
           <a
             href="/admin/appointments?range=today"
-            className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
+            className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/75 hover:bg-white/10"
           >
             Manage appointments
           </a>
-        </div>
-        <div className="mt-5">
-          <BookingsByTimeGroups
-            bookings={todayBookings}
-            updateBookingStatus={updateBookingStatusAction}
-            markDepositPaid={markDepositPaidAction}
-            staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
-          />
-        </div>
-      </section>
+        }
+      >
+        <TodayBoardFilters q={q} depositFilter={depositFilter} statusFilter={statusFilter} />
+        <p className="mb-3 text-xs text-white/45">
+          {visibleBookings.length} of {todayBookings.length} today
+        </p>
+        <BookingsByTimeGroups
+          bookings={visibleBookings}
+          updateBookingStatus={updateBookingStatusAction}
+          markDepositPaid={markDepositPaidAction}
+          staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        />
+      </AdminSection>
     </div>
   );
 }
 
-export default async function AdminOverviewPage() {
+export default async function AdminOverviewPage({ searchParams }: { searchParams: SearchParams }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return <AdminSetupNotice />;
   }
 
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q.trim() : "";
+  const depositParam = typeof params.deposit === "string" ? params.deposit : "all";
+  const depositFilter =
+    depositParam === "paid" || depositParam === "unpaid" ? depositParam : "all";
+  const statusParam = typeof params.status === "string" ? params.status : "all";
+  const statusFilter = statusParam || "all";
+
   const access = await requireAdminAccess();
   if (!access.isSuperAdmin) {
-    return <StaffDashboard access={access} />;
+    return (
+      <StaffDashboard
+        access={access}
+        q={q}
+        depositFilter={depositFilter}
+        statusFilter={statusFilter}
+      />
+    );
   }
 
-  return <SuperAdminDashboard />;
+  return (
+    <SuperAdminDashboard q={q} depositFilter={depositFilter} statusFilter={statusFilter} />
+  );
 }

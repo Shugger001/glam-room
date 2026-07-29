@@ -45,7 +45,7 @@ export function WalkInBookingForm({
 
   return (
     <details
-      className="group rounded-2xl border border-glam-accent/25 bg-glam-accent/5 open:bg-black/20"
+      className="group rounded-xl border border-glam-accent/25 bg-glam-accent/5 open:bg-black/20"
       open={open}
       onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
     >
