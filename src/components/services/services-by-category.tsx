@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { ServicesGrid } from "@/components/services/service-card";
@@ -23,20 +24,36 @@ export function ServicesByCategory({
   const groups = groupServicesByCategory(services);
 
   return (
-    <div className="space-y-14 sm:space-y-16">
+    <div className="space-y-16 sm:space-y-20">
       {groups.map((group, groupIndex) => (
         <section key={group.category} aria-labelledby={`service-cat-${group.category}`}>
           <Reveal delay={groupIndex * 0.04}>
-            <p className="font-[family-name:var(--font-cormorant)] text-base italic text-glam-muted sm:text-lg">
-              {String(groupIndex + 1).padStart(2, "0")}
-            </p>
-            <h2
-              id={`service-cat-${group.category}`}
-              className="heading-display mt-1 text-2xl text-glam-primary sm:text-3xl"
-            >
-              {group.label}
-            </h2>
-            <p className="mt-2 max-w-xl text-sm text-glam-muted">{group.description}</p>
+            <div className="grid items-end gap-6 lg:grid-cols-12 lg:gap-10">
+              <div className="relative aspect-[16/10] overflow-hidden lg:col-span-5 lg:aspect-[4/3]">
+                <Image
+                  src={group.hero.src}
+                  alt={group.hero.alt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="object-cover"
+                  priority={groupIndex === 0}
+                />
+              </div>
+              <div className="lg:col-span-7">
+                <p className="font-[family-name:var(--font-cormorant)] text-base italic text-glam-muted sm:text-lg">
+                  {String(groupIndex + 1).padStart(2, "0")}
+                </p>
+                <h2
+                  id={`service-cat-${group.category}`}
+                  className="heading-display mt-1 text-2xl text-glam-primary sm:text-3xl lg:text-4xl"
+                >
+                  {group.label}
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-glam-muted sm:text-base">
+                  {group.description}
+                </p>
+              </div>
+            </div>
           </Reveal>
 
           {layout === "cards" ? (
@@ -44,7 +61,7 @@ export function ServicesByCategory({
               <ServicesGrid services={group.items} />
             </div>
           ) : (
-            <ul className="mt-6 divide-y divide-glam-border/70 border-y border-glam-border/70">
+            <ul className="mt-8 divide-y divide-glam-border/70 border-y border-glam-border/70">
               {group.items.map((service, i) => (
                 <li key={service.id}>
                   <Reveal delay={0.03 + i * 0.03}>

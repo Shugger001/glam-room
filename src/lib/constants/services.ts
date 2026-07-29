@@ -32,6 +32,24 @@ export const SERVICE_CATEGORY_DESCRIPTIONS: Record<ServiceCategory, string> = {
   "hair-reset": "Wash, take-down, touch-ups, and quick styles.",
 };
 
+export const SERVICE_CATEGORY_HEROES: Record<
+  ServiceCategory,
+  { src: string; alt: string }
+> = {
+  "hair-installation": {
+    src: "/images/glam-frontal-ponytail.png",
+    alt: "Frontal ponytail hair installation at Glam Room",
+  },
+  braids: {
+    src: "/images/glam-braids-studio.png",
+    alt: "Braiding workmanship in the Glam Room studio",
+  },
+  "hair-reset": {
+    src: "/images/glam-gallery-waves-front.png",
+    alt: "Hair reset and styling at Glam Room",
+  },
+};
+
 export const SALON_SERVICES: SalonService[] = [
   {
     id: "a1000001-0001-4000-8000-000000000007",
@@ -183,6 +201,7 @@ export function groupServicesByCategory(services: SalonService[]) {
     category,
     label: SERVICE_CATEGORIES[category],
     description: SERVICE_CATEGORY_DESCRIPTIONS[category],
+    hero: SERVICE_CATEGORY_HEROES[category],
     items: services.filter((s) => s.category === category),
   })).filter((group) => group.items.length > 0);
 }
