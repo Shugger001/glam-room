@@ -7,9 +7,11 @@ import {
 } from "@/lib/validation/admin-testimonial";
 import {
   AdminBtnPrimary,
+  AdminEmptyState,
+  AdminPageHeader,
+  AdminPanel,
   adminBtnOutline,
   adminFormRowClass,
-  AdminPanel,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
 
@@ -103,14 +105,14 @@ export default async function AdminTestimonialsPage() {
   const nextSort = (items?.length ?? 0) + 1;
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Testimonials</h1>
-      <p className="mt-3 max-w-3xl text-sm text-white/55">
-        Add and edit client reviews shown on the homepage. Lower sort order appears first.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Testimonials"
+        description="Add and edit client reviews shown on the homepage. Lower sort order appears first."
+      />
 
-      <section className="mt-8 rounded-2xl border border-glam-accent/25 bg-glam-accent/5 p-5 sm:p-6">
-        <h2 className="font-display text-xl">Add testimonial</h2>
+      <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
+        <p className="text-sm font-semibold text-glam-accent">Add testimonial</p>
         <form action={createTestimonial} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block text-xs text-white/55">
             Client name
@@ -150,17 +152,17 @@ export default async function AdminTestimonialsPage() {
             <AdminBtnPrimary>Add testimonial</AdminBtnPrimary>
           </div>
         </form>
-      </section>
+      </AdminPanel>
 
       {pending.length > 0 ? (
-        <section className="mt-8 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-5">
+        <AdminPanel className="!border-amber-400/30 !bg-amber-400/5">
           <h2 className="font-display text-xl text-amber-100">Pending client reviews ({pending.length})</h2>
           <p className="mt-2 text-sm text-white/55">
             Submitted after appointments via SMS review links. Approve to publish on the website.
           </p>
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-3">
             {pending.map((t) => (
-              <div key={t.id} className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <div key={t.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
                 <p className="text-sm font-medium text-white">
                   {t.name} · {"★".repeat(t.rating)} · {t.service}
                 </p>
@@ -172,12 +174,19 @@ export default async function AdminTestimonialsPage() {
               </div>
             ))}
           </div>
-        </section>
+        </AdminPanel>
       ) : null}
 
-      <div className="mt-8 space-y-4">
-        {(published ?? []).map((t) => (
-          <div key={t.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+      <div className="space-y-3">
+        {published.length === 0 ? (
+          <AdminEmptyState
+            title="No testimonials yet"
+            description="Add a review above or approve pending client submissions."
+          />
+        ) : null}
+
+        {published.map((t) => (
+          <div key={t.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
             <form action={updateTestimonial} className="grid gap-4 sm:grid-cols-2">
               <input type="hidden" name="id" value={t.id} />
               <label className="block text-xs text-white/55">
@@ -230,6 +239,6 @@ export default async function AdminTestimonialsPage() {
           </div>
         ))}
       </div>
-    </AdminPanel>
+    </div>
   );
 }

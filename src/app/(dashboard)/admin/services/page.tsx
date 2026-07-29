@@ -5,9 +5,11 @@ import { SERVICE_CATEGORIES, SERVICE_CATEGORY_ORDER } from "@/lib/constants/serv
 import { parseAdminServiceCreateForm, parseAdminServiceForm, slugifyServiceName } from "@/lib/validation/admin-service";
 import {
   AdminBtnPrimary,
-  adminFormRowClass,
+  AdminEmptyState,
+  AdminPageHeader,
   AdminPanel,
   AdminSetupNotice,
+  adminFormRowClass,
 } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
@@ -100,14 +102,14 @@ export default async function AdminServicesPage() {
   const categories = SERVICE_CATEGORY_ORDER.map((value) => [value, SERVICE_CATEGORIES[value]] as const);
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Services</h1>
-      <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Add new services or edit pricing, duration, categories, and visibility. Changes appear on
-        the booking page immediately.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Services"
+        description="Add new services or edit pricing, duration, categories, and visibility. Changes appear on the booking page immediately."
+      />
 
-      <form action={createService} className="mt-8 rounded-2xl border border-glam-accent/25 bg-glam-accent/5 p-5">
+      <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
+      <form action={createService}>
         <p className="text-sm font-semibold text-glam-accent">Add new service</p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <label className="block text-xs text-white/55">
@@ -155,14 +157,18 @@ export default async function AdminServicesPage() {
           <AdminBtnPrimary>Add service</AdminBtnPrimary>
         </div>
       </form>
+      </AdminPanel>
 
-      <div className="mt-6 space-y-4">
+      <div className="space-y-3">
         {(services ?? []).length === 0 ? (
-          <p className="text-sm text-white/55">No services found in Supabase.</p>
+          <AdminEmptyState
+            title="No services yet"
+            description="Add a service above to show it on the booking page."
+          />
         ) : null}
 
         {(services ?? []).map((s) => (
-          <form key={s.id} action={updateService} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+          <form key={s.id} action={updateService} className="rounded-xl border border-white/10 bg-black/25 p-4">
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="block text-xs text-white/55">
                 Service name
@@ -251,6 +257,6 @@ export default async function AdminServicesPage() {
           </form>
         ))}
       </div>
-    </AdminPanel>
+    </div>
   );
 }

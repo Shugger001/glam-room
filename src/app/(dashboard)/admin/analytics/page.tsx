@@ -2,7 +2,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { loadSalonAnalytics, parseAnalyticsRange } from "@/lib/admin/analytics-data";
 import { requireSuperAdmin } from "@/lib/admin/access";
 import { AnalyticsBreakdownTable } from "@/components/admin/analytics-breakdown";
-import { AdminKpi, AdminPageHeader, AdminSetupNotice, adminBtnOutline } from "@/components/admin/admin-ui";
+import {
+  AdminFilterBar,
+  AdminKpi,
+  AdminPageHeader,
+  AdminSetupNotice,
+  adminBtnOutline,
+} from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -35,43 +41,42 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
   const exportHref = `/api/admin/analytics/export${exportQs.toString() ? `?${exportQs}` : ""}`;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-5">
       <AdminPageHeader
         title="Analytics"
         description="Visit-day metrics by appointment date — stylist load, show/no-show rates, deposits, and promos."
       />
 
-      <form
-        action="/admin/analytics"
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-black/20 p-4"
-      >
-        <label className="text-xs text-white/65">
-          From
-          <input
-            type="date"
-            name="from"
-            defaultValue={fromParam || range.since.toISOString().slice(0, 10)}
-            className="mt-1 block rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
-          />
-        </label>
-        <label className="text-xs text-white/65">
-          To
-          <input
-            type="date"
-            name="to"
-            defaultValue={toParam || range.until.toISOString().slice(0, 10)}
-            className="mt-1 block rounded-lg border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
-          />
-        </label>
-        <button type="submit" className={adminBtnOutline}>
-          Apply range
-        </button>
-        <a href={exportHref} className={adminBtnOutline}>
-          Export CSV
-        </a>
+      <form action="/admin/analytics">
+        <AdminFilterBar>
+          <label className="text-xs text-white/65">
+            From
+            <input
+              type="date"
+              name="from"
+              defaultValue={fromParam || range.since.toISOString().slice(0, 10)}
+              className="mt-1 block rounded-md border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <label className="text-xs text-white/65">
+            To
+            <input
+              type="date"
+              name="to"
+              defaultValue={toParam || range.until.toISOString().slice(0, 10)}
+              className="mt-1 block rounded-md border border-white/20 bg-transparent px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <button type="submit" className={adminBtnOutline}>
+            Apply range
+          </button>
+          <a href={exportHref} className={adminBtnOutline}>
+            Export CSV
+          </a>
+        </AdminFilterBar>
       </form>
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AdminKpi label="Visits" value={`${stats.bookingsTotal}`} hint="by appointment date" />
         <AdminKpi label="Completed" value={`${stats.completedTotal}`} />
         <AdminKpi
@@ -85,7 +90,7 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
           hint={`${stats.noShowTotal} no-shows in range`}
         />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AdminKpi label="Deposits collected" value={`₵${stats.depositTotal.toLocaleString()}`} />
         <AdminKpi
           label="Deposit conversion"
@@ -98,14 +103,14 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
           value={`₵${stats.promoSavingsEstimate.toLocaleString()}`}
         />
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AdminKpi label="New clients" value={`${stats.newClientsTotal}`} hint="profile signups" />
         <AdminKpi label="Arrived" value={`${stats.arrivedTotal}`} />
         <AdminKpi label="Cancelled / rejected" value={`${stats.cancelledTotal}`} />
         <AdminKpi label="Awaiting approval" value={`${stats.awaitingApproval}`} hint="live open queue" />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2">
         <AnalyticsBreakdownTable title="Visits by stylist" rows={stats.byStylist} />
         <AnalyticsBreakdownTable title="Visits by location" rows={stats.byLocation} />
         <AnalyticsBreakdownTable title="Visits by service" rows={stats.byService} />

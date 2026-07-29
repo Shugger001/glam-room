@@ -1,7 +1,7 @@
 import { requireSuperAdmin } from "@/lib/admin/access";
 import { loadIntegrationHealth } from "@/lib/admin/integration-health";
 import { BOOKING_DEPOSIT_GHS, isPaystackConfigured } from "@/lib/booking/deposit";
-import { AdminPanel } from "@/components/admin/admin-ui";
+import { AdminPageHeader, AdminPanel } from "@/components/admin/admin-ui";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notificationsConfigured } from "@/lib/notifications/salon-contact";
 
@@ -9,13 +9,13 @@ export const dynamic = "force-dynamic";
 
 function StatusRow({ label, ok, detail }: { label: string; ok: boolean; detail: string }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-white/10 bg-black/25 p-4">
       <div>
         <p className="font-medium text-white">{label}</p>
         <p className="mt-1 text-sm text-white/55">{detail}</p>
       </div>
       <span
-        className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${
+        className={`rounded-md px-3 py-1 text-xs font-semibold uppercase ${
           ok ? "bg-green-500/20 text-green-300" : "bg-amber-500/15 text-amber-200"
         }`}
       >
@@ -40,13 +40,13 @@ export default async function AdminSettingsPage() {
   const health = await loadIntegrationHealth(admin);
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Settings</h1>
-      <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Operational checklist and integration health. Secrets stay in Vercel env.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Settings"
+        description="Operational checklist and integration health. Secrets stay in Vercel env."
+      />
 
-      <div className="mt-8 space-y-3">
+      <div className="space-y-3">
         <StatusRow
           label="Paystack deposits"
           ok={paystack}
@@ -118,25 +118,25 @@ export default async function AdminSettingsPage() {
         />
       </div>
 
-      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
+      <AdminPanel>
         <h2 className="font-display text-xl">Integration health (7 days)</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+          <div className="rounded-xl border border-white/10 bg-black/25 p-4">
             <p className="text-xs uppercase tracking-wider text-white/45">Paystack webhooks received</p>
             <p className="mt-2 font-display text-3xl text-white">{health.webhooksLast7d}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+          <div className="rounded-xl border border-white/10 bg-black/25 p-4">
             <p className="text-xs uppercase tracking-wider text-white/45">Deposits paid (7d)</p>
             <p className="mt-2 font-display text-3xl text-glam-accent">{health.paidDepositsLast7d}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+          <div className="rounded-xl border border-white/10 bg-black/25 p-4">
             <p className="text-xs uppercase tracking-wider text-white/45">Unpaid deposits (open)</p>
             <p className="mt-2 font-display text-3xl text-amber-200">{health.unpaidDepositsOpen}</p>
             <a href="/admin/appointments?status=awaiting_approval" className="mt-2 inline-block text-xs text-glam-accent hover:underline">
               View in appointments
             </a>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+          <div className="rounded-xl border border-white/10 bg-black/25 p-4">
             <p className="text-xs uppercase tracking-wider text-white/45">Ops errors (7d)</p>
             <p className={`mt-2 font-display text-3xl ${health.deadLettersLast7d > 0 ? "text-red-300" : "text-white"}`}>
               {health.deadLettersLast7d}
@@ -152,9 +152,9 @@ export default async function AdminSettingsPage() {
             ))}
           </ul>
         ) : null}
-      </div>
+      </AdminPanel>
 
-      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-white/55">
+      <AdminPanel className="text-sm text-white/55">
         <p className="font-medium text-white">Paystack webhook</p>
         <p className="mt-2">
           Register in Paystack dashboard:{" "}
@@ -171,9 +171,9 @@ export default async function AdminSettingsPage() {
           </code>
           . Requires <code className="text-glam-accent">CRON_SECRET</code> in Vercel env (Authorization bearer).
         </p>
-      </div>
+      </AdminPanel>
 
-      <div className="mt-8 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 text-sm text-white/70">
+      <AdminPanel className="!border-amber-500/20 !bg-amber-500/5 text-sm text-white/70">
         <p className="font-medium text-amber-100">Notification setup (Vercel → Settings → Environment Variables)</p>
         <ol className="mt-3 list-decimal space-y-2 pl-5">
           <li>
@@ -198,7 +198,7 @@ export default async function AdminSettingsPage() {
         <p className="mt-3 text-white/50">
           After adding vars, redeploy production. Status rows above turn green when each integration is live.
         </p>
-      </div>
-    </AdminPanel>
+      </AdminPanel>
+    </div>
   );
 }

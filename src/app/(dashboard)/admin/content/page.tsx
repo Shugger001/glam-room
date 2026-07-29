@@ -13,6 +13,7 @@ import {
 } from "@/lib/validation/admin-site-content";
 import {
   AdminBtnPrimary,
+  AdminPageHeader,
   AdminPanel,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
@@ -80,14 +81,13 @@ export default async function AdminContentPage() {
   ]);
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Site content</h1>
-      <p className="mt-3 max-w-3xl text-sm text-white/55">
-        Edit FAQs, locations, opening hours, braids notice, and booking time slots without a code
-        deploy. Changes appear on the public site within a few minutes.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Site content"
+        description="Edit FAQs, locations, opening hours, braids notice, and booking time slots without a code deploy. Changes appear on the public site within a few minutes."
+      />
 
-      <section className="mt-10 rounded-2xl border border-white/10 bg-black/20 p-5">
+      <AdminPanel>
         <h2 className="font-display text-xl">FAQs</h2>
         <form
           action={async (formData) => {
@@ -100,10 +100,10 @@ export default async function AdminContentPage() {
             formData.set("faqs_json", JSON.stringify(items));
             await saveFaqs(formData);
           }}
-          className="mt-4 space-y-4"
+          className="mt-4 space-y-3"
         >
           {faqs.map((faq, i) => (
-            <div key={faq.id} className="rounded-xl border border-white/10 p-4">
+            <div key={faq.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
               <p className="text-xs uppercase tracking-wider text-white/40">FAQ {i + 1}</p>
               <input type="hidden" name={`faq_id_${i}`} defaultValue={faq.id} />
               <label className="mt-3 block text-xs text-white/55">
@@ -124,9 +124,9 @@ export default async function AdminContentPage() {
           ))}
           <AdminBtnPrimary>Save FAQs</AdminBtnPrimary>
         </form>
-      </section>
+      </AdminPanel>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-5">
+      <AdminPanel>
         <h2 className="font-display text-xl">Locations</h2>
         <form
           action={async (formData) => {
@@ -148,10 +148,10 @@ export default async function AdminContentPage() {
             formData.set("locations_json", JSON.stringify(items));
             await saveLocations(formData);
           }}
-          className="mt-4 space-y-6"
+          className="mt-4 space-y-3"
         >
           {locations.map((loc, i) => (
-            <div key={loc.id} className="rounded-xl border border-white/10 p-4">
+            <div key={loc.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
               <p className="font-medium text-white">{loc.area}</p>
               <input type="hidden" name={`loc_id_${i}`} defaultValue={loc.id} />
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -214,9 +214,9 @@ export default async function AdminContentPage() {
           ))}
           <AdminBtnPrimary>Save locations</AdminBtnPrimary>
         </form>
-      </section>
+      </AdminPanel>
 
-      <section className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-5">
+      <AdminPanel>
         <h2 className="font-display text-xl">Salon hours & booking</h2>
         <form
           action={async (formData) => {
@@ -267,7 +267,7 @@ export default async function AdminContentPage() {
             <AdminBtnPrimary>Save hours & slots</AdminBtnPrimary>
           </div>
         </form>
-      </section>
-    </AdminPanel>
+      </AdminPanel>
+    </div>
   );
 }

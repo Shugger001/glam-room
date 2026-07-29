@@ -10,9 +10,11 @@ import {
 } from "@/lib/validation/admin-gallery";
 import {
   AdminBtnPrimary,
+  AdminEmptyState,
+  AdminPageHeader,
+  AdminPanel,
   adminBtnOutline,
   adminFormRowClass,
-  AdminPanel,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
 
@@ -144,16 +146,14 @@ export default async function AdminGalleryPage() {
   const nextSort = (items?.length ?? 0) + 1;
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Gallery</h1>
-      <p className="mt-3 max-w-3xl text-sm text-white/55">
-        Upload portfolio photos, set captions and categories, and control what appears on the
-        homepage gallery. Images upload to Supabase Storage (
-        <code className="text-glam-accent">site-media/gallery/</code>) or use an external URL.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Gallery"
+        description="Upload portfolio photos, set captions and categories, and control what appears on the homepage gallery. Images upload to Supabase Storage (site-media/gallery/) or use an external URL."
+      />
 
-      <section className="mt-8 rounded-2xl border border-glam-accent/25 bg-glam-accent/5 p-5 sm:p-6">
-        <h2 className="font-display text-xl text-white">Add image</h2>
+      <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
+        <p className="text-sm font-semibold text-glam-accent">Add image</p>
         <form action={createGalleryItem} encType="multipart/form-data" className="mt-4 grid gap-4 lg:grid-cols-2">
           <label className="block text-xs text-white/55 lg:col-span-2">
             Upload image
@@ -161,7 +161,7 @@ export default async function AdminGalleryPage() {
               type="file"
               name="image"
               accept="image/jpeg,image/png,image/webp,image/gif"
-              className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-full file:border-0 file:bg-glam-accent file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wider file:text-glam-primary"
+              className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-md file:border-0 file:bg-glam-accent file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-wider file:text-glam-primary"
             />
           </label>
           <label className="block text-xs text-white/55 lg:col-span-2">
@@ -196,21 +196,24 @@ export default async function AdminGalleryPage() {
             <AdminBtnPrimary>Add to gallery</AdminBtnPrimary>
           </div>
         </form>
-      </section>
+      </AdminPanel>
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-3">
         <h2 className="font-display text-xl text-white">
           Portfolio ({items?.length ?? 0})
         </h2>
 
         {(items ?? []).length === 0 ? (
-          <p className="text-sm text-white/55">No gallery images yet. Add your first photo above.</p>
+          <AdminEmptyState
+            title="No gallery images yet"
+            description="Add your first photo above."
+          />
         ) : null}
 
         {(items ?? []).map((item) => (
           <div
             key={item.id}
-            className="rounded-2xl border border-white/10 bg-black/20 p-5"
+            className="rounded-xl border border-white/10 bg-black/25 p-4"
           >
             <div className="flex flex-col gap-5 lg:flex-row">
               <GalleryThumb src={item.src} alt={item.alt} />
@@ -229,7 +232,7 @@ export default async function AdminGalleryPage() {
                     type="file"
                     name="image"
                     accept="image/jpeg,image/png,image/webp,image/gif"
-                    className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-full file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+                    className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
                   />
                 </label>
                 <label className="block text-xs text-white/55 sm:col-span-2">
@@ -292,6 +295,6 @@ export default async function AdminGalleryPage() {
           </div>
         ))}
       </div>
-    </AdminPanel>
+    </div>
   );
 }

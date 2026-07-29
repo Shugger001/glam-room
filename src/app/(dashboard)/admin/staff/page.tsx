@@ -10,9 +10,11 @@ import {
 } from "@/lib/validation/admin-staff";
 import {
   AdminBtnPrimary,
+  AdminEmptyState,
+  AdminPageHeader,
+  AdminPanel,
   adminBtnOutline,
   adminFormRowClass,
-  AdminPanel,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
 
@@ -150,15 +152,14 @@ export default async function AdminStaffPage() {
   const nextSort = (staff?.length ?? 0) + 1;
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Staff</h1>
-      <p className="mt-3 max-w-3xl text-sm text-white/55">
-        Manage stylist profiles on the Experts section and booking assignment. Specialties are
-        comma-separated.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Staff"
+        description="Manage stylist profiles on the Experts section and booking assignment. Specialties are comma-separated."
+      />
 
-      <section className="mt-8 rounded-2xl border border-glam-accent/25 bg-glam-accent/5 p-5 sm:p-6">
-        <h2 className="font-display text-xl">Add team member</h2>
+      <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
+        <p className="text-sm font-semibold text-glam-accent">Add team member</p>
         <form action={createStaffMember} encType="multipart/form-data" className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block text-xs text-white/55">
             Name
@@ -186,7 +187,7 @@ export default async function AdminStaffPage() {
               type="file"
               name="image"
               accept="image/jpeg,image/png,image/webp,image/gif"
-              className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-full file:border-0 file:bg-glam-accent file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:text-glam-primary"
+              className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-md file:border-0 file:bg-glam-accent file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:text-glam-primary"
             />
           </label>
           <label className="block text-xs text-white/55 sm:col-span-2">
@@ -209,13 +210,20 @@ export default async function AdminStaffPage() {
             <AdminBtnPrimary>Add staff</AdminBtnPrimary>
           </div>
         </form>
-      </section>
+      </AdminPanel>
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-3">
+        {(staff ?? []).length === 0 ? (
+          <AdminEmptyState
+            title="No staff yet"
+            description="Add a team member above to show them on Experts and booking."
+          />
+        ) : null}
+
         {(staff ?? []).map((s) => {
           const specialty = Array.isArray(s.specialty) ? (s.specialty as string[]).join(", ") : "";
           return (
-            <div key={s.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div key={s.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
               <div className="flex flex-col gap-5 lg:flex-row">
                 <StaffThumb src={s.image_url} name={s.name} />
                 <form
@@ -246,7 +254,7 @@ export default async function AdminStaffPage() {
                   </label>
                   <label className="block text-xs text-white/55 sm:col-span-2">
                     Replace photo
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-full file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:text-white" />
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" className="mt-1 block w-full text-sm text-white/75 file:mr-4 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:text-white" />
                   </label>
                   <label className="block text-xs text-white/55 sm:col-span-2">
                     Photo URL
@@ -288,6 +296,6 @@ export default async function AdminStaffPage() {
           );
         })}
       </div>
-    </AdminPanel>
+    </div>
   );
 }

@@ -1,6 +1,16 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { locationLabelFromId, requireSuperAdmin } from "@/lib/admin/access";
+import {
+  AdminBtnPrimary,
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminPageHeader,
+  AdminPanel,
+  AdminSetupNotice,
+  adminBtnOutline,
+  adminBtnPrimary,
+} from "@/components/admin/admin-ui";
 import { CustomerBookingHistory } from "@/components/admin/customer-booking-history";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import type { ProfileRole } from "@/types/database";
@@ -150,16 +160,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function AdminCrmPage({ searchParams }: { searchParams: SearchParams }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return (
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-10">
-        <h1 className="font-display text-3xl">CRM</h1>
-        <p className="mt-3 max-w-2xl text-sm text-white/55">
-          Configure <code className="text-glam-accent">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-          <code className="text-glam-accent">SUPABASE_SERVICE_ROLE_KEY</code> to manage customer roles and
-          segmentation.
-        </p>
-      </div>
-    );
+    return <AdminSetupNotice title="CRM" />;
   }
 
   await requireSuperAdmin();
@@ -254,20 +255,19 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
   }
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10">
-      <h1 className="font-display text-3xl">CRM</h1>
-      <p className="mt-3 max-w-2xl text-sm text-white/55">
-        Manage customer segmentation and staff shop assignments. Super admins can change roles and assign staff
-        to Adenta, Sowutuom, or Madina.
-      </p>
-      <div className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4 lg:grid-cols-3">
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="CRM"
+        description="Manage customer segmentation and staff shop assignments. Super admins can change roles and assign staff to Adenta, Sowutuom, or Madina."
+      />
+      <AdminFilterBar className="!items-stretch lg:grid lg:grid-cols-3">
         <form action="/admin/customers" className="space-y-2">
           <label className="block text-xs uppercase tracking-wider text-white/55">Search name or phone</label>
           <input
             name="q"
             defaultValue={q}
             placeholder="Name or phone number"
-            className="w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+            className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
           />
         </form>
         <form action="/admin/customers" className="space-y-2">
@@ -275,7 +275,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
           <select
             name="role"
             defaultValue={roleFilter}
-            className="w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+            className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
           >
             <option value="all" className="bg-glam-primary">
               all
@@ -296,12 +296,12 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
             <input
               name="bulk_tags"
               placeholder="vip, repeat, bridal"
-              className="w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+              className="w-full rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
             />
             <select
               name="bulk_mode"
               defaultValue="merge"
-              className="rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+              className="rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
             >
               <option value="merge" className="bg-glam-primary">
                 merge
@@ -310,26 +310,26 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                 replace
               </option>
             </select>
-            <button
-              type="submit"
-              className="rounded-full bg-glam-accent px-4 py-2 text-xs font-semibold uppercase tracking-wider text-glam-primary"
-            >
+            <button type="submit" className={adminBtnPrimary}>
               Apply
             </button>
           </div>
         </form>
-      </div>
-      <div className="mt-8 space-y-4">
+      </AdminFilterBar>
+      <div className="space-y-3">
         {customers.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-white/20 bg-black/20 p-6 text-sm text-white/60">
-            No profiles found yet.
-          </p>
+          <AdminEmptyState
+            title="No profiles found"
+            description="Try another search or role filter."
+            actionHref="/admin/customers"
+            actionLabel="Clear filters"
+          />
         ) : (
           customers.map((c) => (
             <form
               key={c.id}
               action={updateCustomer}
-              className="rounded-2xl border border-white/10 bg-black/20 p-4"
+              className="rounded-xl border border-white/10 bg-black/25 p-4"
             >
               <input type="hidden" name="id" value={c.id} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.2fr_auto_1fr_auto]">
@@ -355,7 +355,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   <select
                     name="role"
                     defaultValue={c.role}
-                    className="mt-1 rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                    className="mt-1 rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
                   >
                     {roleOptions.map((role) => (
                       <option key={role} value={role} className="bg-glam-primary">
@@ -369,7 +369,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                   <select
                     name="assigned_location_id"
                     defaultValue={shopAccessDefaultValue(c.role, c.assigned_location_id)}
-                    className="mt-1 rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                    className="mt-1 rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
                   >
                     <option value="all" className="bg-glam-primary">
                       All
@@ -390,7 +390,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                     <input
                       name="crm_tags"
                       defaultValue={(c.crm_tags ?? []).join(", ")}
-                      className="mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
                     />
                   </label>
                   <label className="block text-xs text-white/60">
@@ -398,7 +398,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                     <input
                       name="admin_notes"
                       defaultValue={c.admin_notes ?? ""}
-                      className="mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
                     />
                   </label>
                   <label className="block text-xs text-white/60">
@@ -406,17 +406,12 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
                     <input
                       name="role_reason"
                       defaultValue=""
-                      className="mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-md border border-white/15 bg-transparent px-3 py-2 text-sm text-white"
                     />
                   </label>
                 </div>
                 <div className="flex items-end">
-                  <button
-                    type="submit"
-                    className="rounded-full bg-glam-accent px-4 py-2 text-xs font-semibold uppercase tracking-wider text-glam-primary"
-                  >
-                    Save
-                  </button>
+                  <AdminBtnPrimary>Save</AdminBtnPrimary>
                 </div>
               </div>
               <div className="mt-4 border-t border-white/10 pt-4">
@@ -432,26 +427,20 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
           ))
         )}
       </div>
-      <div className="mt-6 flex items-center justify-between text-xs text-white/60">
-        <p>
+      <div className="flex items-center justify-between text-xs text-white/60">
+        <p className="tabular-nums">
           Page {page} of {totalPages} · {total} profiles
         </p>
         <div className="flex gap-2">
-          <a
-            href={buildQuery({ page: Math.max(1, page - 1) })}
-            className="rounded-full border border-white/15 px-3 py-1 hover:bg-white/10"
-          >
+          <a href={buildQuery({ page: Math.max(1, page - 1) })} className={adminBtnOutline}>
             Prev
           </a>
-          <a
-            href={buildQuery({ page: Math.min(totalPages, page + 1) })}
-            className="rounded-full border border-white/15 px-3 py-1 hover:bg-white/10"
-          >
+          <a href={buildQuery({ page: Math.min(totalPages, page + 1) })} className={adminBtnOutline}>
             Next
           </a>
         </div>
       </div>
-      <div className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-4">
+      <AdminPanel>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/70">Recent role audit</h2>
         {auditRows.length === 0 ? (
           <p className="mt-2 text-xs text-white/55">No role changes recorded yet.</p>
@@ -468,7 +457,10 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
             ))}
           </ul>
         )}
-      </div>
+        <a href="/admin/audit" className="mt-3 inline-block text-xs font-semibold uppercase tracking-wider text-glam-accent hover:text-white">
+          Full audit log
+        </a>
+      </AdminPanel>
     </div>
   );
 }

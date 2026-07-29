@@ -8,9 +8,11 @@ import {
 } from "@/lib/validation/admin-promotion";
 import {
   AdminBtnPrimary,
+  AdminEmptyState,
+  AdminPageHeader,
+  AdminPanel,
   adminBtnOutline,
   adminFormRowClass,
-  AdminPanel,
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
 
@@ -75,14 +77,14 @@ export default async function AdminPromotionsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <AdminPanel>
-      <h1 className="font-display text-3xl">Promotions</h1>
-      <p className="mt-3 max-w-3xl text-sm text-white/55">
-        Create discount codes and seasonal offers for future checkout campaigns.
-      </p>
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Promotions"
+        description="Create discount codes and seasonal offers for future checkout campaigns."
+      />
 
-      <section className="mt-8 rounded-2xl border border-glam-accent/25 bg-glam-accent/5 p-5 sm:p-6">
-        <h2 className="font-display text-xl">Add promotion</h2>
+      <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
+        <p className="text-sm font-semibold text-glam-accent">Add promotion</p>
         <form action={createPromotion} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block text-xs text-white/55 sm:col-span-2">
             Title
@@ -120,14 +122,17 @@ export default async function AdminPromotionsPage() {
             <AdminBtnPrimary>Add promotion</AdminBtnPrimary>
           </div>
         </form>
-      </section>
+      </AdminPanel>
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-3">
         {(promos ?? []).length === 0 ? (
-          <p className="text-sm text-white/55">No promotions yet.</p>
+          <AdminEmptyState
+            title="No promotions yet"
+            description="Add a discount code or seasonal offer above."
+          />
         ) : null}
         {(promos ?? []).map((p) => (
-          <div key={p.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+          <div key={p.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
             <form action={updatePromotion} className="grid gap-4 sm:grid-cols-2">
               <input type="hidden" name="id" value={p.id} />
               <label className="block text-xs text-white/55 sm:col-span-2">
@@ -202,6 +207,6 @@ export default async function AdminPromotionsPage() {
           </div>
         ))}
       </div>
-    </AdminPanel>
+    </div>
   );
 }
