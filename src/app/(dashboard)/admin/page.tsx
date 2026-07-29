@@ -31,6 +31,7 @@ import {
   adminBtnOutline,
   adminTabClass,
 } from "@/components/admin/admin-ui";
+import { cn } from "@/lib/utils/cn";
 import { SALON_SERVICES, type SalonService } from "@/lib/constants/services";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -227,8 +228,8 @@ function TodayBoardFilters({
         ) : null}
       </form>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Deposit</span>
+      <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-white/45">Deposit</span>
         {(
           [
             ["all", "All"],
@@ -239,19 +240,19 @@ function TodayBoardFilters({
           <a
             key={value}
             href={href({ deposit: value === "all" ? "" : value })}
-            className={adminTabClass(depositFilter === value)}
+            className={cn(adminTabClass(depositFilter === value), "shrink-0")}
           >
             {label}
           </a>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {statusTabs.map((tab) => (
           <a
             key={tab}
             href={href({ status: tab === "all" ? "" : tab })}
-            className={adminTabClass(statusFilter === tab)}
+            className={cn(adminTabClass(statusFilter === tab), "shrink-0")}
           >
             {tab.replaceAll("_", " ")}
           </a>

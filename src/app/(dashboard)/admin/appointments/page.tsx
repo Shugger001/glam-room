@@ -36,6 +36,7 @@ import { BulkChaseDepositsBar, type ChaseDepositTarget } from "@/components/admi
 import { ShopCapacityStrip } from "@/components/admin/shop-capacity-strip";
 import {
   adminBtnOutline,
+  AdminChipStrip,
   AdminFilterBar,
   AdminPageHeader,
   AdminPanel,
@@ -43,6 +44,7 @@ import {
   AdminSetupNotice,
 } from "@/components/admin/admin-ui";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { cn } from "@/lib/utils/cn";
 
 export const dynamic = "force-dynamic";
 
@@ -356,8 +358,8 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
         </AdminFilterBar>
       </form>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Range</span>
+      <div className="mt-3 space-y-2.5">
+      <AdminChipStrip label="Range">
         {(
           [
             ["today", "Today"],
@@ -368,15 +370,14 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           <a
             key={value}
             href={buildHref({ range: value === "today" ? "" : value, from: "", to: "" })}
-            className={adminTabClass(rangeFilter === value && !fromDate && !toDate)}
+            className={cn(adminTabClass(rangeFilter === value && !fromDate && !toDate), "shrink-0")}
           >
             {label}
           </a>
         ))}
-      </div>
+      </AdminChipStrip>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Deposit</span>
+      <AdminChipStrip label="Deposit">
         {(
           [
             ["all", "All"],
@@ -387,56 +388,59 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           <a
             key={value}
             href={buildHref({ deposit: value === "all" ? "" : value })}
-            className={adminTabClass(depositFilter === value)}
+            className={cn(adminTabClass(depositFilter === value), "shrink-0")}
           >
             {label}
           </a>
         ))}
-      </div>
+      </AdminChipStrip>
 
       {access.isSuperAdmin ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Shop</span>
-          <a href={buildHref({ location: "" })} className={adminTabClass(locationFilter === "all")}>
+        <AdminChipStrip label="Shop">
+          <a href={buildHref({ location: "" })} className={cn(adminTabClass(locationFilter === "all"), "shrink-0")}>
             All shops
           </a>
           {SALON_LOCATIONS.map((loc) => (
             <a
               key={loc.id}
               href={buildHref({ location: loc.id })}
-              className={adminTabClass(locationFilter === loc.id)}
+              className={cn(adminTabClass(locationFilter === loc.id), "shrink-0")}
             >
               {loc.area}
             </a>
           ))}
-        </div>
+        </AdminChipStrip>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <AdminChipStrip>
         {statusTabs.map((tab) => (
-          <a key={tab} href={buildHref({ status: tab === "all" ? "" : tab })} className={adminTabClass(statusFilter === tab)}>
+          <a
+            key={tab}
+            href={buildHref({ status: tab === "all" ? "" : tab })}
+            className={cn(adminTabClass(statusFilter === tab), "shrink-0")}
+          >
             {tab.replaceAll("_", " ")}
           </a>
         ))}
-      </div>
+      </AdminChipStrip>
 
       {(staffRows ?? []).length > 0 ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Stylist</span>
-          <a href={buildHref({ staff: "" })} className={adminTabClass(staffParam === "all")}>
+        <AdminChipStrip label="Stylist">
+          <a href={buildHref({ staff: "" })} className={cn(adminTabClass(staffParam === "all"), "shrink-0")}>
             All
           </a>
           {(staffRows ?? []).map((s) => (
             <a
               key={s.id}
               href={buildHref({ staff: s.id })}
-              className={adminTabClass(staffParam === s.id)}
+              className={cn(adminTabClass(staffParam === s.id), "shrink-0")}
             >
               {s.name}
             </a>
           ))}
-        </div>
+        </AdminChipStrip>
       ) : null}
+      </div>
 
       <div className="mt-5">
         <p className="mb-3 text-xs tabular-nums text-white/45">

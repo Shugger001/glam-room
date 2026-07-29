@@ -49,10 +49,10 @@ export function WalkInBookingForm({
       open={open}
       onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
     >
-      <summary className="cursor-pointer list-none px-5 py-4 font-display text-lg text-white marker:content-none [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none px-4 py-3.5 font-display text-base text-white marker:content-none sm:px-5 sm:py-4 sm:text-lg [&::-webkit-details-marker]:hidden">
         {isRebook ? "Book again · walk-in" : "+ Add walk-in booking"}
       </summary>
-      <form action={createWalkInBooking} className="space-y-4 border-t border-white/10 px-5 py-5">
+      <form action={createWalkInBooking} className="space-y-4 border-t border-white/10 px-4 py-4 sm:px-5 sm:py-5">
         {isRebook ? (
           <p className="text-xs text-glam-accent/90">
             Client details prefilled from CRM — pick service, shop, and time, then create.

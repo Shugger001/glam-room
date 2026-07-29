@@ -122,7 +122,9 @@ export function AdminPageHeader({
       <div>
         <h1 className="font-display text-2xl text-balance sm:text-3xl">{title}</h1>
         {description ? (
-          <p className="mt-1.5 max-w-2xl text-sm text-pretty text-white/55">{description}</p>
+          <p className="mt-1.5 hidden max-w-2xl text-sm text-pretty text-white/55 sm:block">
+            {description}
+          </p>
         ) : null}
       </div>
       {action}
@@ -154,11 +156,13 @@ export function AdminSection({
   children: ReactNode;
 }) {
   return (
-    <section className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <section className="w-full rounded-xl border border-white/10 bg-white/[0.04] p-3 sm:p-5">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-3 sm:mb-4">
         <div>
-          <h2 className="font-display text-xl text-white">{title}</h2>
-          {description ? <p className="mt-1 text-sm text-white/50">{description}</p> : null}
+          <h2 className="font-display text-lg text-white sm:text-xl">{title}</h2>
+          {description ? (
+            <p className="mt-1 hidden text-sm text-white/50 sm:block">{description}</p>
+          ) : null}
         </div>
         {action}
       </div>
@@ -169,6 +173,30 @@ export function AdminSection({
 
 export function AdminFilterBar({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn(adminFilterBarClass, className)}>{children}</div>;
+}
+
+export const adminChipStripClass =
+  "flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+export function AdminChipStrip({
+  label,
+  children,
+  className,
+}: {
+  label?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn(adminChipStripClass, className)}>
+      {label ? (
+        <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-white/45">
+          {label}
+        </span>
+      ) : null}
+      {children}
+    </div>
+  );
 }
 
 export function AdminEmptyState({

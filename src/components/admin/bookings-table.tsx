@@ -94,12 +94,14 @@ function bookingView(b: AdminBookingRow) {
 function QuickFloorActions({
   bookingId,
   updateBookingStatus,
+  dense = false,
 }: {
   bookingId: string;
   updateBookingStatus: (formData: FormData) => Promise<void>;
+  dense?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className={dense ? "grid grid-cols-3 gap-1.5" : "flex flex-wrap gap-1.5"}>
       {(
         [
           ["arrived", "Arrived", "accent"],
@@ -107,19 +109,22 @@ function QuickFloorActions({
           ["no_show", "No-show", "danger"],
         ] as const
       ).map(([status, label, tone]) => (
-        <form key={`${bookingId}-${status}`} action={updateBookingStatus}>
+        <form key={`${bookingId}-${status}`} action={updateBookingStatus} className={dense ? "min-w-0" : undefined}>
           <input type="hidden" name="id" value={bookingId} />
           <input type="hidden" name="status" value={status} />
           <button
             type="submit"
             className={cn(
-              "rounded-md border px-2.5 py-1.5 text-[0.65rem] font-semibold uppercase tracking-wider transition",
+              "rounded-md border text-[0.65rem] font-semibold uppercase tracking-wider transition-[transform,background-color] duration-150 active:scale-[0.98]",
+              dense
+                ? "flex min-h-11 w-full items-center justify-center px-2"
+                : "px-2.5 py-1.5",
               tone === "accent" &&
-                "border-glam-accent/50 bg-glam-accent/15 text-glam-accent hover:bg-glam-accent/25",
+                "border-glam-accent/50 bg-glam-accent/15 text-glam-accent active:bg-glam-accent/25",
               tone === "danger" &&
-                "border-red-400/40 bg-red-500/10 text-red-200 hover:bg-red-500/20",
+                "border-red-400/40 bg-red-500/10 text-red-200 active:bg-red-500/20",
               tone === "default" &&
-                "border-white/20 text-white/70 hover:border-white/40 hover:text-white",
+                "border-white/20 text-white/70 active:border-white/40 active:text-white",
             )}
           >
             {label}
@@ -146,13 +151,13 @@ function MobileBookingCards({
   showOps: boolean;
 }) {
   return (
-    <ul className="space-y-3 md:hidden">
+    <ul className="space-y-2.5 md:hidden">
       {bookings.map((b) => {
         const v = bookingView(b);
         return (
           <li
             key={b.id}
-            className="rounded-xl border border-white/10 bg-black/25 p-3.5"
+            className="rounded-xl border border-white/10 bg-black/25 p-3"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -182,13 +187,13 @@ function MobileBookingCards({
               </div>
             ) : null}
 
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
               {v.whatsappLink ? (
                 <a
                   href={v.whatsappLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-10 items-center rounded-md bg-glam-accent px-3 text-xs font-semibold uppercase tracking-wider text-glam-primary"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-glam-accent px-3 text-xs font-semibold uppercase tracking-wider text-glam-primary active:scale-[0.98]"
                 >
                   WhatsApp
                 </a>
@@ -198,17 +203,17 @@ function MobileBookingCards({
                   href={v.chaseDepositLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-10 items-center rounded-md border border-amber-300/40 px-3 text-xs font-semibold uppercase tracking-wider text-amber-200"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-amber-300/40 px-3 text-xs font-semibold uppercase tracking-wider text-amber-200 active:scale-[0.98]"
                 >
                   Chase deposit
                 </a>
               ) : null}
               {v.depositDue && markDepositPaid ? (
-                <form action={markDepositPaid}>
+                <form action={markDepositPaid} className="contents">
                   <input type="hidden" name="id" value={b.id} />
                   <button
                     type="submit"
-                    className="inline-flex min-h-10 items-center rounded-md border border-white/20 px-3 text-xs font-semibold uppercase tracking-wider text-white/75"
+                    className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/20 px-3 text-xs font-semibold uppercase tracking-wider text-white/75 active:scale-[0.98]"
                   >
                     Mark paid
                   </button>
@@ -217,58 +222,63 @@ function MobileBookingCards({
             </div>
 
             {v.showQuickFloor ? (
-              <div className="mt-3">
-                <QuickFloorActions bookingId={b.id} updateBookingStatus={updateBookingStatus} />
+              <div className="mt-2.5">
+                <QuickFloorActions bookingId={b.id} updateBookingStatus={updateBookingStatus} dense />
               </div>
             ) : null}
 
-            <form action={updateBookingStatus} className="mt-3 space-y-2 border-t border-white/10 pt-3">
-              <input type="hidden" name="id" value={b.id} />
-              <label className="block text-[0.65rem] uppercase tracking-wider text-white/45">
-                Status
-                <select name="status" defaultValue={b.status} className={cn(selectClass, "mt-1")}>
-                  {BOOKING_STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s} className="bg-glam-primary">
-                      {s.replaceAll("_", " ")}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {showStaff && staffOptions.length > 0 ? (
+            <details className="mt-2.5 border-t border-white/10 pt-2">
+              <summary className="cursor-pointer list-none py-2 text-xs font-semibold uppercase tracking-wider text-white/55 marker:content-none [&::-webkit-details-marker]:hidden">
+                Edit booking
+              </summary>
+              <form action={updateBookingStatus} className="space-y-2 pb-1 pt-1">
+                <input type="hidden" name="id" value={b.id} />
                 <label className="block text-[0.65rem] uppercase tracking-wider text-white/45">
-                  Stylist
-                  <select
-                    name="staff_id"
-                    defaultValue={b.staff_id ?? "none"}
-                    className={cn(selectClass, "mt-1")}
-                  >
-                    <option value="none" className="bg-glam-primary">
-                      Unassigned
-                    </option>
-                    {staffOptions.map((s) => (
-                      <option key={s.id} value={s.id} className="bg-glam-primary">
-                        {s.name}
+                  Status
+                  <select name="status" defaultValue={b.status} className={cn(selectClass, "mt-1 min-h-11")}>
+                    {BOOKING_STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s} className="bg-glam-primary">
+                        {s.replaceAll("_", " ")}
                       </option>
                     ))}
                   </select>
                 </label>
-              ) : null}
-              {showOps ? (
-                <label className="block text-[0.65rem] uppercase tracking-wider text-white/45">
-                  Note
-                  <input
-                    type="text"
-                    name="admin_notes"
-                    defaultValue={b.admin_notes ?? ""}
-                    placeholder="Team note"
-                    className={cn(inputClass, "mt-1")}
-                  />
-                </label>
-              ) : null}
-              <button type="submit" className={cn(adminBtnPrimary, "w-full !rounded-md")}>
-                Save
-              </button>
-            </form>
+                {showStaff && staffOptions.length > 0 ? (
+                  <label className="block text-[0.65rem] uppercase tracking-wider text-white/45">
+                    Stylist
+                    <select
+                      name="staff_id"
+                      defaultValue={b.staff_id ?? "none"}
+                      className={cn(selectClass, "mt-1 min-h-11")}
+                    >
+                      <option value="none" className="bg-glam-primary">
+                        Unassigned
+                      </option>
+                      {staffOptions.map((s) => (
+                        <option key={s.id} value={s.id} className="bg-glam-primary">
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                {showOps ? (
+                  <label className="block text-[0.65rem] uppercase tracking-wider text-white/45">
+                    Note
+                    <input
+                      type="text"
+                      name="admin_notes"
+                      defaultValue={b.admin_notes ?? ""}
+                      placeholder="Team note"
+                      className={cn(inputClass, "mt-1 min-h-11")}
+                    />
+                  </label>
+                ) : null}
+                <button type="submit" className={cn(adminBtnPrimary, "w-full !min-h-11 !rounded-md")}>
+                  Save
+                </button>
+              </form>
+            </details>
           </li>
         );
       })}

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
 import { AdminFlashToast } from "@/components/admin/admin-flash-toast";
+import { AdminMobileChrome } from "@/components/admin/admin-mobile-chrome";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPanel, adminBtnGhost, adminBtnOutline } from "@/components/admin/admin-ui";
 import {
@@ -62,20 +63,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <AdminDashboardShell>
       <div className="flex min-h-screen w-full flex-col lg:flex-row">
-        <aside className="border-b border-white/10 bg-glam-primary/80 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:w-56 lg:shrink-0 lg:overflow-y-auto lg:border-b-0 lg:border-r xl:w-60">
-          <div className="px-4 py-4 lg:px-3 lg:py-5">
+        {/* Desktop rail only */}
+        <aside className="hidden border-r border-white/10 bg-glam-primary/80 backdrop-blur-xl lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-y-auto xl:w-60">
+          <div className="px-3 py-5">
             <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-glam-accent">
               {access.isSuperAdmin ? "Super admin" : "Staff"}
             </p>
-            <p className="font-display mt-1 text-lg lg:text-xl">Glam Room</p>
+            <p className="font-display mt-1 text-xl">Glam Room</p>
             {!access.isSuperAdmin && access.assignedLocationLabel ? (
               <p className="mt-1 text-xs text-white/55">{access.assignedLocationLabel}</p>
             ) : (
               <p className="mt-1 text-xs text-white/45">Operations</p>
             )}
           </div>
-
-          <div className="hidden px-2 pb-5 lg:block">
+          <div className="flex-1 px-2 pb-5">
             <AdminNav groups={navGroups} />
             <form action={signOut} className="mt-6 px-3">
               <button type="submit" className={adminBtnGhost}>
@@ -83,21 +84,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </button>
             </form>
           </div>
-
-          <div className="border-t border-white/10 px-3 py-3 lg:hidden">
-            <AdminNav groups={navGroups} orientation="horizontal" />
-          </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center justify-end border-b border-white/10 bg-glam-primary/50 px-4 py-2 backdrop-blur-md lg:hidden">
-            <form action={signOut}>
-              <button type="submit" className={adminBtnGhost}>
-                Sign out
-              </button>
-            </form>
-          </div>
-          <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
+          <AdminMobileChrome
+            groups={navGroups}
+            isSuperAdmin={access.isSuperAdmin}
+            shopLabel={access.assignedLocationLabel}
+            signOut={signOut}
+          />
+          <main className="w-full flex-1 px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:px-8 lg:pb-10 xl:px-10">
             <Suspense fallback={null}>
               <AdminFlashToast />
             </Suspense>
