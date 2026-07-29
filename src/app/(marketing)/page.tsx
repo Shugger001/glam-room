@@ -9,7 +9,7 @@ import { getLiveFaqs, getLiveLocations } from "@/lib/data/live-site-content";
 import { getLiveGallery } from "@/lib/data/live-gallery";
 import { getLiveTestimonials } from "@/lib/data/live-testimonials";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [faqs, gallery, locations, testimonials] = await Promise.all([

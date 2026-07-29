@@ -84,25 +84,25 @@ export function MasonryGallery({ items, showFilters = true }: MasonryGalleryProp
         </FilterChipRow>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-3 lg:gap-4">
         {filtered.map((item, i) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setSelectedIndex(i)}
-            className="group relative aspect-[4/5] w-full overflow-hidden bg-glam-primary text-left transition duration-300 ease-out touch-manipulation active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glam-accent"
+            className="group relative aspect-[3/4] w-full overflow-hidden bg-glam-primary text-left transition duration-300 ease-out touch-manipulation active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glam-accent"
             aria-label={`Open ${item.alt}`}
           >
             <Image
               src={item.src}
               alt={item.alt}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="33vw"
               className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]"
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-glam-primary/50 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
-            <span className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 p-4 text-sm text-white/90 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-              View look
+            <div className="pointer-events-none absolute inset-0 bg-glam-primary/0 transition duration-300 group-hover:bg-glam-primary/20" />
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-glam-primary/70 to-transparent p-2 text-[0.65rem] text-white opacity-0 transition duration-300 group-hover:opacity-100 sm:block sm:p-3 sm:text-sm">
+              View
             </span>
           </button>
         ))}
