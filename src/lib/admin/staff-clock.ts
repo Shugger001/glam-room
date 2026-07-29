@@ -106,10 +106,13 @@ export async function loadWeekHours(
 
   for (const shift of data ?? []) {
     const staffId = shift.staff_id as string;
+    const staffJoin = shift.staff as unknown;
     const staff =
-      shift.staff && typeof shift.staff === "object"
-        ? (shift.staff as { id: string; name: string; role: string })
-        : null;
+      staffJoin && typeof staffJoin === "object" && !Array.isArray(staffJoin)
+        ? (staffJoin as { id: string; name: string; role: string })
+        : Array.isArray(staffJoin) && staffJoin[0]
+          ? (staffJoin[0] as { id: string; name: string; role: string })
+          : null;
     const existing = byStaff.get(staffId) ?? {
       staffId,
       name: staff?.name ?? "—",
