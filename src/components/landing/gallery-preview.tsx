@@ -40,7 +40,7 @@ export function GalleryPreview({
       </div>
       {viewAllHref ? (
         <div className="mt-10 flex justify-center">
-          <ButtonLink href={viewAllHref} variant="outline" size="lg">
+          <ButtonLink href={viewAllHref} variant="outline" size="lg" className="!rounded-none">
             View full gallery
           </ButtonLink>
         </div>

@@ -115,9 +115,19 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   },
 ];
 
-/** Balanced mix for homepage preview (hair / braids / glam / wigs). */
-export function pickHomepageGalleryItems(items: GalleryItem[], limit = 6): GalleryItem[] {
-  const order: GalleryItem["category"][] = ["braids", "glam", "hair", "wigs", "hair", "braids"];
+/** Balanced mix for homepage preview (3 rows × 3 columns on desktop). */
+export function pickHomepageGalleryItems(items: GalleryItem[], limit = 9): GalleryItem[] {
+  const order: GalleryItem["category"][] = [
+    "braids",
+    "glam",
+    "hair",
+    "wigs",
+    "hair",
+    "braids",
+    "glam",
+    "wigs",
+    "braids",
+  ];
   const used = new Set<string>();
   const picked: GalleryItem[] = [];
 

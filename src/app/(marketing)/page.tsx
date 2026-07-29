@@ -27,7 +27,7 @@ export default async function HomePage() {
       <HomeQuickNav />
       <GalleryPreview
         items={gallery}
-        limit={6}
+        limit={9}
         showFilters={false}
         viewAllHref="/gallery"
         balanced
