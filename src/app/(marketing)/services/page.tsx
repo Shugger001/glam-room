@@ -20,10 +20,10 @@ export default async function ServicesPage() {
       <PageHero
         eyebrow="Services"
         title="What we offer"
-        description="Three categories — pick a style and book your chair."
+        description="Choose a category to see styles and book your chair."
       />
       <section className="container-narrow pb-16 sm:pb-24">
-        <ServicesByCategory services={services} layout="list" />
+        <ServicesByCategory services={services} />
       </section>
       <CtaBand />
     </>
