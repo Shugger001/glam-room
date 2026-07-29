@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import { SERVICE_CATEGORIES, SERVICE_CATEGORY_ORDER } from "@/lib/constants/services";
 import { parseAdminServiceCreateForm, parseAdminServiceForm, slugifyServiceName } from "@/lib/validation/admin-service";
 import {
@@ -22,7 +23,9 @@ async function updateService(formData: FormData) {
   await requireSuperAdmin();
 
   const parsed = parseAdminServiceForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/services", "error", "Could not save service. Check the form.");
+  }
 
   const admin = createAdminClient();
   const { id, ...values } = parsed.data;
@@ -46,6 +49,7 @@ async function updateService(formData: FormData) {
   revalidatePath("/services");
   revalidatePath("/book");
   revalidatePath("/");
+  redirectWithFlash("/admin/services", "success", "Service saved");
 }
 
 async function createService(formData: FormData) {
@@ -53,7 +57,9 @@ async function createService(formData: FormData) {
   await requireSuperAdmin();
 
   const parsed = parseAdminServiceCreateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/services", "error", "Could not add service. Check the form.");
+  }
 
   const admin = createAdminClient();
   const values = parsed.data;
@@ -83,6 +89,7 @@ async function createService(formData: FormData) {
   revalidatePath("/services");
   revalidatePath("/book");
   revalidatePath("/");
+  redirectWithFlash("/admin/services", "success", "Service added");
 }
 
 export default async function AdminServicesPage() {

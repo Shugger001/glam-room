@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { bookingLocationScope, requireAdminAccess } from "@/lib/admin/access";
+import { redirectBackWithFlash } from "@/lib/admin/flash-redirect";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 
@@ -21,7 +22,9 @@ export async function bulkConfirmPaidBookingsAction(formData: FormData): Promise
   if (locationId) query = query.eq("location_id", locationId);
 
   const { data, error } = await query;
-  if (error || !data || data.length === 0) return;
+  if (error || !data || data.length === 0) {
+    return redirectBackWithFlash("error", "No paid bookings waiting for approval");
+  }
 
   const ids = data.map((r) => r.id);
 
@@ -30,7 +33,9 @@ export async function bulkConfirmPaidBookingsAction(formData: FormData): Promise
     .update({ status: "confirmed", updated_at: new Date().toISOString() })
     .in("id", ids);
 
-  if (updateError) return;
+  if (updateError) {
+    return redirectBackWithFlash("error", "Could not confirm bookings");
+  }
 
   await Promise.all(
     data.map(async (booking) => {
@@ -71,4 +76,5 @@ export async function bulkConfirmPaidBookingsAction(formData: FormData): Promise
 
   revalidatePath("/admin");
   revalidatePath("/admin/appointments");
+  return redirectBackWithFlash("success", `Confirmed ${ids.length} booking${ids.length === 1 ? "" : "s"}`);
 }

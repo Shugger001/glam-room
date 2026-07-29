@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireStaffBookingAccess } from "@/lib/admin/access";
+import { redirectBackWithFlash } from "@/lib/admin/flash-redirect";
 
 /** Mark a booking deposit paid (cash / MoMo at desk). */
 export async function markDepositPaidAction(formData: FormData): Promise<void> {
@@ -23,4 +24,5 @@ export async function markDepositPaidAction(formData: FormData): Promise<void> {
   revalidatePath("/admin");
   revalidatePath("/admin/appointments");
   revalidatePath("/admin/customers");
+  return redirectBackWithFlash("success", "Deposit marked paid");
 }

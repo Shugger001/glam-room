@@ -64,7 +64,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     id: "system",
     label: "System",
-    items: [{ href: "/admin/settings", label: "Settings" }],
+    items: [
+      { href: "/admin/settings", label: "Settings" },
+      { href: "/admin/audit", label: "Audit log" },
+    ],
   },
 ];
 

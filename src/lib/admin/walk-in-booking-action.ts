@@ -3,16 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { bookingLocationScope, locationLabelFromId, requireAdminAccess } from "@/lib/admin/access";
 import { createWalkInBooking } from "@/lib/admin/create-walk-in-booking";
+import { redirectBackWithFlash } from "@/lib/admin/flash-redirect";
 import { parseAdminWalkInForm } from "@/lib/validation/admin-walk-in";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function createWalkInBookingAction(formData: FormData) {
   const access = await requireAdminAccess();
   const parsed = parseAdminWalkInForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return redirectBackWithFlash("error", "Could not create walk-in. Check required fields.");
+  }
 
   const locationScope = bookingLocationScope(access);
-  if (locationScope && parsed.data.locationId !== locationScope) return;
+  if (locationScope && parsed.data.locationId !== locationScope) {
+    return redirectBackWithFlash("error", "That shop is outside your assignment.");
+  }
 
   const admin = createAdminClient();
   const { data: serviceRow } = await admin
@@ -20,7 +25,9 @@ export async function createWalkInBookingAction(formData: FormData) {
     .select("id, duration_minutes, base_price")
     .eq("id", parsed.data.serviceId)
     .maybeSingle();
-  if (!serviceRow) return;
+  if (!serviceRow) {
+    return redirectBackWithFlash("error", "Service not found.");
+  }
 
   const { staffId: formStaffId, ...walkInValues } = parsed.data;
 
@@ -38,4 +45,5 @@ export async function createWalkInBookingAction(formData: FormData) {
 
   revalidatePath("/admin/appointments");
   revalidatePath("/admin");
+  return redirectBackWithFlash("success", "Walk-in booking created");
 }

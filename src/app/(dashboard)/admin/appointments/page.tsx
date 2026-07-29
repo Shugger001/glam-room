@@ -100,6 +100,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     depositParam === "paid" || depositParam === "unpaid" ? depositParam : "all";
   const staffParam = typeof params.staff === "string" ? params.staff : "all";
   const locationParam = typeof params.location === "string" ? params.location : "all";
+  const pageSize = 40;
+  const pageRaw = typeof params.page === "string" ? Number(params.page) : 1;
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? Math.floor(pageRaw) : 1;
+  const rangeFrom = (page - 1) * pageSize;
+  const rangeTo = rangeFrom + pageSize - 1;
   const walkinOpen =
     params.walkin === "1" || params.walkin === "true" || Boolean(params.name) || Boolean(params.phone);
   const walkinName = typeof params.name === "string" ? params.name.trim() : "";
@@ -119,10 +124,17 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const bookingSelect =
     "id, start_at, status, location_type, location_id, staff_id, client_name, client_phone, client_notes, admin_notes, deposit_paid, deposit_amount, paystack_reference, promotion_code, profiles(full_name,phone,crm_tags,admin_notes), services(name), staff(name)";
 
-  let query = admin.from("bookings").select(bookingSelect).order("start_at", { ascending: true });
+  let query = admin
+    .from("bookings")
+    .select(bookingSelect, { count: "exact" })
+    .order("start_at", { ascending: true });
   if (locationScope) query = query.eq("location_id", locationScope);
   if (statusFilter !== "all") query = query.eq("status", statusFilter);
   if (staffParam !== "all") query = query.eq("staff_id", staffParam);
+  if (depositFilter === "paid") query = query.eq("deposit_paid", true);
+  if (depositFilter === "unpaid") {
+    query = query.eq("deposit_paid", false).gt("deposit_amount", 0);
+  }
   if (q.length > 0) {
     query = query.or(`client_name.ilike.%${q}%,client_phone.ilike.%${q}%`);
   }
@@ -142,9 +154,9 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
   }
 
-  const [{ data }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes] =
+  const [{ data, count }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes] =
     await Promise.all([
-    query.limit(100),
+    query.range(rangeFrom, rangeTo),
     admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
     (async () => {
       const { start, end } = dayBounds();
@@ -173,16 +185,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     })(),
   ]);
 
-  const bookingsRaw = await enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
-  const bookings =
-    depositFilter === "all"
-      ? bookingsRaw
-      : bookingsRaw.filter((b) => {
-          const due =
-            typeof b.deposit_amount === "number" && Number(b.deposit_amount) > 0;
-          if (!due) return depositFilter === "paid" ? Boolean(b.deposit_paid) : false;
-          return depositFilter === "paid" ? Boolean(b.deposit_paid) : !b.deposit_paid;
-        });
+  const bookings = await enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
+  const total = count ?? bookings.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const showingFrom = total === 0 ? 0 : rangeFrom + 1;
+  const showingTo = Math.min(rangeTo + 1, total);
 
   const services = mapServicesFromRows(serviceRows);
 
@@ -245,10 +252,15 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     if (depositFilter !== "all") qs.set("deposit", depositFilter);
     if (staffParam !== "all") qs.set("staff", staffParam);
     if (locationFilter !== "all") qs.set("location", locationFilter);
+    if (page > 1) qs.set("page", String(page));
     Object.entries(next).forEach(([k, v]) => {
       if (v) qs.set(k, v);
       else qs.delete(k);
     });
+    // Reset to page 1 when filters change (unless page is explicitly set)
+    if (!("page" in next) && Object.keys(next).some((k) => k !== "page")) {
+      qs.delete("page");
+    }
     const s = qs.toString();
     return s ? `/admin/appointments?${s}` : "/admin/appointments";
   }
@@ -427,8 +439,8 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       ) : null}
 
       <div className="mt-5">
-        <p className="mb-3 text-xs text-white/45">
-          {bookings.length} booking{bookings.length === 1 ? "" : "s"}
+        <p className="mb-3 text-xs tabular-nums text-white/45">
+          Showing {showingFrom}–{showingTo} of {total}
           {q ? ` matching “${q}”` : ""}
           {depositFilter !== "all" ? ` · deposit ${depositFilter}` : ""}
         </p>
@@ -438,6 +450,30 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           markDepositPaid={markDepositPaidAction}
           staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
         />
+        {totalPages > 1 ? (
+          <div className="mt-4 flex items-center justify-between gap-3 text-xs text-white/60">
+            <p className="tabular-nums">
+              Page {page} of {totalPages}
+            </p>
+            <div className="flex gap-2">
+              <a
+                href={buildHref({ page: page > 1 ? String(page - 1) : "" })}
+                className={adminBtnOutline}
+                aria-disabled={page <= 1}
+              >
+                Prev
+              </a>
+              <a
+                href={buildHref({
+                  page: page < totalPages ? String(page + 1) : String(totalPages),
+                })}
+                className={adminBtnOutline}
+              >
+                Next
+              </a>
+            </div>
+          </div>
+        ) : null}
       </div>
       </AdminPanel>
     </div>

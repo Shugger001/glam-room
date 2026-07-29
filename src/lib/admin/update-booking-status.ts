@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireStaffBookingAccess } from "@/lib/admin/access";
+import { redirectBackWithFlash } from "@/lib/admin/flash-redirect";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 
 export const BOOKING_STATUS_OPTIONS = [
@@ -107,4 +108,5 @@ export async function updateBookingStatusAction(formData: FormData) {
   revalidatePath("/admin/appointments");
   revalidatePath("/admin");
   revalidatePath("/admin/customers");
+  return redirectBackWithFlash("success", "Booking updated");
 }

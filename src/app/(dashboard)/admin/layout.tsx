@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
+import { AdminFlashToast } from "@/components/admin/admin-flash-toast";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPanel, adminBtnGhost, adminBtnOutline } from "@/components/admin/admin-ui";
 import {
@@ -95,7 +97,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </button>
             </form>
           </div>
-          <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">{children}</main>
+          <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
+            <Suspense fallback={null}>
+              <AdminFlashToast />
+            </Suspense>
+            {children}
+          </main>
         </div>
       </div>
     </AdminDashboardShell>
