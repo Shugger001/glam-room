@@ -5,10 +5,13 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/marketing/page-hero";
 import { ButtonLink } from "@/components/ui/button";
 import { CtaBand } from "@/components/landing/cta-band";
+import { CategoryServicesMenu } from "@/components/services/services-by-category";
 import { BRAND } from "@/lib/constants/brand";
 import {
+  isServiceCategory,
   SERVICE_CATEGORIES,
   SERVICE_CATEGORY_DESCRIPTIONS,
+  SERVICE_CATEGORY_ORDER,
 } from "@/lib/constants/services";
 import {
   getSalonServiceBySlug,
@@ -26,11 +29,21 @@ type ServicePageProps = {
 
 export async function generateStaticParams() {
   const slugs = await getSalonServiceSlugs();
-  return slugs.map((slug) => ({ slug }));
+  const categoryParams = SERVICE_CATEGORY_ORDER.map((slug) => ({ slug }));
+  const serviceParams = slugs.map((slug) => ({ slug }));
+  return [...categoryParams, ...serviceParams];
 }
 
 export async function generateMetadata({ params }: ServicePageProps): Promise<Metadata> {
   const { slug } = await params;
+
+  if (isServiceCategory(slug)) {
+    return {
+      title: SERVICE_CATEGORIES[slug],
+      description: `${SERVICE_CATEGORY_DESCRIPTIONS[slug]} Book at ${BRAND.fullName} in Accra.`,
+    };
+  }
+
   const service = await getSalonServiceBySlug(slug);
   if (!service) {
     return { title: "Service" };
@@ -44,6 +57,22 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
 
 export default async function ServiceDetailPage({ params }: ServicePageProps) {
   const { slug } = await params;
+
+  if (isServiceCategory(slug)) {
+    const services = await getSalonServices();
+    const items = services.filter((s) => s.category === slug);
+    if (items.length === 0) notFound();
+
+    return (
+      <>
+        <section className="container-narrow pb-16 pt-6 sm:pb-24 sm:pt-10">
+          <CategoryServicesMenu category={slug} services={services} />
+        </section>
+        <CtaBand />
+      </>
+    );
+  }
+
   const service = await getSalonServiceBySlug(slug);
   if (!service) notFound();
 
@@ -61,7 +90,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
       <section className="container-narrow pb-16 sm:pb-24">
         <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-premium">
+          <div className="relative aspect-[4/5] overflow-hidden">
             <Image
               src={service.image}
               alt={service.name}
@@ -73,16 +102,14 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-glam-accent">
-              {service.durationMinutes} minutes
-            </p>
+            <p className="text-sm text-glam-muted">{service.durationMinutes} minutes</p>
             <h2 className="heading-display mt-3 text-3xl text-glam-primary sm:text-4xl">
               {service.name}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-glam-muted">
               {service.description}
             </p>
-            <p className="mt-6 text-2xl font-semibold text-glam-primary">
+            <p className="mt-6 text-2xl font-semibold tabular-nums text-glam-primary">
               {formatShopPrice(service.price)}
             </p>
             {service.category === "braids" ? (
@@ -96,12 +123,17 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
                 href={`/book?service=${service.id}`}
                 variant="accent"
                 size="lg"
-                className="justify-center"
+                className="justify-center !rounded-none"
               >
                 Book this service
               </ButtonLink>
-              <ButtonLink href="/services" variant="outline" size="lg" className="justify-center">
-                All services
+              <ButtonLink
+                href={`/services/${service.category}`}
+                variant="outline"
+                size="lg"
+                className="justify-center !rounded-none"
+              >
+                Back to category
               </ButtonLink>
             </div>
 
@@ -121,7 +153,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
         {related.length > 0 ? (
           <div className="mt-20">
-            <h3 className="heading-display text-center text-2xl text-glam-primary sm:text-3xl">
+            <h3 className="heading-display text-2xl text-glam-primary sm:text-3xl">
               More in {SERVICE_CATEGORIES[service.category]}
             </h3>
             <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">

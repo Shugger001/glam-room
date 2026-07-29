@@ -196,12 +196,21 @@ export const SALON_SERVICES: SalonService[] = [
   },
 ];
 
+export function isServiceCategory(value: string): value is ServiceCategory {
+  return (SERVICE_CATEGORY_ORDER as string[]).includes(value);
+}
+
+export function serviceCategoryPath(category: ServiceCategory) {
+  return `/services/${category}` as const;
+}
+
 export function groupServicesByCategory(services: SalonService[]) {
   return SERVICE_CATEGORY_ORDER.map((category) => ({
     category,
     label: SERVICE_CATEGORIES[category],
     description: SERVICE_CATEGORY_DESCRIPTIONS[category],
     hero: SERVICE_CATEGORY_HEROES[category],
+    href: serviceCategoryPath(category),
     items: services.filter((s) => s.category === category),
   })).filter((group) => group.items.length > 0);
 }
