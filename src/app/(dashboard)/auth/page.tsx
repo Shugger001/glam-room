@@ -49,7 +49,7 @@ export default function AuthPage() {
       if (profile?.role === "admin" || profile?.role === "staff") {
         const destination =
           profile.role === "staff" && (nextPath === "/admin" || nextPath === "/admin/")
-            ? "/admin/appointments"
+            ? "/admin"
             : nextPath;
         router.replace(destination);
         return;
@@ -119,7 +119,7 @@ export default function AuthPage() {
       toast.success("Signed in");
       const destination =
         profile?.role === "staff" && (nextPath === "/admin" || nextPath === "/admin/")
-          ? "/admin/appointments"
+          ? "/admin"
           : nextPath;
       router.push(destination);
       router.refresh();

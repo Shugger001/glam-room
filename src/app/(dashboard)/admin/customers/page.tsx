@@ -3,6 +3,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { locationLabelFromId, requireSuperAdmin } from "@/lib/admin/access";
 import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import {
+  createStaffLoginAction,
+  loadShopLoginCoverage,
+} from "@/lib/admin/create-staff-login";
+import {
   AdminBtnPrimary,
   AdminEmptyState,
   AdminFilterBar,
@@ -11,6 +15,7 @@ import {
   AdminSetupNotice,
   adminBtnOutline,
   adminBtnPrimary,
+  adminInputClass,
 } from "@/components/admin/admin-ui";
 import { CustomerBookingHistory } from "@/components/admin/customer-booking-history";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
@@ -253,6 +258,7 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
   const total = count ?? customers.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentIds = customers.map((c) => c.id).join(",");
+  const shopCoverage = await loadShopLoginCoverage(admin);
 
   function buildQuery(next: Record<string, string | number>) {
     const qs = new URLSearchParams();
@@ -269,8 +275,105 @@ export default async function AdminCrmPage({ searchParams }: { searchParams: Sea
     <div className="space-y-5">
       <AdminPageHeader
         title="CRM"
-        description="Manage customer segmentation and staff shop assignments. Super admins can change roles and assign staff to Adenta, Sowutuom, or Madina."
+        description="Manage customers and create shop-scoped staff logins. Front desk accounts only see their assigned shop."
       />
+
+      <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
+        <p className="text-sm font-semibold text-glam-accent">Front desk / staff logins</p>
+        <p className="mt-1 text-xs text-white/50">
+          Create an email + password for each shop. They sign in at /auth and only see that shop’s
+          Today board, appointments, and attendance.
+        </p>
+
+        <ul className="mt-4 grid gap-2 sm:grid-cols-3">
+          {shopCoverage.map((shop) => (
+            <li
+              key={shop.locationId}
+              className="rounded-lg border border-white/10 bg-black/20 px-3 py-2.5"
+            >
+              <p className="text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
+                {shop.area}
+              </p>
+              {shop.staffLogins.length === 0 ? (
+                <p className="mt-1 text-sm text-amber-200/90">No staff login yet</p>
+              ) : (
+                <p className="mt-1 text-sm text-white">
+                  {shop.staffLogins.length} login
+                  {shop.staffLogins.length === 1 ? "" : "s"}
+                  <span className="text-white/45">
+                    {" · "}
+                    {shop.staffLogins
+                      .map((s) => s.fullName ?? "Staff")
+                      .slice(0, 2)
+                      .join(", ")}
+                    {shop.staffLogins.length > 2 ? "…" : ""}
+                  </span>
+                </p>
+              )}
+              <p className="mt-0.5 text-xs text-white/40">
+                {shop.frontDeskLinked ? "Front desk seat linked" : "Front desk seat unlinked"}
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        <form action={createStaffLoginAction} className="mt-5 grid gap-3 sm:grid-cols-2">
+          <label className="block text-xs text-white/55">
+            Full name
+            <input
+              type="text"
+              name="full_name"
+              required
+              minLength={2}
+              placeholder="Front Desk Adenta"
+              className={adminInputClass}
+            />
+          </label>
+          <label className="block text-xs text-white/55">
+            Email
+            <input
+              type="email"
+              name="email"
+              required
+              placeholder="adenta@theglamroom.com"
+              className={adminInputClass}
+            />
+          </label>
+          <label className="block text-xs text-white/55">
+            Temporary password
+            <input
+              type="text"
+              name="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="Min 8 characters"
+              className={adminInputClass}
+            />
+          </label>
+          <label className="block text-xs text-white/55">
+            Shop
+            <select name="assigned_location_id" required className={adminInputClass} defaultValue="">
+              <option value="" disabled className="bg-glam-primary text-white">
+                Select shop
+              </option>
+              {SALON_LOCATIONS.map((loc) => (
+                <option key={loc.id} value={loc.id} className="bg-glam-primary text-white">
+                  {loc.area}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm text-white/75 sm:col-span-2">
+            <input type="checkbox" name="link_front_desk" defaultChecked />
+            Link to this shop’s Front Desk seat (for attendance)
+          </label>
+          <div className="sm:col-span-2">
+            <AdminBtnPrimary>Create staff login</AdminBtnPrimary>
+          </div>
+        </form>
+      </AdminPanel>
+
       <AdminFilterBar className="!items-stretch lg:grid lg:grid-cols-3">
         <form action="/admin/customers" className="space-y-2">
           <label className="block text-xs uppercase tracking-wider text-white/55">Search name or phone</label>

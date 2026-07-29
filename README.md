@@ -26,6 +26,8 @@ Grant admin access after signing up:
 -- scripts/grant-admin.sql — replace with your email
 ```
 
+**Front desk / shop staff logins:** In **CRM** (`/admin/customers`), use **Create staff login** — email, temporary password, and shop (Adenta / Sowutuom / Madina). Staff sign in at `/auth` and only see that shop’s board. Prefer this over promoting client accounts when possible.
+
 Verify seed: **http://127.0.0.1:3100/api/deploy-proof** should show `"seeded": true`.
 
 ## Deploy on Vercel
