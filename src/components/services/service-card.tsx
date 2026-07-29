@@ -2,10 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
-import { ServicesInteractiveGrid } from "@/components/services/services-interactive-grid";
+import { ServicesByCategory } from "@/components/services/services-by-category";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { formatShopPrice } from "@/lib/format/money";
-import { BRAND } from "@/lib/constants/brand";
 import type { SalonService } from "@/lib/constants/services";
 
 type ServiceCardProps = {
@@ -87,13 +86,10 @@ export function ServicesPreview({ services }: { services: SalonService[] }) {
       <SectionHeader
         eyebrow="Services"
         title="What we offer"
-        description="Pick a look and reserve your chair."
+        description="Hair installation, braiding, and hair reset — pick a look and book."
         align="left"
       />
-      <ServicesInteractiveGrid services={services} />
-      <p className="mt-8 max-w-2xl text-sm text-glam-muted" role="note">
-        {BRAND.copy.braidsNotice}
-      </p>
+      <ServicesByCategory services={services} layout="list" />
     </Section>
   );
 }

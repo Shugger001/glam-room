@@ -6,6 +6,7 @@ import { ServiceCard } from "@/components/services/service-card";
 import { FilterChipRow } from "@/components/ui/filter-chip-row";
 import {
   SERVICE_CATEGORIES,
+  SERVICE_CATEGORY_ORDER,
   type SalonService,
   type ServiceCategory,
 } from "@/lib/constants/services";
@@ -17,9 +18,10 @@ type ServicesInteractiveGridProps = {
 
 const FILTER_OPTIONS: Array<{ id: "all" | ServiceCategory; label: string }> = [
   { id: "all", label: "All" },
-  ...(
-    Object.entries(SERVICE_CATEGORIES) as Array<[ServiceCategory, string]>
-  ).map(([id, label]) => ({ id, label })),
+  ...SERVICE_CATEGORY_ORDER.map((id) => ({
+    id,
+    label: SERVICE_CATEGORIES[id],
+  })),
 ];
 
 export function ServicesInteractiveGrid({ services }: ServicesInteractiveGridProps) {

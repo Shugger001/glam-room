@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   SALON_SERVICES,
+  SERVICE_CATEGORY_ORDER,
   type SalonService,
   type ServiceCategory,
 } from "@/lib/constants/services";
@@ -12,13 +13,15 @@ export type LiveService = {
   price: number;
 };
 
-const SERVICE_CATEGORIES = new Set<string>(["hair-reset", "hair-installation", "braids"]);
+const SERVICE_CATEGORY_SET = new Set<string>(SERVICE_CATEGORY_ORDER);
 
 function isServiceCategory(value: string): value is ServiceCategory {
-  return SERVICE_CATEGORIES.has(value);
+  return SERVICE_CATEGORY_SET.has(value);
 }
 
-function mapServiceRow(row: Record<string, unknown>): SalonService | null {
+function mapServiceRow(
+  row: Record<string, unknown>,
+): (SalonService & { sortOrder: number }) | null {
   const id = typeof row.id === "string" ? row.id : null;
   const name = typeof row.name === "string" ? row.name : null;
   const description = typeof row.description === "string" ? row.description : "";
@@ -35,6 +38,8 @@ function mapServiceRow(row: Record<string, unknown>): SalonService | null {
       ? row.image_url
       : "/images/glam-braids-studio.png";
   const featured = row.featured === true;
+  const sortOrder =
+    typeof row.sort_order === "number" ? row.sort_order : Number(row.sort_order) || 0;
 
   if (!id || !name || Number.isNaN(duration) || Number.isNaN(price)) return null;
 
@@ -48,7 +53,13 @@ function mapServiceRow(row: Record<string, unknown>): SalonService | null {
     price,
     image,
     featured,
+    sortOrder: Number.isNaN(sortOrder) ? 0 : sortOrder,
   };
+}
+
+function categoryRank(category: ServiceCategory) {
+  const index = SERVICE_CATEGORY_ORDER.indexOf(category);
+  return index === -1 ? 99 : index;
 }
 
 export async function getSalonServices(): Promise<SalonService[]> {
@@ -64,8 +75,15 @@ export async function getSalonServices(): Promise<SalonService[]> {
     if (error || !data || data.length === 0) return SALON_SERVICES;
     const normalized = data
       .map((row) => mapServiceRow(row as Record<string, unknown>))
-      .filter((x): x is SalonService => Boolean(x));
-    return normalized.length > 0 ? normalized : SALON_SERVICES;
+      .filter((x): x is SalonService & { sortOrder: number } => Boolean(x));
+    if (normalized.length === 0) return SALON_SERVICES;
+    return [...normalized]
+      .sort((a, b) => {
+        const byCat = categoryRank(a.category) - categoryRank(b.category);
+        if (byCat !== 0) return byCat;
+        return a.sortOrder - b.sortOrder;
+      })
+      .map(({ sortOrder: _sortOrder, ...service }) => service);
   } catch {
     return SALON_SERVICES;
   }

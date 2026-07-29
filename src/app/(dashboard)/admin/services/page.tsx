@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
-import { SERVICE_CATEGORIES } from "@/lib/constants/services";
+import { SERVICE_CATEGORIES, SERVICE_CATEGORY_ORDER } from "@/lib/constants/services";
 import { parseAdminServiceCreateForm, parseAdminServiceForm, slugifyServiceName } from "@/lib/validation/admin-service";
 import {
   AdminBtnPrimary,
@@ -97,7 +97,7 @@ export default async function AdminServicesPage() {
     )
     .order("sort_order", { ascending: true });
 
-  const categories = Object.entries(SERVICE_CATEGORIES);
+  const categories = SERVICE_CATEGORY_ORDER.map((value) => [value, SERVICE_CATEGORIES[value]] as const);
 
   return (
     <AdminPanel>

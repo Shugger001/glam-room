@@ -11,8 +11,8 @@ import { SALON_LOCATIONS, type SalonLocation } from "@/lib/constants/locations";
 import type { BookingTimeSlot } from "@/lib/data/live-site-content";
 import {
   SERVICE_CATEGORIES,
+  SERVICE_CATEGORY_ORDER,
   type SalonService,
-  type ServiceCategory,
 } from "@/lib/constants/services";
 import {
   MAX_BOOKINGS_PER_SHOP_PER_DAY,
@@ -39,8 +39,6 @@ type BookingFormProps = {
   initialLocationId?: string;
   paystackEnabled?: boolean;
 };
-
-const CATEGORY_ORDER: ServiceCategory[] = ["hair-reset", "hair-installation", "braids"];
 
 function findCategoryForService(services: SalonService[], serviceId?: string) {
   if (!serviceId) return "";
@@ -112,7 +110,7 @@ export function BookingForm({
 
   const categoriesInCatalog = useMemo(() => {
     const present = new Set(services.map((s) => s.category));
-    return CATEGORY_ORDER.filter((c) => present.has(c));
+    return SERVICE_CATEGORY_ORDER.filter((c) => present.has(c));
   }, [services]);
 
   const stylesForCategory = useMemo(

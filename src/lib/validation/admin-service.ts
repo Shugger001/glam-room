@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { SERVICE_CATEGORIES, type ServiceCategory } from "@/lib/constants/services";
+import { SERVICE_CATEGORY_ORDER, type ServiceCategory } from "@/lib/constants/services";
 
-const categoryKeys = Object.keys(SERVICE_CATEGORIES) as [ServiceCategory, ...ServiceCategory[]];
+const categoryKeys = SERVICE_CATEGORY_ORDER as [ServiceCategory, ...ServiceCategory[]];
 
 export const adminServiceUpdateSchema = z.object({
   id: z.string().uuid(),
