@@ -2,8 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { ButtonLink } from "@/components/ui/button";
-import { ServicesByCategory } from "@/components/services/services-by-category";
-import { Section, SectionHeader } from "@/components/ui/section";
 import { formatShopPrice } from "@/lib/format/money";
 import type { SalonService } from "@/lib/constants/services";
 
@@ -77,19 +75,5 @@ export function ServicesGrid({ services, limit }: ServicesGridProps) {
         <ServiceCard key={service.id} service={service} index={i} />
       ))}
     </div>
-  );
-}
-
-export function ServicesPreview({ services }: { services: SalonService[] }) {
-  return (
-    <Section id="services" background="default">
-      <SectionHeader
-        eyebrow="Services"
-        title="What we offer"
-        description="Hair installation, braiding, and hair reset — pick a look and book."
-        align="left"
-      />
-      <ServicesByCategory services={services} layout="list" />
-    </Section>
   );
 }

@@ -1,17 +1,18 @@
+import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
-import { ServiceCard, ServicesGrid } from "@/components/services/service-card";
+import { ServicesGrid } from "@/components/services/service-card";
+import { Section, SectionHeader } from "@/components/ui/section";
+import { ButtonLink } from "@/components/ui/button";
+import { BRAND } from "@/lib/constants/brand";
 import {
   groupServicesByCategory,
   type SalonService,
 } from "@/lib/constants/services";
-import { BRAND } from "@/lib/constants/brand";
 import { formatShopPrice } from "@/lib/format/money";
-import { ButtonLink } from "@/components/ui/button";
-import Link from "next/link";
 
 type ServicesByCategoryProps = {
   services: SalonService[];
-  /** Card grid (default) or compact price list */
+  /** Card grid or compact price list (default) */
   layout?: "cards" | "list";
 };
 
@@ -88,5 +89,16 @@ export function ServicesByCategory({
   );
 }
 
-/** Kept for callers that still import ServiceCard from this module path via re-exports */
-export { ServiceCard };
+export function ServicesPreview({ services }: { services: SalonService[] }) {
+  return (
+    <Section id="services" background="default">
+      <SectionHeader
+        eyebrow="Services"
+        title="What we offer"
+        description="Hair installation, braiding, and hair reset — pick a look and book."
+        align="left"
+      />
+      <ServicesByCategory services={services} layout="list" />
+    </Section>
+  );
+}
