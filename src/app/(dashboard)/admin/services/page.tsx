@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
 import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import { SERVICE_CATEGORIES, SERVICE_CATEGORY_ORDER } from "@/lib/constants/services";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { parseAdminServiceCreateForm, parseAdminServiceForm, slugifyServiceName } from "@/lib/validation/admin-service";
 import {
   AdminBtnPrimary,
@@ -42,6 +43,7 @@ async function updateService(formData: FormData) {
       sort_order: values.sort_order,
       featured: values.featured,
       active: values.active,
+      location_ids: values.location_ids.length > 0 ? values.location_ids : null,
     })
     .eq("id", id);
 
@@ -82,6 +84,7 @@ async function createService(formData: FormData) {
     sort_order: values.sort_order,
     featured: values.featured,
     active: values.active,
+    location_ids: values.location_ids.length > 0 ? values.location_ids : null,
     slug,
   });
 
@@ -102,7 +105,7 @@ export default async function AdminServicesPage() {
   const { data: services } = await admin
     .from("services")
     .select(
-      "id, name, description, duration_minutes, base_price, category, sort_order, featured, active",
+      "id, name, description, duration_minutes, base_price, category, sort_order, featured, active, location_ids",
     )
     .order("sort_order", { ascending: true });
 
@@ -112,7 +115,7 @@ export default async function AdminServicesPage() {
     <div className="space-y-5">
       <AdminPageHeader
         title="Services"
-        description="Add new services or edit pricing, duration, categories, and visibility. Changes appear on the booking page immediately."
+        description="Edit pricing and shop availability. Leave shops unchecked for all locations — check Madina only for nails/makeup."
       />
 
       <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
@@ -149,6 +152,18 @@ export default async function AdminServicesPage() {
             Sort order
             <input type="number" name="sort_order" min={0} defaultValue={(services?.length ?? 0) + 1} className={inputClass} />
           </label>
+          <fieldset className="lg:col-span-2">
+            <legend className="text-xs text-white/55">Available at shops</legend>
+            <p className="mt-1 text-[0.7rem] text-white/40">Leave all unchecked = every shop</p>
+            <div className="mt-2 flex flex-wrap gap-4">
+              {SALON_LOCATIONS.map((loc) => (
+                <label key={loc.id} className="flex items-center gap-2 text-sm text-white/75">
+                  <input type="checkbox" name="location_ids" value={loc.id} />
+                  {loc.area}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="flex flex-wrap items-end gap-6">
             <label className="flex items-center gap-2 text-sm text-white/75">
               <input type="checkbox" name="featured" />
@@ -240,6 +255,26 @@ export default async function AdminServicesPage() {
                   className={inputClass}
                 />
               </label>
+              <fieldset className="lg:col-span-2">
+                <legend className="text-xs text-white/55">Available at shops</legend>
+                <p className="mt-1 text-[0.7rem] text-white/40">Leave all unchecked = every shop</p>
+                <div className="mt-2 flex flex-wrap gap-4">
+                  {SALON_LOCATIONS.map((loc) => {
+                    const ids = Array.isArray(s.location_ids) ? (s.location_ids as string[]) : [];
+                    return (
+                      <label key={loc.id} className="flex items-center gap-2 text-sm text-white/75">
+                        <input
+                          type="checkbox"
+                          name="location_ids"
+                          value={loc.id}
+                          defaultChecked={ids.includes(loc.id)}
+                        />
+                        {loc.area}
+                      </label>
+                    );
+                  })}
+                </div>
+              </fieldset>
               <div className="flex flex-wrap items-end gap-6">
                 <label className="flex items-center gap-2 text-sm text-white/75">
                   <input type="checkbox" name="featured" defaultChecked={Boolean(s.featured)} />
@@ -258,6 +293,11 @@ export default async function AdminServicesPage() {
               <p className="text-xs text-white/45">
                 {s.active ? "Visible on website" : "Hidden from booking"} · ₵
                 {Number(s.base_price).toLocaleString()} · {s.duration_minutes} min
+                {Array.isArray(s.location_ids) && s.location_ids.length > 0
+                  ? ` · ${SALON_LOCATIONS.filter((l) => (s.location_ids as string[]).includes(l.id))
+                      .map((l) => l.area)
+                      .join(", ")} only`
+                  : " · All shops"}
               </p>
               <AdminBtnPrimary>Save service</AdminBtnPrimary>
             </div>

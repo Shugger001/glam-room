@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const [{ data: serviceRow, error: serviceError }, { data: staffRow }] = await Promise.all([
     admin
       .from("services")
-      .select("id, name, duration_minutes, base_price, active")
+      .select("id, name, duration_minutes, base_price, active, location_ids")
       .eq("id", values.serviceId)
       .maybeSingle(),
     admin.from("staff").select("id, active, is_front_desk").eq("id", staffId).maybeSingle(),
@@ -58,6 +58,19 @@ export async function POST(request: Request) {
 
   if (serviceError || !serviceRow || serviceRow.active === false) {
     return NextResponse.json({ error: "Selected service is unavailable." }, { status: 400 });
+  }
+
+  const serviceLocationIds = Array.isArray(serviceRow.location_ids)
+    ? (serviceRow.location_ids as string[])
+    : [];
+  if (
+    serviceLocationIds.length > 0 &&
+    !serviceLocationIds.includes(values.locationId)
+  ) {
+    return NextResponse.json(
+      { error: "That service is only available at another Glam Room shop." },
+      { status: 400 },
+    );
   }
 
   if (!staffRow || staffRow.active === false || staffRow.is_front_desk === true) {

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   SALON_SERVICES,
   SERVICE_CATEGORY_ORDER,
+  isServiceCategory,
   type SalonService,
   type ServiceCategory,
 } from "@/lib/constants/services";
@@ -12,12 +13,6 @@ export type LiveService = {
   duration: number;
   price: number;
 };
-
-const SERVICE_CATEGORY_SET = new Set<string>(SERVICE_CATEGORY_ORDER);
-
-function isServiceCategory(value: string): value is ServiceCategory {
-  return SERVICE_CATEGORY_SET.has(value);
-}
 
 function mapServiceRow(
   row: Record<string, unknown>,
@@ -40,6 +35,9 @@ function mapServiceRow(
   const featured = row.featured === true;
   const sortOrder =
     typeof row.sort_order === "number" ? row.sort_order : Number(row.sort_order) || 0;
+  const locationIds = Array.isArray(row.location_ids)
+    ? (row.location_ids as unknown[]).filter((v): v is string => typeof v === "string")
+    : null;
 
   if (!id || !name || Number.isNaN(duration) || Number.isNaN(price)) return null;
 
@@ -53,6 +51,7 @@ function mapServiceRow(
     price,
     image,
     featured,
+    locationIds: locationIds && locationIds.length > 0 ? locationIds : null,
     sortOrder: Number.isNaN(sortOrder) ? 0 : sortOrder,
   };
 }
@@ -68,7 +67,7 @@ export async function getSalonServices(): Promise<SalonService[]> {
     const { data, error } = await supabase
       .from("services")
       .select(
-        "id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order",
+        "id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order, location_ids",
       )
       .eq("active", true)
       .order("sort_order", { ascending: true });

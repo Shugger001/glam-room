@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
+import { filterServicesForLocation, type SalonService } from "@/lib/constants/services";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 import { AdminBtnPrimary } from "@/components/admin/admin-ui";
-import type { SalonService } from "@/lib/constants/services";
 
 type StaffOption = { id: string; name: string };
 
@@ -35,11 +35,17 @@ export function WalkInBookingForm({
 }) {
   const isRebook = Boolean(defaults?.open || defaults?.clientName || defaults?.clientPhone);
   const [open, setOpen] = useState(isRebook);
-
   const preferredLocation = defaults?.locationId || defaultLocationId || "";
+  const [locationId, setLocationId] = useState(preferredLocation);
+
   const locations = defaultLocationId
     ? SALON_LOCATIONS.filter((l) => l.id === defaultLocationId)
     : SALON_LOCATIONS;
+
+  const scopedServices = useMemo(
+    () => filterServicesForLocation(services, locationId || null),
+    [services, locationId],
+  );
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -64,7 +70,8 @@ export function WalkInBookingForm({
             <select
               name="locationId"
               required
-              defaultValue={preferredLocation}
+              value={locationId}
+              onChange={(e) => setLocationId(e.target.value)}
               className={inputClass}
             >
               <option value="" className="bg-glam-primary">
@@ -73,17 +80,18 @@ export function WalkInBookingForm({
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.id} className="bg-glam-primary">
                   {loc.area}
+                  {loc.id === "glam-room-madina" ? " · Hair · Nails · Makeup" : ""}
                 </option>
               ))}
             </select>
           </label>
           <label className="block text-xs text-white/60">
             Service
-            <select name="serviceId" required className={inputClass}>
+            <select name="serviceId" required className={inputClass} key={locationId}>
               <option value="" className="bg-glam-primary">
-                Select service
+                {locationId ? "Select service" : "Select shop first"}
               </option>
-              {services.map((s) => (
+              {scopedServices.map((s) => (
                 <option key={s.id} value={s.id} className="bg-glam-primary">
                   {s.name} · {s.durationMinutes}m · ₵{s.price}
                 </option>

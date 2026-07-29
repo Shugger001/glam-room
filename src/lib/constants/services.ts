@@ -1,4 +1,9 @@
-export type ServiceCategory = "hair-installation" | "braids" | "hair-reset";
+export type ServiceCategory =
+  | "hair-installation"
+  | "braids"
+  | "hair-reset"
+  | "nails"
+  | "makeup";
 
 export type SalonService = {
   id: string;
@@ -11,6 +16,11 @@ export type SalonService = {
   image: string;
   featured?: boolean;
   badge?: string | null;
+  /**
+   * Null/undefined/empty = available at every shop.
+   * Otherwise only bookable at these location ids.
+   */
+  locationIds?: string[] | null;
 };
 
 /** Display order on services page and booking. */
@@ -18,18 +28,24 @@ export const SERVICE_CATEGORY_ORDER: ServiceCategory[] = [
   "hair-installation",
   "braids",
   "hair-reset",
+  "nails",
+  "makeup",
 ];
 
 export const SERVICE_CATEGORIES: Record<ServiceCategory, string> = {
   "hair-installation": "Hair installation services",
   braids: "Braiding (workmanship only)",
   "hair-reset": "Hair reset services",
+  nails: "Nails (Madina)",
+  makeup: "Makeup (Madina)",
 };
 
 export const SERVICE_CATEGORY_DESCRIPTIONS: Record<ServiceCategory, string> = {
   "hair-installation": "Closure and frontal installs, finished in the chair.",
   braids: "Length-based braiding. Hair not included — bring yours or buy at the salon.",
   "hair-reset": "Wash, take-down, touch-ups, and quick styles.",
+  nails: "Manicures, pedicures, and acrylics — offered at our Madina shop.",
+  makeup: "Soft glam to bridal — offered at our Madina shop.",
 };
 
 export const SERVICE_CATEGORY_HEROES: Record<
@@ -48,7 +64,37 @@ export const SERVICE_CATEGORY_HEROES: Record<
     src: "/images/glam-gallery-waves-front.png",
     alt: "Hair reset and styling at Glam Room",
   },
+  nails: {
+    src: "/images/glam-red-celebration.png",
+    alt: "Nail services at Glam Room Madina",
+  },
+  makeup: {
+    src: "/images/glam-red-indoor.png",
+    alt: "Makeup services at Glam Room Madina",
+  },
 };
+
+/** True when a service can be booked at the given shop. */
+export function serviceAvailableAtLocation(
+  service: Pick<SalonService, "locationIds">,
+  locationId: string | null | undefined,
+): boolean {
+  const ids = service.locationIds;
+  if (!ids || ids.length === 0) return true;
+  if (!locationId) return false;
+  return ids.includes(locationId);
+}
+
+export function filterServicesForLocation(
+  services: SalonService[],
+  locationId: string | null | undefined,
+): SalonService[] {
+  if (!locationId) {
+    // Before a shop is chosen, only show services available everywhere.
+    return services.filter((s) => !s.locationIds || s.locationIds.length === 0);
+  }
+  return services.filter((s) => serviceAvailableAtLocation(s, locationId));
+}
 
 export const SALON_SERVICES: SalonService[] = [
   {
@@ -193,6 +239,121 @@ export const SALON_SERVICES: SalonService[] = [
     durationMinutes: 60,
     price: 80,
     image: "/images/glam-red-outdoor.png",
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000020",
+    slug: "classic-manicure",
+    name: "Classic manicure",
+    description: "Nail shaping, cuticle care, and polish. Madina shop.",
+    category: "nails",
+    durationMinutes: 45,
+    price: 80,
+    image: "/images/glam-red-celebration.png",
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000021",
+    slug: "gel-manicure",
+    name: "Gel manicure",
+    description: "Long-wear gel polish manicure. Madina shop.",
+    category: "nails",
+    durationMinutes: 60,
+    price: 150,
+    image: "/images/glam-red-celebration.png",
+    featured: true,
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000022",
+    slug: "classic-pedicure",
+    name: "Classic pedicure",
+    description: "Foot soak, care, and polish. Madina shop.",
+    category: "nails",
+    durationMinutes: 60,
+    price: 100,
+    image: "/images/glam-red-celebration.png",
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000023",
+    slug: "gel-pedicure",
+    name: "Gel pedicure",
+    description: "Gel polish pedicure. Madina shop.",
+    category: "nails",
+    durationMinutes: 75,
+    price: 180,
+    image: "/images/glam-red-celebration.png",
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000024",
+    slug: "acrylic-full-set",
+    name: "Acrylic full set",
+    description: "Full set acrylic extensions. Madina shop.",
+    category: "nails",
+    durationMinutes: 120,
+    price: 250,
+    image: "/images/glam-red-celebration.png",
+    featured: true,
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000025",
+    slug: "acrylic-refill",
+    name: "Acrylic refill",
+    description: "Acrylic fill / refill. Madina shop.",
+    category: "nails",
+    durationMinutes: 90,
+    price: 150,
+    image: "/images/glam-red-celebration.png",
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000030",
+    slug: "soft-glam-makeup",
+    name: "Soft glam makeup",
+    description: "Natural soft glam look. Madina shop.",
+    category: "makeup",
+    durationMinutes: 60,
+    price: 200,
+    image: "/images/glam-red-indoor.png",
+    featured: true,
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000031",
+    slug: "full-glam-makeup",
+    name: "Full glam makeup",
+    description: "Bold full glam makeup. Madina shop.",
+    category: "makeup",
+    durationMinutes: 90,
+    price: 300,
+    image: "/images/glam-red-indoor.png",
+    featured: true,
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000032",
+    slug: "bridal-makeup",
+    name: "Bridal makeup",
+    description: "Bridal makeup session. Madina shop — trial available on request.",
+    category: "makeup",
+    durationMinutes: 120,
+    price: 500,
+    image: "/images/glam-red-indoor.png",
+    featured: true,
+    locationIds: ["glam-room-madina"],
+  },
+  {
+    id: "a1000001-0001-4000-8000-000000000033",
+    slug: "makeup-lashes",
+    name: "Makeup + lashes",
+    description: "Glam makeup with lash application. Madina shop.",
+    category: "makeup",
+    durationMinutes: 90,
+    price: 350,
+    image: "/images/glam-red-indoor.png",
+    locationIds: ["glam-room-madina"],
   },
 ];
 

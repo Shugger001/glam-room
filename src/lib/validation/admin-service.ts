@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { SERVICE_CATEGORY_ORDER, type ServiceCategory } from "@/lib/constants/services";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 
 const categoryKeys = SERVICE_CATEGORY_ORDER as [ServiceCategory, ...ServiceCategory[]];
+const locationIdKeys = SALON_LOCATIONS.map((l) => l.id) as [string, ...string[]];
 
 export const adminServiceUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -13,6 +15,8 @@ export const adminServiceUpdateSchema = z.object({
   sort_order: z.coerce.number().int().min(0).max(999),
   featured: z.coerce.boolean(),
   active: z.coerce.boolean(),
+  /** Empty = all shops */
+  location_ids: z.array(z.enum(locationIdKeys)).default([]),
 });
 
 export const adminServiceCreateSchema = adminServiceUpdateSchema.omit({ id: true });
@@ -22,6 +26,12 @@ export type AdminServiceCreateInput = z.infer<typeof adminServiceCreateSchema>;
 
 function readBoolean(formData: FormData, key: string) {
   return formData.get(key) === "on" || formData.get(key) === "true";
+}
+
+function readLocationIds(formData: FormData): string[] {
+  const raw = formData.getAll("location_ids").map(String);
+  const allowed = new Set(SALON_LOCATIONS.map((l) => l.id));
+  return [...new Set(raw.filter((id) => allowed.has(id)))];
 }
 
 export function slugifyServiceName(name: string) {
@@ -44,6 +54,7 @@ export function parseAdminServiceForm(formData: FormData) {
     sort_order: formData.get("sort_order"),
     featured: readBoolean(formData, "featured"),
     active: readBoolean(formData, "active"),
+    location_ids: readLocationIds(formData),
   });
 }
 
@@ -57,5 +68,6 @@ export function parseAdminServiceCreateForm(formData: FormData) {
     sort_order: formData.get("sort_order"),
     featured: readBoolean(formData, "featured"),
     active: readBoolean(formData, "active"),
+    location_ids: readLocationIds(formData),
   });
 }

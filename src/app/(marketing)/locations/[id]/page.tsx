@@ -24,7 +24,10 @@ export async function generateMetadata({ params }: LocationPageProps): Promise<M
   if (!loc) return { title: "Shop" };
   return {
     title: `${loc.area} shop`,
-    description: `${BRAND.fullName} in ${loc.area}, Accra — ${loc.address}. Book hair, installs, and braids. Open Mon–Sun 8am–8pm.`,
+    description:
+      loc.id === "glam-room-madina"
+        ? `${BRAND.fullName} Madina — hair, nails, and makeup. ${loc.address}. Open Mon–Sun 8am–8pm.`
+        : `${BRAND.fullName} in ${loc.area}, Accra — ${loc.address}. Book hair, installs, and braids. Open Mon–Sun 8am–8pm.`,
   };
 }
 
@@ -61,10 +64,26 @@ export default async function LocationPage({ params }: LocationPageProps) {
             <h2 className="heading-display mt-4 text-3xl sm:text-4xl">{loc.area}</h2>
             <p className="mt-4 text-glam-muted">{loc.address}</p>
             <p className="mt-2 text-sm text-glam-muted">{loc.hours}</p>
+            {loc.id === "glam-room-madina" ? (
+              <p className="mt-4 text-sm text-glam-primary">
+                Madina offers the full hair menu plus <strong>nails</strong> and{" "}
+                <strong>makeup</strong> — manicures, acrylics, soft glam, full glam, and bridal.
+              </p>
+            ) : null}
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href={`/book?location=${loc.id}`} variant="accent">
                 Book this shop
               </ButtonLink>
+              {loc.id === "glam-room-madina" ? (
+                <>
+                  <ButtonLink href="/services/nails" variant="outline">
+                    Nails menu
+                  </ButtonLink>
+                  <ButtonLink href="/services/makeup" variant="outline">
+                    Makeup menu
+                  </ButtonLink>
+                </>
+              ) : null}
               <ButtonLink href={directions} variant="outline" target="_blank" rel="noreferrer">
                 Get directions
               </ButtonLink>

@@ -5,24 +5,42 @@ import {
 } from "@/lib/admin/access";
 import { createWalkInBookingAction } from "@/lib/admin/walk-in-booking-action";
 import { WalkInBookingForm } from "@/components/admin/walk-in-booking-form";
-import { SALON_SERVICES, type SalonService } from "@/lib/constants/services";
+import { SALON_SERVICES, isServiceCategory, type SalonService } from "@/lib/constants/services";
 
 function mapServicesFromRows(
-  serviceRows: { id: string; name: string; description: string | null; duration_minutes: number; base_price: number; slug: string | null; featured: boolean | null }[] | null,
+  serviceRows: {
+    id: string;
+    name: string;
+    description: string | null;
+    duration_minutes: number;
+    base_price: number;
+    slug: string | null;
+    featured: boolean | null;
+    category?: string | null;
+    location_ids?: string[] | null;
+  }[] | null,
 ): SalonService[] {
   if (!serviceRows || serviceRows.length === 0) return SALON_SERVICES;
   return serviceRows
-    .map((row) => ({
-      id: row.id,
-      slug: row.slug ?? row.id,
-      name: row.name,
-      description: row.description ?? "",
-      category: "hair-reset" as const,
-      durationMinutes: Number(row.duration_minutes),
-      price: Number(row.base_price),
-      image: "/images/glam-braids-studio.png",
-      featured: row.featured === true,
-    }))
+    .map((row) => {
+      const categoryRaw = row.category ?? "hair-reset";
+      const category = isServiceCategory(categoryRaw) ? categoryRaw : "hair-reset";
+      const locationIds = Array.isArray(row.location_ids)
+        ? row.location_ids.filter((v): v is string => typeof v === "string")
+        : null;
+      return {
+        id: row.id,
+        slug: row.slug ?? row.id,
+        name: row.name,
+        description: row.description ?? "",
+        category,
+        durationMinutes: Number(row.duration_minutes),
+        price: Number(row.base_price),
+        image: "/images/glam-braids-studio.png",
+        featured: row.featured === true,
+        locationIds: locationIds && locationIds.length > 0 ? locationIds : null,
+      } satisfies SalonService;
+    })
     .filter((s) => s.name && s.durationMinutes);
 }
 import { updateBookingStatusAction } from "@/lib/admin/update-booking-status";
@@ -172,7 +190,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     })(),
     admin
       .from("services")
-      .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order")
+      .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order, location_ids")
       .eq("active", true)
       .order("sort_order"),
     loadShopCapacityToday(admin, locationScope),

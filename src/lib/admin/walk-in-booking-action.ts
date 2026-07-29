@@ -22,11 +22,24 @@ export async function createWalkInBookingAction(formData: FormData) {
   const admin = createAdminClient();
   const { data: serviceRow } = await admin
     .from("services")
-    .select("id, duration_minutes, base_price")
+    .select("id, duration_minutes, base_price, location_ids, active")
     .eq("id", parsed.data.serviceId)
     .maybeSingle();
-  if (!serviceRow) {
+  if (!serviceRow || serviceRow.active === false) {
     return redirectBackWithFlash("error", "Service not found.");
+  }
+
+  const serviceLocationIds = Array.isArray(serviceRow.location_ids)
+    ? (serviceRow.location_ids as string[])
+    : [];
+  if (
+    serviceLocationIds.length > 0 &&
+    !serviceLocationIds.includes(parsed.data.locationId)
+  ) {
+    return redirectBackWithFlash(
+      "error",
+      "That service is only offered at another shop (e.g. nails/makeup at Madina).",
+    );
   }
 
   const { staffId: formStaffId, ...walkInValues } = parsed.data;

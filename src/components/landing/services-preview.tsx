@@ -17,10 +17,10 @@ export function ServicesPreview() {
       <SectionHeader
         eyebrow="Services"
         title="What we do"
-        description="Installation, braiding workmanship, and hair reset — pick a category and book."
+        description="Installation, braids, hair reset — plus nails and makeup at Madina."
         align="left"
       />
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {SERVICE_CATEGORY_ORDER.map((category: ServiceCategory, i) => {
           const hero = SERVICE_CATEGORY_HEROES[category];
           return (

@@ -12,6 +12,8 @@ import type { BookingTimeSlot } from "@/lib/data/live-site-content";
 import {
   SERVICE_CATEGORIES,
   SERVICE_CATEGORY_ORDER,
+  filterServicesForLocation,
+  serviceAvailableAtLocation,
   type SalonService,
 } from "@/lib/constants/services";
 import {
@@ -109,14 +111,15 @@ export function BookingForm({
   const promoCode = useWatch({ control: form.control, name: "promoCode" });
 
   const categoriesInCatalog = useMemo(() => {
-    const present = new Set(services.map((s) => s.category));
+    const scoped = filterServicesForLocation(services, locationId || null);
+    const present = new Set(scoped.map((s) => s.category));
     return SERVICE_CATEGORY_ORDER.filter((c) => present.has(c));
-  }, [services]);
+  }, [services, locationId]);
 
-  const stylesForCategory = useMemo(
-    () => services.filter((s) => s.category === category),
-    [services, category],
-  );
+  const stylesForCategory = useMemo(() => {
+    const scoped = filterServicesForLocation(services, locationId || null);
+    return scoped.filter((s) => s.category === category);
+  }, [services, category, locationId]);
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceId),
@@ -134,6 +137,21 @@ export function BookingForm({
     if (cat) form.setValue("category", cat);
     form.setValue("serviceId", resolvedServiceId);
   }, [resolvedServiceId, services, form]);
+
+  useEffect(() => {
+    if (!locationId) return;
+    if (category && !categoriesInCatalog.includes(category as (typeof SERVICE_CATEGORY_ORDER)[number])) {
+      form.setValue("category", "");
+      form.setValue("serviceId", "");
+      return;
+    }
+    if (serviceId) {
+      const svc = services.find((s) => s.id === serviceId);
+      if (svc && !serviceAvailableAtLocation(svc, locationId)) {
+        form.setValue("serviceId", "");
+      }
+    }
+  }, [locationId, category, categoriesInCatalog, serviceId, services, form]);
 
   useEffect(() => {
     if (!category) return;
@@ -542,6 +560,11 @@ export function BookingForm({
                       onClick={() => form.setValue("locationId", loc.id, { shouldValidate: true })}
                     >
                       <span className="block font-semibold text-glam-primary">{loc.area}</span>
+                      {loc.id === "glam-room-madina" ? (
+                        <span className="mt-1 block text-[0.7rem] text-glam-muted">
+                          Hair · Nails · Makeup
+                        </span>
+                      ) : null}
                       {loc.badge ? (
                         <span className="mt-1 block text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
                           {loc.badge}
@@ -559,6 +582,9 @@ export function BookingForm({
 
             <fieldset>
               <legend className="text-sm font-medium">Category</legend>
+              {!locationId ? (
+                <p className="mt-2 text-xs text-glam-muted">Select a shop first to see categories.</p>
+              ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 {categoriesInCatalog.map((cat) => {
                   const selected = category === cat;
@@ -566,9 +592,11 @@ export function BookingForm({
                     <button
                       key={cat}
                       type="button"
+                      disabled={!locationId}
                       className={cn(
                         "border px-4 py-2 text-xs font-medium transition duration-200 active:scale-[0.98]",
                         selected ? choiceSelected : choiceIdle,
+                        !locationId && "opacity-50",
                       )}
                       aria-pressed={selected}
                       onClick={() => {
