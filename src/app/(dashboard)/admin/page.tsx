@@ -18,6 +18,7 @@ import { WalkInBookingForm } from "@/components/admin/walk-in-booking-form";
 import { BulkApproveBar } from "@/components/admin/bulk-approve-bar";
 import { BulkChaseDepositsBar, type ChaseDepositTarget } from "@/components/admin/bulk-chase-deposits-bar";
 import { ShopCapacityStrip } from "@/components/admin/shop-capacity-strip";
+import { StaffClockStrip } from "@/components/admin/staff-clock-strip";
 import { AdminQuickLinks } from "@/components/admin/admin-quick-links";
 import {
   AdminIntegrationSnapshot,
@@ -31,6 +32,7 @@ import {
   adminBtnOutline,
   adminTabClass,
 } from "@/components/admin/admin-ui";
+import { loadStaffPresence } from "@/lib/admin/staff-clock";
 import { cn } from "@/lib/utils/cn";
 import { SALON_SERVICES, type SalonService } from "@/lib/constants/services";
 
@@ -276,29 +278,37 @@ async function StaffDashboard({
   const admin = createAdminClient();
   const locationScope = bookingLocationScope(access);
 
-  const [stats, capacityRows, paidAwaitingCount, todayBookings, staffService] = await Promise.all([
-    loadTodayStats(admin, locationScope),
-    loadShopCapacityToday(admin, locationScope),
-    countPaidAwaiting(admin, locationScope),
-    loadTodayBookings(admin, locationScope),
-    Promise.all([
-      admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
-      admin
-        .from("services")
-        .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order")
-        .eq("active", true)
-        .order("sort_order"),
-    ]),
-  ]);
+  const [stats, capacityRows, paidAwaitingCount, todayBookings, presence, staffService] =
+    await Promise.all([
+      loadTodayStats(admin, locationScope),
+      loadShopCapacityToday(admin, locationScope),
+      countPaidAwaiting(admin, locationScope),
+      loadTodayBookings(admin, locationScope),
+      loadStaffPresence(admin, locationScope),
+      Promise.all([
+        admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
+        admin
+          .from("services")
+          .select(
+            "id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order",
+          )
+          .eq("active", true)
+          .order("sort_order"),
+      ]),
+    ]);
 
   const [{ data: staffRows }, { data: serviceRows }] = staffService;
   const visibleBookings = filterTodayBoard(todayBookings, q, depositFilter, statusFilter);
   const chaseTargets = chaseTargetsFromBookings(todayBookings);
+  const staffOnFloor = presence.filter(
+    (m) => m.openShift && (!locationScope || m.openShift.locationId === locationScope),
+  ).length;
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "scheduled", href: "/admin/appointments?range=today" },
     { label: "Awaiting", value: `${stats.awaiting}`, href: "/admin/appointments?range=today&status=awaiting_approval" },
-    { label: "On floor", value: `${stats.arrived}`, href: "/admin/appointments?range=today&status=arrived" },
+    { label: "Clients on floor", value: `${stats.arrived}`, href: "/admin/appointments?range=today&status=arrived" },
+    { label: "Staff in", value: `${staffOnFloor}`, href: "/admin/attendance" },
     { label: "Unpaid deposits", value: `${stats.unpaidDeposits}`, href: "/admin?deposit=unpaid" },
   ];
 
@@ -308,12 +318,18 @@ async function StaffDashboard({
         title={`Today · ${access.assignedLocationLabel ?? "Shop"}`}
         description="Confirm walk-ins, update status, and message clients on WhatsApp."
       />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {kpis.map((k) => (
           <AdminKpi key={k.label} {...k} />
         ))}
       </div>
       <ShopCapacityStrip shops={capacityRows} />
+      <StaffClockStrip
+        members={presence}
+        locationScope={locationScope}
+        isSuperAdmin={false}
+        shopLabel={access.assignedLocationLabel}
+      />
       <BulkApproveBar paidAwaitingCount={paidAwaitingCount} locationId={access.assignedLocationId} />
       <BulkChaseDepositsBar targets={chaseTargets} />
       <WalkInBookingForm
@@ -362,6 +378,7 @@ async function SuperAdminDashboard({
     capacityRows,
     paidAwaitingCount,
     todayBookings,
+    presence,
     integrationHealth,
     queueRes,
     messagesRes,
@@ -371,6 +388,7 @@ async function SuperAdminDashboard({
     loadShopCapacityToday(admin, null),
     countPaidAwaiting(admin, null),
     loadTodayBookings(admin, null),
+    loadStaffPresence(admin, null),
     loadAdminIntegrationSnapshot(admin),
     admin
       .from("bookings")
@@ -381,7 +399,9 @@ async function SuperAdminDashboard({
       admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
       admin
         .from("services")
-        .select("id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order")
+        .select(
+          "id, name, description, duration_minutes, base_price, category, slug, image_url, featured, active, sort_order",
+        )
         .eq("active", true)
         .order("sort_order"),
     ]),
@@ -390,11 +410,13 @@ async function SuperAdminDashboard({
   const [{ data: staffRows }, { data: serviceRows }] = staffService;
   const visibleBookings = filterTodayBoard(todayBookings, q, depositFilter, statusFilter);
   const chaseTargets = chaseTargetsFromBookings(todayBookings);
+  const staffOnFloor = presence.filter((m) => m.openShift).length;
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "all shops", href: "/admin/appointments?range=today" },
     { label: "Open queue", value: `${queueRes.count ?? 0}`, href: "/admin/appointments?status=awaiting_approval" },
-    { label: "On floor", value: `${stats.arrived}`, href: "/admin/appointments?range=today&status=arrived" },
+    { label: "Clients on floor", value: `${stats.arrived}`, href: "/admin/appointments?range=today&status=arrived" },
+    { label: "Staff in", value: `${staffOnFloor}`, href: "/admin/attendance" },
     { label: "Done today", value: `${stats.completed}`, href: "/admin/appointments?range=today&status=completed" },
     { label: "Unread messages", value: `${messagesRes.count ?? 0}`, href: "/admin/messages?filter=unread" },
     { label: "Unpaid deposits", value: `${stats.unpaidDeposits}`, href: "/admin?deposit=unpaid" },
@@ -413,6 +435,7 @@ async function SuperAdminDashboard({
         ))}
       </div>
       <ShopCapacityStrip shops={capacityRows} />
+      <StaffClockStrip members={presence} locationScope={null} isSuperAdmin />
       <BulkApproveBar paidAwaitingCount={paidAwaitingCount} />
       <BulkChaseDepositsBar targets={chaseTargets} />
       <AdminIntegrationSnapshot health={integrationHealth} />

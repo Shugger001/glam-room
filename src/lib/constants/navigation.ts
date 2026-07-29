@@ -40,6 +40,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin", label: "Overview" },
       { href: "/admin/appointments", label: "Appointments" },
+      { href: "/admin/attendance", label: "Attendance" },
       { href: "/admin/messages", label: "Messages" },
       { href: "/admin/customers", label: "CRM" },
     ],
@@ -81,6 +82,7 @@ export const STAFF_ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     items: [
       { href: "/admin", label: "Today" },
       { href: "/admin/appointments", label: "Appointments" },
+      { href: "/admin/attendance", label: "Attendance" },
     ],
   },
 ];

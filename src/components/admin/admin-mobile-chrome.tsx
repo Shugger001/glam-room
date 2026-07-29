@@ -50,12 +50,14 @@ export function AdminMobileChrome({
     ? [
         { href: "/admin", label: "Overview" },
         { href: "/admin/appointments", label: "Appts" },
+        { href: "/admin/attendance", label: "Clock" },
         { href: "/admin/messages", label: "Inbox" },
         { href: "/admin/customers", label: "CRM" },
       ]
     : [
         { href: "/admin", label: "Today" },
         { href: "/admin/appointments", label: "Appts" },
+        { href: "/admin/attendance", label: "Clock" },
       ];
 
   return (
@@ -93,7 +95,7 @@ export function AdminMobileChrome({
         className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-glam-primary/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
         aria-label="Primary admin"
       >
-        <div className={cn("grid", isSuperAdmin ? "grid-cols-5" : "grid-cols-3")}>
+        <div className={cn("grid", isSuperAdmin ? "grid-cols-6" : "grid-cols-4")}>
           {primaryTabs.map((tab) => {
             const active = isActive(pathname, tab.href);
             return (

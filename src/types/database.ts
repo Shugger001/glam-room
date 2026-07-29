@@ -151,6 +151,18 @@ export interface StaffRow {
   updated_at: string;
 }
 
+export interface StaffShiftRow {
+  id: string;
+  staff_id: string;
+  location_id: string;
+  clock_in_at: string;
+  clock_out_at: string | null;
+  clocked_in_by: string | null;
+  clocked_out_by: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface GalleryRow {
   id: string;
   src: string;
