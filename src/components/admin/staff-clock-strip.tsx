@@ -25,9 +25,12 @@ export function StaffClockStrip({
   const onFloor = members.filter(
     (m) => m.openShift && (!locationScope || m.openShift.locationId === locationScope),
   );
-  const elsewhere = members.filter(
-    (m) => m.openShift && locationScope && m.openShift.locationId !== locationScope,
-  );
+  // Only super admins see cross-shop presence — front desks see their shop only
+  const elsewhere = isSuperAdmin
+    ? members.filter(
+        (m) => m.openShift && locationScope && m.openShift.locationId !== locationScope,
+      )
+    : [];
   const offFloor = members.filter((m) => !m.openShift);
   const defaultLocationId = locationScope ?? SALON_LOCATIONS[0]?.id ?? "";
   const canClockHere = Boolean(defaultLocationId) || isSuperAdmin;

@@ -60,8 +60,51 @@ export async function loadStaffPresence(
   admin: ReturnType<typeof createAdminClient>,
   locationScope: string | null = null,
 ): Promise<StaffPresenceMember[]> {
-  // Always load every open shift so a stylist clocked at another shop
-  // is not offered a second concurrent clock-in.
+  if (locationScope) {
+    // Shop-scoped: only fetch staff belonging to this shop (home match or floater)
+    // and only open shifts at this shop.
+    const [{ data: staffRows }, { data: openShifts }] = await Promise.all([
+      admin
+        .from("staff")
+        .select("id, name, role, is_front_desk, home_location_id")
+        .eq("active", true)
+        .or(`home_location_id.eq.${locationScope},home_location_id.is.null`)
+        .order("sort_order"),
+      admin
+        .from("staff_shifts")
+        .select("id, staff_id, location_id, clock_in_at")
+        .is("clock_out_at", null)
+        .eq("location_id", locationScope),
+    ]);
+
+    const openByStaff = new Map(
+      (openShifts ?? []).map((s) => [
+        s.staff_id as string,
+        {
+          id: s.id as string,
+          locationId: s.location_id as string,
+          locationLabel: locationLabelFromId(s.location_id as string) ?? (s.location_id as string),
+          clockInAt: s.clock_in_at as string,
+        },
+      ]),
+    );
+
+    return (staffRows ?? [])
+      .map((row) => ({
+        staffId: row.id,
+        name: row.name,
+        role: row.role,
+        isFrontDesk: row.is_front_desk === true,
+        homeLocationId: (row.home_location_id as string | null) ?? null,
+        openShift: openByStaff.get(row.id) ?? null,
+      }))
+      .sort((a, b) => {
+        if (a.isFrontDesk !== b.isFrontDesk) return a.isFrontDesk ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+  }
+
+  // Super admin: full roster + all open shifts across shops.
   const [{ data: staffRows }, { data: openShifts }] = await Promise.all([
     admin
       .from("staff")
@@ -84,14 +127,6 @@ export async function loadStaffPresence(
   );
 
   return (staffRows ?? [])
-    .filter((row) => {
-      if (!locationScope) return true;
-      // Shop roster: home shop match, floater (null), or already clocked here
-      const home = (row.home_location_id as string | null) ?? null;
-      if (!home || home === locationScope) return true;
-      const open = openByStaff.get(row.id);
-      return Boolean(open && open.locationId === locationScope);
-    })
     .map((row) => ({
       staffId: row.id,
       name: row.name,
@@ -101,7 +136,6 @@ export async function loadStaffPresence(
       openShift: openByStaff.get(row.id) ?? null,
     }))
     .sort((a, b) => {
-      // Front desk first within a shop roster
       if (a.isFrontDesk !== b.isFrontDesk) return a.isFrontDesk ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
