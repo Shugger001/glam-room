@@ -45,15 +45,94 @@ function dayBounds(date = new Date()) {
   return { start, end };
 }
 
-export function formatShiftDuration(clockInAt: string, clockOutAt?: string | null) {
+/** Monday 00:00 → Sunday 23:59:59.999 (local). */
+function weekBounds(date = new Date()) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const day = start.getDay(); // 0 Sun … 6 Sat
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  start.setDate(start.getDate() + mondayOffset);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
+function shiftMinutes(clockInAt: string, clockOutAt?: string | null) {
   const start = new Date(clockInAt).getTime();
   const end = clockOutAt ? new Date(clockOutAt).getTime() : Date.now();
-  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return "—";
-  const mins = Math.floor((end - start) / 60_000);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
+  return Math.floor((end - start) / 60_000);
+}
+
+export function formatShiftDuration(clockInAt: string, clockOutAt?: string | null) {
+  return formatMinutes(shiftMinutes(clockInAt, clockOutAt));
+}
+
+export function formatMinutes(mins: number) {
+  if (mins <= 0) return "0m";
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   if (h <= 0) return `${m}m`;
   return `${h}h ${m}m`;
+}
+
+export type StaffWeekHoursRow = {
+  staffId: string;
+  name: string;
+  role: string;
+  shiftCount: number;
+  openCount: number;
+  totalMinutes: number;
+};
+
+/**
+ * Aggregate clocked hours for the current local week, scoped to a shop when provided.
+ */
+export async function loadWeekHours(
+  admin: ReturnType<typeof createAdminClient>,
+  locationScope: string | null,
+): Promise<{ weekStart: string; weekEnd: string; rows: StaffWeekHoursRow[] }> {
+  const { start, end } = weekBounds();
+  let q = admin
+    .from("staff_shifts")
+    .select("staff_id, clock_in_at, clock_out_at, staff(id, name, role)")
+    .gte("clock_in_at", start.toISOString())
+    .lte("clock_in_at", end.toISOString());
+  if (locationScope) q = q.eq("location_id", locationScope);
+
+  const { data } = await q;
+  const byStaff = new Map<string, StaffWeekHoursRow>();
+
+  for (const shift of data ?? []) {
+    const staffId = shift.staff_id as string;
+    const staff =
+      shift.staff && typeof shift.staff === "object"
+        ? (shift.staff as { id: string; name: string; role: string })
+        : null;
+    const existing = byStaff.get(staffId) ?? {
+      staffId,
+      name: staff?.name ?? "—",
+      role: staff?.role ?? "",
+      shiftCount: 0,
+      openCount: 0,
+      totalMinutes: 0,
+    };
+    existing.shiftCount += 1;
+    if (!shift.clock_out_at) existing.openCount += 1;
+    existing.totalMinutes += shiftMinutes(
+      shift.clock_in_at as string,
+      shift.clock_out_at as string | null,
+    );
+    byStaff.set(staffId, existing);
+  }
+
+  const rows = [...byStaff.values()].sort((a, b) => b.totalMinutes - a.totalMinutes);
+  return {
+    weekStart: start.toISOString(),
+    weekEnd: end.toISOString(),
+    rows,
+  };
 }
 
 export async function loadStaffPresence(
