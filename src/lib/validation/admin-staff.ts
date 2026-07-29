@@ -20,8 +20,25 @@ export const adminStaffFieldsSchema = z.object({
   specialty: z.string().trim().max(400).optional().or(z.literal("")),
   image_url: z.string().trim().url().optional().or(z.literal("")),
   instagram_url: z.string().trim().url().optional().or(z.literal("")),
+  home_location_id: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (v) =>
+        !v ||
+        v === "glam-room-adenta" ||
+        v === "glam-room-sowutuom" ||
+        v === "glam-room-madina",
+      "Invalid shop",
+    ),
+  is_front_desk: z.coerce.boolean(),
   sort_order: z.coerce.number().int().min(0).max(999),
   active: z.coerce.boolean(),
+}).refine((data) => !data.is_front_desk || Boolean(data.home_location_id), {
+  message: "Front desk seats need a home shop",
+  path: ["home_location_id"],
 });
 
 export const adminStaffUpdateSchema = adminStaffFieldsSchema.extend({
@@ -37,6 +54,8 @@ export function parseAdminStaffCreateForm(formData: FormData) {
     specialty: formData.get("specialty") ?? "",
     image_url: formData.get("image_url") ?? "",
     instagram_url: formData.get("instagram_url") ?? "",
+    home_location_id: formData.get("home_location_id") ?? "",
+    is_front_desk: readBoolean(formData, "is_front_desk"),
     sort_order: formData.get("sort_order"),
     active: readBoolean(formData, "active"),
   });
@@ -52,6 +71,8 @@ export function parseAdminStaffUpdateForm(formData: FormData) {
     specialty: formData.get("specialty") ?? "",
     image_url: formData.get("image_url") ?? "",
     instagram_url: formData.get("instagram_url") ?? "",
+    home_location_id: formData.get("home_location_id") ?? "",
+    is_front_desk: readBoolean(formData, "is_front_desk"),
     sort_order: formData.get("sort_order"),
     active: readBoolean(formData, "active"),
   });

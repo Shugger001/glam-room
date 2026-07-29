@@ -33,8 +33,9 @@ export async function getStaffMembers(): Promise<StaffMember[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("staff")
-      .select("id, name, role, bio, experience, specialty, image_url, instagram_url, active, sort_order")
+      .select("id, name, role, bio, experience, specialty, image_url, instagram_url, active, sort_order, is_front_desk")
       .eq("active", true)
+      .eq("is_front_desk", false)
       .order("sort_order", { ascending: true });
     if (error || !data || data.length === 0) return SALON_STAFF;
     const normalized = data

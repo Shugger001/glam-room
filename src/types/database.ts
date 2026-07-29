@@ -145,6 +145,8 @@ export interface StaffRow {
   specialty: string[] | null;
   image_url: string | null;
   instagram_url: string | null;
+  home_location_id: string | null;
+  is_front_desk: boolean;
   active: boolean;
   sort_order: number;
   created_at: string;

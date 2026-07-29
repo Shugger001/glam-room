@@ -54,14 +54,14 @@ export async function POST(request: Request) {
       .select("id, name, duration_minutes, base_price, active")
       .eq("id", values.serviceId)
       .maybeSingle(),
-    admin.from("staff").select("id, active").eq("id", staffId).maybeSingle(),
+    admin.from("staff").select("id, active, is_front_desk").eq("id", staffId).maybeSingle(),
   ]);
 
   if (serviceError || !serviceRow || serviceRow.active === false) {
     return NextResponse.json({ error: "Selected service is unavailable." }, { status: 400 });
   }
 
-  if (!staffRow || staffRow.active === false) {
+  if (!staffRow || staffRow.active === false || staffRow.is_front_desk === true) {
     return NextResponse.json({ error: "Stylist assignment is invalid." }, { status: 400 });
   }
 

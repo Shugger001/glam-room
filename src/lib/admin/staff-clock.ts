@@ -18,6 +18,8 @@ export type StaffPresenceMember = {
   staffId: string;
   name: string;
   role: string;
+  isFrontDesk: boolean;
+  homeLocationId: string | null;
   openShift: {
     id: string;
     locationId: string;
@@ -56,12 +58,16 @@ export function formatShiftDuration(clockInAt: string, clockOutAt?: string | nul
 
 export async function loadStaffPresence(
   admin: ReturnType<typeof createAdminClient>,
-  _locationScope: string | null = null,
+  locationScope: string | null = null,
 ): Promise<StaffPresenceMember[]> {
   // Always load every open shift so a stylist clocked at another shop
   // is not offered a second concurrent clock-in.
   const [{ data: staffRows }, { data: openShifts }] = await Promise.all([
-    admin.from("staff").select("id, name, role").eq("active", true).order("sort_order"),
+    admin
+      .from("staff")
+      .select("id, name, role, is_front_desk, home_location_id")
+      .eq("active", true)
+      .order("sort_order"),
     admin.from("staff_shifts").select("id, staff_id, location_id, clock_in_at").is("clock_out_at", null),
   ]);
 
@@ -77,12 +83,28 @@ export async function loadStaffPresence(
     ]),
   );
 
-  return (staffRows ?? []).map((row) => ({
-    staffId: row.id,
-    name: row.name,
-    role: row.role,
-    openShift: openByStaff.get(row.id) ?? null,
-  }));
+  return (staffRows ?? [])
+    .filter((row) => {
+      if (!locationScope) return true;
+      // Shop roster: home shop match, floater (null), or already clocked here
+      const home = (row.home_location_id as string | null) ?? null;
+      if (!home || home === locationScope) return true;
+      const open = openByStaff.get(row.id);
+      return Boolean(open && open.locationId === locationScope);
+    })
+    .map((row) => ({
+      staffId: row.id,
+      name: row.name,
+      role: row.role,
+      isFrontDesk: row.is_front_desk === true,
+      homeLocationId: (row.home_location_id as string | null) ?? null,
+      openShift: openByStaff.get(row.id) ?? null,
+    }))
+    .sort((a, b) => {
+      // Front desk first within a shop roster
+      if (a.isFrontDesk !== b.isFrontDesk) return a.isFrontDesk ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
 }
 
 export async function loadTodayShifts(

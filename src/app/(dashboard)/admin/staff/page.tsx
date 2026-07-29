@@ -9,6 +9,7 @@ import {
   parseAdminStaffUpdateForm,
   parseSpecialtyCsv,
 } from "@/lib/validation/admin-staff";
+import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import {
   AdminBtnPrimary,
   AdminEmptyState,
@@ -23,6 +24,30 @@ export const dynamic = "force-dynamic";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-white/15 bg-transparent px-3 py-2 text-sm text-white";
+
+function ShopSelect({
+  name = "home_location_id",
+  defaultValue,
+}: {
+  name?: string;
+  defaultValue?: string | null;
+}) {
+  return (
+    <label className="block text-xs text-white/55">
+      Home shop
+      <select name={name} defaultValue={defaultValue ?? ""} className={inputClass}>
+        <option value="" className="bg-glam-primary text-white">
+          Float · all shops
+        </option>
+        {SALON_LOCATIONS.map((loc) => (
+          <option key={loc.id} value={loc.id} className="bg-glam-primary text-white">
+            {loc.area}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 function revalidateStaffPaths() {
   revalidatePath("/admin/staff");
@@ -62,12 +87,14 @@ async function createStaffMember(formData: FormData) {
   const admin = createAdminClient();
   await admin.from("staff").insert({
     name: parsed.data.name,
-    role: parsed.data.role,
+    role: parsed.data.is_front_desk ? "Front Desk" : parsed.data.role,
     bio: parsed.data.bio || null,
     experience: parsed.data.experience || null,
     specialty: parseSpecialtyCsv(parsed.data.specialty ?? ""),
     image_url: image.image_url,
     instagram_url: parsed.data.instagram_url || null,
+    home_location_id: parsed.data.home_location_id || null,
+    is_front_desk: parsed.data.is_front_desk,
     sort_order: parsed.data.sort_order,
     active: parsed.data.active,
   });
@@ -99,12 +126,14 @@ async function updateStaffMember(formData: FormData) {
     .from("staff")
     .update({
       name: parsed.data.name,
-      role: parsed.data.role,
+      role: parsed.data.is_front_desk ? "Front Desk" : parsed.data.role,
       bio: parsed.data.bio || null,
       experience: parsed.data.experience || null,
       specialty: parseSpecialtyCsv(parsed.data.specialty ?? ""),
       image_url: image.image_url,
       instagram_url: parsed.data.instagram_url || null,
+      home_location_id: parsed.data.home_location_id || null,
+      is_front_desk: parsed.data.is_front_desk,
       sort_order: parsed.data.sort_order,
       active: parsed.data.active,
       updated_at: new Date().toISOString(),
@@ -159,7 +188,7 @@ export default async function AdminStaffPage() {
   const { data: staff } = await admin
     .from("staff")
     .select(
-      "id, name, role, bio, experience, specialty, image_url, instagram_url, sort_order, active",
+      "id, name, role, bio, experience, specialty, image_url, instagram_url, home_location_id, is_front_desk, sort_order, active",
     )
     .order("sort_order", { ascending: true });
 
@@ -169,7 +198,7 @@ export default async function AdminStaffPage() {
     <div className="space-y-5">
       <AdminPageHeader
         title="Staff"
-        description="Manage stylist profiles on the Experts section and booking assignment. Specialties are comma-separated."
+        description="Stylists appear on Experts and booking. Front desk seats are ops-only — one per shop for clock-in and floor control."
       />
 
       <AdminPanel className="!border-glam-accent/25 !bg-glam-accent/5">
@@ -182,6 +211,11 @@ export default async function AdminStaffPage() {
           <label className="block text-xs text-white/55">
             Role
             <input type="text" name="role" required placeholder="Lead Stylist" className={inputClass} />
+          </label>
+          <ShopSelect />
+          <label className="flex items-end gap-2 pb-2 text-sm text-white/75">
+            <input type="checkbox" name="is_front_desk" />
+            Front desk seat
           </label>
           <label className="block text-xs text-white/55 sm:col-span-2">
             Bio
@@ -218,7 +252,7 @@ export default async function AdminStaffPage() {
           </label>
           <label className="flex items-end gap-2 pb-2 text-sm text-white/75">
             <input type="checkbox" name="active" defaultChecked />
-            Active on website
+            Active
           </label>
           <div className="sm:col-span-2">
             <AdminBtnPrimary>Add staff</AdminBtnPrimary>
@@ -230,14 +264,24 @@ export default async function AdminStaffPage() {
         {(staff ?? []).length === 0 ? (
           <AdminEmptyState
             title="No staff yet"
-            description="Add a team member above to show them on Experts and booking."
+            description="Add a stylist or front desk seat above."
           />
         ) : null}
 
         {(staff ?? []).map((s) => {
           const specialty = Array.isArray(s.specialty) ? (s.specialty as string[]).join(", ") : "";
+          const shopLabel =
+            SALON_LOCATIONS.find((l) => l.id === s.home_location_id)?.area ?? "Float · all shops";
           return (
             <div key={s.id} className="rounded-xl border border-white/10 bg-black/25 p-4">
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-white/45">
+                <span>{shopLabel}</span>
+                {s.is_front_desk ? (
+                  <span className="rounded-md border border-glam-accent/40 bg-glam-accent/10 px-2 py-0.5 font-semibold uppercase tracking-wider text-glam-accent">
+                    Front desk
+                  </span>
+                ) : null}
+              </div>
               <div className="flex flex-col gap-5 lg:flex-row">
                 <StaffThumb src={s.image_url} name={s.name} />
                 <form
@@ -253,6 +297,11 @@ export default async function AdminStaffPage() {
                   <label className="block text-xs text-white/55">
                     Role
                     <input type="text" name="role" defaultValue={s.role} required className={inputClass} />
+                  </label>
+                  <ShopSelect defaultValue={s.home_location_id} />
+                  <label className="flex items-end gap-2 pb-2 text-sm text-white/75">
+                    <input type="checkbox" name="is_front_desk" defaultChecked={Boolean(s.is_front_desk)} />
+                    Front desk seat
                   </label>
                   <label className="block text-xs text-white/55 sm:col-span-2">
                     Bio
@@ -295,7 +344,13 @@ export default async function AdminStaffPage() {
                     Active
                   </label>
                   <div className={`${adminFormRowClass} sm:col-span-2 border-none bg-transparent p-0 sm:grid-cols-[1fr_auto]`}>
-                    <p className="text-xs text-white/45">{s.active ? "Visible on site" : "Hidden"}</p>
+                    <p className="text-xs text-white/45">
+                      {s.is_front_desk
+                        ? "Ops only · hidden from website"
+                        : s.active
+                          ? "Visible on site"
+                          : "Hidden"}
+                    </p>
                     <AdminBtnPrimary>Save</AdminBtnPrimary>
                   </div>
                 </form>

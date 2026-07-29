@@ -46,8 +46,8 @@ export default async function AdminAttendancePage() {
         title="Staff attendance"
         description={
           access.isSuperAdmin
-            ? "Clock team members in and out across Adenta, Sowutuom, and Madina."
-            : `Clock team members in and out at ${access.assignedLocationLabel ?? "your shop"}.`
+            ? "Front desk clocks the team in and out at each shop — Adenta, Sowutuom, and Madina."
+            : `Front desk clock-in for ${access.assignedLocationLabel ?? "your shop"}.`
         }
       />
 

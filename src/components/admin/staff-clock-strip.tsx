@@ -45,7 +45,7 @@ export function StaffClockStrip({
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <p className="text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
-            Staff clock-in{shopLabel ? ` · ${shopLabel}` : ""}
+            Front desk clock-in{shopLabel ? ` · ${shopLabel}` : ""}
           </p>
           <p className="mt-1 text-sm text-white">
             {onFloor.length} on floor
@@ -68,7 +68,14 @@ export function StaffClockStrip({
               className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-white">{m.name}</p>
+                <p className="truncate text-sm font-medium text-white">
+                  {m.name}
+                  {m.isFrontDesk ? (
+                    <span className="ml-2 text-[0.65rem] font-semibold uppercase tracking-wider text-glam-accent">
+                      Desk
+                    </span>
+                  ) : null}
+                </p>
                 <p className="text-xs text-white/55">
                   {m.openShift?.locationLabel}
                   {" · in "}
@@ -125,7 +132,9 @@ export function StaffClockStrip({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm text-white">{m.name}</p>
-                      <p className="truncate text-[0.7rem] text-white/45">{m.role}</p>
+                      <p className="truncate text-[0.7rem] text-white/45">
+                        {m.isFrontDesk ? "Front desk" : m.role}
+                      </p>
                     </div>
                     {isSuperAdmin && !locationScope ? (
                       <select

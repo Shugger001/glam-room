@@ -159,7 +159,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const [{ data, count }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes] =
     await Promise.all([
     query.range(rangeFrom, rangeTo),
-    admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
+    admin.from("staff").select("id, name").eq("active", true).eq("is_front_desk", false).order("sort_order"),
     (async () => {
       const { start, end } = dayBounds();
       let statsQuery = admin

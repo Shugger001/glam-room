@@ -286,7 +286,12 @@ async function StaffDashboard({
       loadTodayBookings(admin, locationScope),
       loadStaffPresence(admin, locationScope),
       Promise.all([
-        admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
+        admin
+          .from("staff")
+          .select("id, name")
+          .eq("active", true)
+          .eq("is_front_desk", false)
+          .order("sort_order"),
         admin
           .from("services")
           .select(
@@ -396,7 +401,12 @@ async function SuperAdminDashboard({
       .in("status", ["pending", "awaiting_approval", "confirmed"]),
     admin.from("contact_messages").select("id", { count: "exact", head: true }).is("read_at", null),
     Promise.all([
-      admin.from("staff").select("id, name").eq("active", true).order("sort_order"),
+      admin
+        .from("staff")
+        .select("id, name")
+        .eq("active", true)
+        .eq("is_front_desk", false)
+        .order("sort_order"),
       admin
         .from("services")
         .select(
