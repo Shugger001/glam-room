@@ -333,9 +333,15 @@ export function BookingForm({
           You&apos;re on the list
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-glam-muted sm:text-base">
-          Your booking request has been received. We&apos;ll confirm via WhatsApp at{" "}
+          Your booking request is with the Glam Room team. We&apos;ll confirm on WhatsApp at{" "}
           {BRAND.links.phone}.
         </p>
+        <ul className="mx-auto mt-6 max-w-sm space-y-2 text-left text-sm text-glam-muted">
+          <li className="border-l border-glam-accent/40 pl-3">Save this number so you don&apos;t miss confirmation.</li>
+          <li className="border-l border-glam-accent/40 pl-3">
+            Use <span className="font-medium text-glam-primary">Find my booking</span> anytime to check status or reschedule.
+          </li>
+        </ul>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <ButtonLink href={BRAND.links.whatsapp} variant="accent" className="!rounded-none">
             Chat on WhatsApp

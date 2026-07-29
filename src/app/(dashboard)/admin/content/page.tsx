@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import {
   getLiveFaqs,
   getLiveLocations,
@@ -45,27 +46,36 @@ async function saveFaqs(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const faqs = parseFaqsFromForm(formData);
-  if (faqs.length === 0) return;
+  if (faqs.length === 0) {
+    redirectWithFlash("/admin/content", "error", "Could not save FAQs. Check the form.");
+  }
   await upsertSetting("faqs", faqs);
   revalidateSitePaths();
+  redirectWithFlash("/admin/content", "success", "FAQs saved");
 }
 
 async function saveLocations(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const locations = parseLocationsFromForm(formData);
-  if (locations.length === 0) return;
+  if (locations.length === 0) {
+    redirectWithFlash("/admin/content", "error", "Could not save locations. Check the form.");
+  }
   await upsertSetting("locations", locations);
   revalidateSitePaths();
+  redirectWithFlash("/admin/content", "success", "Locations saved");
 }
 
 async function saveSalonConfig(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const config = parseSalonConfigFromForm(formData);
-  if (!config) return;
+  if (!config) {
+    redirectWithFlash("/admin/content", "error", "Could not save salon settings. Check the form.");
+  }
   await upsertSetting("salon_config", config);
   revalidateSitePaths();
+  redirectWithFlash("/admin/content", "success", "Salon settings saved");
 }
 
 export default async function AdminContentPage() {

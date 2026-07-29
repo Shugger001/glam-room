@@ -2,6 +2,7 @@ import Image from "next/image";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import { GALLERY_CATEGORIES } from "@/lib/constants/gallery";
 import { uploadGalleryImage } from "@/lib/storage/gallery-upload";
 import {
@@ -51,10 +52,14 @@ async function createGalleryItem(formData: FormData) {
   await requireSuperAdmin();
 
   const parsed = parseAdminGalleryCreateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/gallery", "error", "Could not add image. Check the form.");
+  }
 
   const srcResult = await resolveImageSrc(formData);
-  if (!srcResult.ok) return;
+  if (!srcResult.ok) {
+    redirectWithFlash("/admin/gallery", "error", srcResult.error);
+  }
 
   const admin = createAdminClient();
   await admin.from("gallery").insert({
@@ -68,6 +73,7 @@ async function createGalleryItem(formData: FormData) {
   });
 
   revalidateGalleryPaths();
+  redirectWithFlash("/admin/gallery", "success", "Image added");
 }
 
 async function updateGalleryItem(formData: FormData) {
@@ -75,7 +81,9 @@ async function updateGalleryItem(formData: FormData) {
   await requireSuperAdmin();
 
   const parsed = parseAdminGalleryUpdateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/gallery", "error", "Could not save image. Check the form.");
+  }
 
   const admin = createAdminClient();
   const { data: existing } = await admin
@@ -85,7 +93,9 @@ async function updateGalleryItem(formData: FormData) {
     .maybeSingle();
 
   const srcResult = await resolveImageSrc(formData, existing?.src ?? undefined);
-  if (!srcResult.ok) return;
+  if (!srcResult.ok) {
+    redirectWithFlash("/admin/gallery", "error", srcResult.error);
+  }
 
   await admin
     .from("gallery")
@@ -101,6 +111,7 @@ async function updateGalleryItem(formData: FormData) {
     .eq("id", parsed.data.id);
 
   revalidateGalleryPaths();
+  redirectWithFlash("/admin/gallery", "success", "Image saved");
 }
 
 async function deleteGalleryItem(formData: FormData) {
@@ -108,11 +119,14 @@ async function deleteGalleryItem(formData: FormData) {
   await requireSuperAdmin();
 
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) {
+    redirectWithFlash("/admin/gallery", "error", "Could not remove image.");
+  }
 
   const admin = createAdminClient();
   await admin.from("gallery").delete().eq("id", id);
   revalidateGalleryPaths();
+  redirectWithFlash("/admin/gallery", "success", "Image removed");
 }
 
 function GalleryThumb({ src, alt }: { src: string; alt: string }) {

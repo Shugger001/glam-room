@@ -4,8 +4,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Reveal } from "@/components/motion/reveal";
 import { Section } from "@/components/ui/section";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { BRAND } from "@/lib/constants/brand";
+import { buildWhatsAppDeepLink } from "@/lib/notifications/whatsapp-links";
 import { cn } from "@/lib/utils/cn";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 import type { BookingTimeSlot } from "@/lib/data/live-site-content";
@@ -25,6 +26,30 @@ type LookupResult = {
 
 const inputClass =
   "w-full border border-glam-border bg-glam-secondary px-4 py-3 text-sm outline-none transition duration-200 focus:border-glam-accent focus:ring-2 focus:ring-glam-accent/20";
+
+function statusLabel(status: string) {
+  const map: Record<string, string> = {
+    pending: "Pending",
+    awaiting_approval: "Awaiting confirmation",
+    confirmed: "Confirmed",
+    arrived: "Checked in",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    rejected: "Not available",
+    no_show: "Missed",
+  };
+  return map[status] ?? status.replaceAll("_", " ");
+}
+
+function statusTone(status: string) {
+  if (status === "confirmed" || status === "arrived" || status === "completed") {
+    return "text-glam-accent";
+  }
+  if (status === "cancelled" || status === "rejected" || status === "no_show") {
+    return "text-red-700";
+  }
+  return "text-amber-800";
+}
 
 export function FindBookingTracker({
   timeSlots = BOOKING_TIME_SLOTS,
@@ -136,6 +161,11 @@ export function FindBookingTracker({
     }
   }
 
+  const helpWhatsApp = buildWhatsAppDeepLink(
+    BRAND.links.phone,
+    `Hi Glam Room! I need help with my booking. Phone: ${phone || "(add number)"}.`,
+  );
+
   return (
     <Section
       id="track-booking"
@@ -204,109 +234,162 @@ export function FindBookingTracker({
           </form>
 
           {error ? (
-            <p className="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </p>
+            <div className="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p>{error}</p>
+              {helpWhatsApp ? (
+                <a href={helpWhatsApp} className="mt-2 inline-block font-medium underline">
+                  Message Glam Room on WhatsApp
+                </a>
+              ) : null}
+            </div>
           ) : null}
 
           {results && results.length === 0 ? (
-            <p className="mt-4 border border-glam-border bg-glam-background px-4 py-3 text-sm text-glam-muted">
-              No bookings found for that phone and name. Check the details or WhatsApp us.
-            </p>
+            <div className="mt-4 border border-glam-border bg-glam-background px-4 py-5 text-sm text-glam-muted">
+              <p>No bookings found for that phone and name.</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <ButtonLink href="/book" variant="accent" size="sm" className="!rounded-none">
+                  Book now
+                </ButtonLink>
+                {helpWhatsApp ? (
+                  <a
+                    href={helpWhatsApp}
+                    className="inline-flex min-h-10 items-center border border-glam-border px-4 text-sm font-medium text-glam-primary transition hover:border-glam-accent hover:text-glam-accent"
+                  >
+                    WhatsApp help
+                  </a>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
           {results && results.length > 0 ? (
             <ul className="mt-6 space-y-3">
-              {results.map((booking) => (
-                <li
-                  key={booking.id}
-                  className="border border-glam-border bg-glam-secondary px-4 py-4 text-sm leading-relaxed text-glam-primary"
-                >
-                  <p>
-                    <strong>{booking.service}</strong> · {booking.date} at {booking.time}
-                  </p>
-                  <p className="mt-1 text-glam-muted">
-                    Status: <strong>{booking.status}</strong>
-                    {booking.location ? <> · {booking.location}</> : null}
-                  </p>
+              {results.map((booking) => {
+                const supportLink = buildWhatsAppDeepLink(
+                  BRAND.links.phone,
+                  `Hi Glam Room! I'm checking on my ${booking.service} on ${booking.date} at ${booking.time}${booking.location ? ` (${booking.location})` : ""}. Status shows ${statusLabel(booking.status)}.`,
+                );
 
-                  {booking.can_manage ? (
+                return (
+                  <li
+                    key={booking.id}
+                    className="border border-glam-border bg-glam-secondary px-4 py-4 text-sm leading-relaxed text-glam-primary"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <p>
+                        <strong>{booking.service}</strong>
+                        <span className="text-glam-muted">
+                          {" "}
+                          · {booking.date} at {booking.time}
+                        </span>
+                      </p>
+                      <span
+                        className={cn(
+                          "text-xs font-semibold uppercase tracking-wider",
+                          statusTone(booking.status),
+                        )}
+                      >
+                        {statusLabel(booking.status)}
+                      </span>
+                    </div>
+                    {booking.location ? (
+                      <p className="mt-1 text-glam-muted">{booking.location}</p>
+                    ) : null}
+
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="!rounded-none"
-                        disabled={managingId === booking.id}
-                        onClick={() => {
-                          setRescheduleFor(rescheduleFor === booking.id ? null : booking.id);
-                          setNewDate(booking.booking_date);
-                          setNewTime(booking.booking_time);
-                        }}
-                      >
-                        Reschedule
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="!rounded-none"
-                        disabled={managingId === booking.id}
-                        onClick={() => void cancelBooking(booking.id)}
-                      >
-                        Cancel
-                      </Button>
+                      {booking.can_manage ? (
+                        <>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="!rounded-none"
+                            disabled={managingId === booking.id}
+                            onClick={() => {
+                              setRescheduleFor(rescheduleFor === booking.id ? null : booking.id);
+                              setNewDate(booking.booking_date);
+                              setNewTime(booking.booking_time);
+                            }}
+                          >
+                            Reschedule
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="!rounded-none"
+                            disabled={managingId === booking.id}
+                            onClick={() => void cancelBooking(booking.id)}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : null}
+                      {supportLink ? (
+                        <a
+                          href={supportLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex min-h-9 items-center border border-glam-border px-3 text-xs font-semibold uppercase tracking-wider text-glam-primary transition hover:border-glam-accent hover:text-glam-accent"
+                        >
+                          WhatsApp
+                        </a>
+                      ) : null}
                     </div>
-                  ) : null}
 
-                  {rescheduleFor === booking.id ? (
-                    <div className="mt-4 grid gap-3 border border-glam-border bg-glam-background p-3 sm:grid-cols-2">
-                      <label className="block text-xs font-medium">
-                        New date
-                        <input
-                          type="date"
-                          min={new Date().toISOString().slice(0, 10)}
-                          value={newDate}
-                          onChange={(e) => setNewDate(e.target.value)}
-                          className="mt-1 w-full border border-glam-border px-3 py-2 text-sm"
-                        />
-                      </label>
-                      <label className="block text-xs font-medium">
-                        New time
-                        <select
-                          value={newTime}
-                          onChange={(e) => setNewTime(e.target.value)}
-                          className="mt-1 w-full border border-glam-border px-3 py-2 text-sm"
-                        >
-                          {timeSlots.map((slot) => (
-                            <option key={slot.value} value={slot.value}>
-                              {slot.label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <div className="sm:col-span-2">
-                        <Button
-                          type="button"
-                          variant="accent"
-                          size="sm"
-                          className="!rounded-none"
-                          disabled={managingId === booking.id}
-                          onClick={() => void rescheduleBooking(booking.id)}
-                        >
-                          {managingId === booking.id ? "Saving…" : "Confirm new time"}
-                        </Button>
+                    {rescheduleFor === booking.id ? (
+                      <div className="mt-4 grid gap-3 border border-glam-border bg-glam-background p-3 sm:grid-cols-2">
+                        <label className="block text-xs font-medium">
+                          New date
+                          <input
+                            type="date"
+                            min={new Date().toISOString().slice(0, 10)}
+                            value={newDate}
+                            onChange={(e) => setNewDate(e.target.value)}
+                            className="mt-1 w-full border border-glam-border px-3 py-2 text-sm"
+                          />
+                        </label>
+                        <label className="block text-xs font-medium">
+                          New time
+                          <select
+                            value={newTime}
+                            onChange={(e) => setNewTime(e.target.value)}
+                            className="mt-1 w-full border border-glam-border px-3 py-2 text-sm"
+                          >
+                            {timeSlots.map((slot) => (
+                              <option key={slot.value} value={slot.value}>
+                                {slot.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div className="sm:col-span-2">
+                          <Button
+                            type="button"
+                            variant="accent"
+                            size="sm"
+                            className="!rounded-none"
+                            disabled={managingId === booking.id}
+                            onClick={() => void rescheduleBooking(booking.id)}
+                          >
+                            {managingId === booking.id ? "Saving…" : "Confirm new time"}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ) : null}
-                </li>
-              ))}
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
 
           <p className="mt-6 text-sm text-glam-muted">
             Prefer WhatsApp?{" "}
-            <a href={BRAND.links.whatsapp} className="font-medium text-glam-accent hover:underline">
+            <a
+              href={helpWhatsApp ?? BRAND.links.whatsapp}
+              className="font-medium text-glam-accent hover:underline"
+            >
               Chat with Glam Room
             </a>
           </p>

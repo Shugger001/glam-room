@@ -64,22 +64,25 @@ export function TeamCard({ member, index = 0 }: { member: StaffMember; index?: n
 }
 
 export function TeamPreview({ staff }: { staff: StaffMember[] }) {
+  const featured = staff.slice(0, 3);
+  if (featured.length === 0) return null;
+
   return (
-    <Section id="experts" background="default">
+    <Section id="experts" background="warm">
       <SectionHeader
         eyebrow="Team"
         title="Our stylists"
         description="Meet the people behind the chair."
         align="left"
       />
-      <div className="mx-auto grid max-w-md gap-8">
-        {staff.slice(0, 1).map((member, i) => (
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {featured.map((member, i) => (
           <TeamCard key={member.id} member={member} index={i} />
         ))}
       </div>
       <Reveal className="mt-10">
         <ButtonLink href="/experts" variant="outline" size="lg" className="!rounded-none">
-          See team
+          See full team
         </ButtonLink>
       </Reveal>
     </Section>

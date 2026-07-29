@@ -95,7 +95,7 @@ export async function GET(request: Request) {
             whatsAppUrl: BRAND.links.whatsapp,
             timing: "24h",
           }),
-          smsText: `Glam Room reminder: your appointment is tomorrow (${when}). Manage: ${trackUrl}`,
+          smsText: `Hi ${clientName}, Glam Room reminder: your ${service ?? "appointment"} is tomorrow (${when}). Track or reschedule: ${trackUrl}`,
         });
         await admin
           .from("bookings")
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
             whatsAppUrl: BRAND.links.whatsapp,
             timing: "2h",
           }),
-          smsText: `Glam Room: your appointment is today (${when}). See you soon!`,
+          smsText: `Hi ${clientName}, Glam Room: your ${service ?? "appointment"} is today (${when}). See you soon! Questions? WhatsApp us.`,
         });
         await admin
           .from("bookings")

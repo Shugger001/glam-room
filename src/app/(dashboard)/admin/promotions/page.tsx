@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import {
   normalizePromotionForm,
   parseAdminPromotionCreateForm,
@@ -34,34 +35,43 @@ async function createPromotion(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const parsed = parseAdminPromotionCreateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/promotions", "error", "Could not add promotion. Check the form.");
+  }
 
   const admin = createAdminClient();
   await admin.from("promotions").insert(normalizePromotionForm(parsed.data));
   revalidatePromotionPaths();
+  redirectWithFlash("/admin/promotions", "success", "Promotion added");
 }
 
 async function updatePromotion(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const parsed = parseAdminPromotionUpdateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/promotions", "error", "Could not save promotion. Check the form.");
+  }
 
   const { id, ...fields } = parsed.data;
   const values = normalizePromotionForm(fields);
   const admin = createAdminClient();
   await admin.from("promotions").update(values).eq("id", id);
   revalidatePromotionPaths();
+  redirectWithFlash("/admin/promotions", "success", "Promotion saved");
 }
 
 async function deletePromotion(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) {
+    redirectWithFlash("/admin/promotions", "error", "Could not remove promotion.");
+  }
   const admin = createAdminClient();
   await admin.from("promotions").delete().eq("id", id);
   revalidatePromotionPaths();
+  redirectWithFlash("/admin/promotions", "success", "Promotion removed");
 }
 
 export default async function AdminPromotionsPage() {

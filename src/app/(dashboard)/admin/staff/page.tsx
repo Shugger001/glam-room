@@ -2,6 +2,7 @@ import Image from "next/image";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import { uploadSiteMediaImage } from "@/lib/storage/gallery-upload";
 import {
   parseAdminStaffCreateForm,
@@ -49,10 +50,14 @@ async function createStaffMember(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const parsed = parseAdminStaffCreateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/staff", "error", "Could not add staff. Check the form.");
+  }
 
   const image = await resolveStaffImage(formData);
-  if (!image.ok) return;
+  if (!image.ok) {
+    redirectWithFlash("/admin/staff", "error", image.error);
+  }
 
   const admin = createAdminClient();
   await admin.from("staff").insert({
@@ -67,13 +72,16 @@ async function createStaffMember(formData: FormData) {
     active: parsed.data.active,
   });
   revalidateStaffPaths();
+  redirectWithFlash("/admin/staff", "success", "Staff member added");
 }
 
 async function updateStaffMember(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const parsed = parseAdminStaffUpdateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/staff", "error", "Could not save staff. Check the form.");
+  }
 
   const admin = createAdminClient();
   const { data: existing } = await admin
@@ -83,7 +91,9 @@ async function updateStaffMember(formData: FormData) {
     .maybeSingle();
 
   const image = await resolveStaffImage(formData, existing?.image_url);
-  if (!image.ok) return;
+  if (!image.ok) {
+    redirectWithFlash("/admin/staff", "error", image.error);
+  }
 
   await admin
     .from("staff")
@@ -101,16 +111,20 @@ async function updateStaffMember(formData: FormData) {
     })
     .eq("id", parsed.data.id);
   revalidateStaffPaths();
+  redirectWithFlash("/admin/staff", "success", "Staff member saved");
 }
 
 async function deleteStaffMember(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) {
+    redirectWithFlash("/admin/staff", "error", "Could not remove staff member.");
+  }
   const admin = createAdminClient();
   await admin.from("staff").delete().eq("id", id);
   revalidateStaffPaths();
+  redirectWithFlash("/admin/staff", "success", "Staff member removed");
 }
 
 function StaffThumb({ src, name }: { src: string | null; name: string }) {

@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import {
   parseAdminTestimonialCreateForm,
   parseAdminTestimonialUpdateForm,
@@ -30,7 +31,9 @@ async function createTestimonial(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const parsed = parseAdminTestimonialCreateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/testimonials", "error", "Could not add testimonial. Check the form.");
+  }
 
   const admin = createAdminClient();
   await admin.from("testimonials").insert({
@@ -43,13 +46,16 @@ async function createTestimonial(formData: FormData) {
     published: parsed.data.published,
   });
   revalidateTestimonialPaths();
+  redirectWithFlash("/admin/testimonials", "success", "Testimonial added");
 }
 
 async function updateTestimonial(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const parsed = parseAdminTestimonialUpdateForm(formData);
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirectWithFlash("/admin/testimonials", "error", "Could not save testimonial. Check the form.");
+  }
 
   const admin = createAdminClient();
   await admin
@@ -65,26 +71,33 @@ async function updateTestimonial(formData: FormData) {
     })
     .eq("id", parsed.data.id);
   revalidateTestimonialPaths();
+  redirectWithFlash("/admin/testimonials", "success", "Testimonial saved");
 }
 
 async function approveTestimonial(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) {
+    redirectWithFlash("/admin/testimonials", "error", "Could not approve testimonial.");
+  }
   const admin = createAdminClient();
   await admin.from("testimonials").update({ published: true }).eq("id", id);
   revalidateTestimonialPaths();
+  redirectWithFlash("/admin/testimonials", "success", "Testimonial approved");
 }
 
 async function deleteTestimonial(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) {
+    redirectWithFlash("/admin/testimonials", "error", "Could not remove testimonial.");
+  }
   const admin = createAdminClient();
   await admin.from("testimonials").delete().eq("id", id);
   revalidateTestimonialPaths();
+  redirectWithFlash("/admin/testimonials", "success", "Testimonial removed");
 }
 
 export default async function AdminTestimonialsPage() {

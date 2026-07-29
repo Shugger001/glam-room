@@ -31,53 +31,78 @@ export default async function BookCompletePage({ searchParams }: BookCompletePag
 
   return (
     <BookPageShell>
-      <div className="mx-auto max-w-lg rounded-2xl border border-white/20 bg-glam-secondary/95 p-8 text-center shadow-premium backdrop-blur-md sm:p-10">
+      <div className="mx-auto max-w-lg border border-glam-border/70 bg-glam-secondary px-6 py-10 text-center sm:px-10 sm:py-12">
         {status === "success" ? (
           <>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-glam-accent">
+            <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-glam-muted">
               Deposit received
             </p>
-            <h1 className="heading-display mt-4 text-3xl text-glam-primary">You&apos;re booked</h1>
-            <p className="mt-4 text-sm leading-relaxed text-glam-muted">
-              Your deposit was received and your appointment request is with the Glam Room team.
-              We&apos;ll confirm via WhatsApp at {BRAND.links.phone}.
+            <h1 className="heading-display mt-3 text-3xl text-glam-primary sm:text-4xl">
+              You&apos;re booked
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-glam-muted sm:text-base">
+              Your deposit is with Glam Room. We&apos;ll confirm the chair on WhatsApp at{" "}
+              {BRAND.links.phone}.
             </p>
             {reference ? (
-              <p className="mt-3 text-xs text-glam-muted">Reference: {reference}</p>
+              <p className="mt-3 text-xs tabular-nums text-glam-muted">Ref: {reference}</p>
             ) : null}
+            <ul className="mx-auto mt-6 max-w-sm space-y-2 text-left text-sm text-glam-muted">
+              <li className="border-l border-glam-accent/40 pl-3">
+                Keep an eye on WhatsApp for confirmation.
+              </li>
+              <li className="border-l border-glam-accent/40 pl-3">
+                Track or reschedule anytime with Find my booking.
+              </li>
+            </ul>
           </>
         ) : status === "failed" ? (
           <>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-600">
+            <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-red-700/80">
               Payment issue
             </p>
-            <h1 className="heading-display mt-4 text-3xl text-glam-primary">
+            <h1 className="heading-display mt-3 text-3xl text-glam-primary sm:text-4xl">
               Deposit not confirmed
             </h1>
-            <p className="mt-4 text-sm leading-relaxed text-glam-muted">
+            <p className="mt-4 text-sm leading-relaxed text-glam-muted sm:text-base">
               {errorMessage ??
                 "We could not confirm your payment. Your slot may not be secured until the deposit clears."}
             </p>
           </>
         ) : (
           <>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-glam-accent">
+            <p className="font-[family-name:var(--font-cormorant)] text-lg italic text-glam-muted">
               Payment
             </p>
-            <h1 className="heading-display mt-4 text-3xl text-glam-primary">Invalid link</h1>
-            <p className="mt-4 text-sm leading-relaxed text-glam-muted">
-              This payment link is missing or expired. Please return to booking and try again.
+            <h1 className="heading-display mt-3 text-3xl text-glam-primary sm:text-4xl">
+              Invalid link
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-glam-muted sm:text-base">
+              This payment link is missing or expired. Return to booking and try again.
             </p>
           </>
         )}
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <ButtonLink href="/book" variant="accent">
-            Back to booking
-          </ButtonLink>
-          <ButtonLink href={BRAND.links.whatsapp} variant="outline">
-            WhatsApp Glam Room
-          </ButtonLink>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          {status === "success" ? (
+            <>
+              <ButtonLink href="/track" variant="accent" className="!rounded-none">
+                Find my booking
+              </ButtonLink>
+              <ButtonLink href={BRAND.links.whatsapp} variant="outline" className="!rounded-none">
+                WhatsApp Glam Room
+              </ButtonLink>
+            </>
+          ) : (
+            <>
+              <ButtonLink href="/book" variant="accent" className="!rounded-none">
+                Back to booking
+              </ButtonLink>
+              <ButtonLink href={BRAND.links.whatsapp} variant="outline" className="!rounded-none">
+                WhatsApp Glam Room
+              </ButtonLink>
+            </>
+          )}
         </div>
       </div>
     </BookPageShell>

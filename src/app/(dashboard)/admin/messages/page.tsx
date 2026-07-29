@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import {
   AdminEmptyState,
   AdminPageHeader,
@@ -19,7 +20,9 @@ async function markMessageRead(formData: FormData) {
   "use server";
   await requireSuperAdmin();
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) {
+    redirectWithFlash("/admin/messages", "error", "Could not mark message as read.");
+  }
   const admin = createAdminClient();
   await admin
     .from("contact_messages")
@@ -27,6 +30,7 @@ async function markMessageRead(formData: FormData) {
     .eq("id", id)
     .is("read_at", null);
   revalidatePath("/admin/messages");
+  redirectWithFlash("/admin/messages", "success", "Message marked as read");
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

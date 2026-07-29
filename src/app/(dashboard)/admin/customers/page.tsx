@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { locationLabelFromId, requireSuperAdmin } from "@/lib/admin/access";
+import { redirectWithFlash } from "@/lib/admin/flash-redirect";
 import {
   AdminBtnPrimary,
   AdminEmptyState,
@@ -62,10 +63,14 @@ async function updateCustomer(formData: FormData) {
   const adminNotes = String(formData.get("admin_notes") ?? "");
   const tagsRaw = String(formData.get("crm_tags") ?? "");
   const assignedLocationId = String(formData.get("assigned_location_id") ?? "").trim();
-  if (!id || !roleOptions.includes(role as (typeof roleOptions)[number])) return;
+  if (!id || !roleOptions.includes(role as (typeof roleOptions)[number])) {
+    redirectWithFlash("/admin/customers", "error", "Could not save customer. Check the form.");
+  }
 
   const auth = await requireSuperAdmin();
-  if (id === auth.userId && role !== "admin") return;
+  if (id === auth.userId && role !== "admin") {
+    redirectWithFlash("/admin/customers", "error", "You cannot remove your own admin role.");
+  }
 
   const validLocationIds = SALON_LOCATIONS.map((l) => l.id);
   const nextAssignedLocationId =
@@ -98,6 +103,7 @@ async function updateCustomer(formData: FormData) {
   }
 
   revalidatePath("/admin/customers");
+  redirectWithFlash("/admin/customers", "success", "Customer saved");
 }
 
 async function bulkApplyTags(formData: FormData) {
@@ -114,11 +120,15 @@ async function bulkApplyTags(formData: FormData) {
     .map((v) => v.trim())
     .filter(Boolean);
   const mode = String(formData.get("bulk_mode") ?? "merge");
-  if (ids.length === 0 || tags.length === 0) return;
+  if (ids.length === 0 || tags.length === 0) {
+    redirectWithFlash("/admin/customers", "error", "Select customers and enter at least one tag.");
+  }
 
   const admin = createAdminClient();
   const { data: profiles } = await admin.from("profiles").select("id, crm_tags").in("id", ids);
-  if (!profiles) return;
+  if (!profiles) {
+    redirectWithFlash("/admin/customers", "error", "Could not apply tags.");
+  }
 
   await Promise.all(
     profiles.map(async (profile) => {
@@ -133,6 +143,7 @@ async function bulkApplyTags(formData: FormData) {
   );
 
   revalidatePath("/admin/customers");
+  redirectWithFlash("/admin/customers", "success", "Tags applied");
 }
 
 type ProfileRow = {
