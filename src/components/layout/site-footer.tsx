@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GlamLogo } from "@/components/brand/glam-logo";
+import { SocialLinks } from "@/components/brand/social-links";
 import { BRAND } from "@/lib/constants/brand";
 import { FOOTER_NAV } from "@/lib/constants/navigation";
 import { getDirectionsUrl } from "@/lib/maps/directions-url";
@@ -17,40 +18,7 @@ export async function SiteFooter() {
           <p className="max-w-xs text-sm leading-relaxed text-glam-muted">
             {BRAND.copy.heroTagline}
           </p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1 text-sm text-glam-muted">
-            <a
-              href={BRAND.links.instagram}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-glam-accent"
-            >
-              Instagram
-            </a>
-            <a
-              href={BRAND.links.tiktok}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-glam-accent"
-            >
-              TikTok
-            </a>
-            <a
-              href={BRAND.links.youtube}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-glam-accent"
-            >
-              YouTube
-            </a>
-            <a
-              href={BRAND.links.whatsapp}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-glam-accent"
-            >
-              WhatsApp
-            </a>
-          </div>
+          <SocialLinks className="pt-1" />
         </div>
 
         <div className="lg:col-span-3">
