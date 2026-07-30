@@ -38,10 +38,10 @@ export default async function BookCompletePage({ searchParams }: BookCompletePag
               Deposit received
             </p>
             <h1 className="heading-display mt-3 text-3xl text-glam-primary sm:text-4xl">
-              You&apos;re booked
+              You&apos;re confirmed
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-glam-muted sm:text-base">
-              Your deposit is with Glam Room. We&apos;ll confirm the chair on WhatsApp at{" "}
+              Your deposit is with Glam Room and your chair is held. Questions? WhatsApp us at{" "}
               {BRAND.links.phone}.
             </p>
             {reference ? (
@@ -49,7 +49,7 @@ export default async function BookCompletePage({ searchParams }: BookCompletePag
             ) : null}
             <ul className="mx-auto mt-6 max-w-sm space-y-2 text-left text-sm text-glam-muted">
               <li className="border-l border-glam-accent/40 pl-3">
-                Keep an eye on WhatsApp for confirmation.
+                Save the appointment details from your confirmation text or email.
               </li>
               <li className="border-l border-glam-accent/40 pl-3">
                 Track or reschedule anytime with Find my booking.

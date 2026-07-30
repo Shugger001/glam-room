@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getShopDailyBookingStatus } from "@/lib/booking/availability";
+import { getShopDailyBookingStatus, getShopDaySlotCounts } from "@/lib/booking/availability";
 import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/security/rate-limit";
@@ -41,14 +41,16 @@ export async function GET(request: Request) {
 
   try {
     const admin = createAdminClient();
-    const status = await getShopDailyBookingStatus(
-      admin,
-      parsed.data.locationId,
-      parsed.data.bookingDate,
-    );
+    const [status, slotStatus] = await Promise.all([
+      getShopDailyBookingStatus(admin, parsed.data.locationId, parsed.data.bookingDate),
+      getShopDaySlotCounts(admin, parsed.data.locationId, parsed.data.bookingDate),
+    ]);
 
     if (status.error) {
       return NextResponse.json({ error: status.error }, { status: 503 });
+    }
+    if (slotStatus.error) {
+      return NextResponse.json({ error: slotStatus.error }, { status: 503 });
     }
 
     const locationLabel =
@@ -59,6 +61,8 @@ export async function GET(request: Request) {
       count: status.count,
       max: status.max,
       remaining: Math.max(0, status.max - status.count),
+      maxPerSlot: slotStatus.maxPerSlot,
+      slots: slotStatus.slots,
       locationLabel,
     });
   } catch {

@@ -1,9 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { finalizePaidBooking } from "@/lib/booking/finalize-paid-booking";
 import { fetchPaystackTransaction } from "@/lib/payments/paystack-transaction";
-import {
-  notifyClientBookingUpdate,
-  notifySalonBookingRequest,
-} from "@/lib/notifications/booking-notifications";
 
 export type BookingPaymentEvent =
   | "redirect_verify"
@@ -30,10 +27,10 @@ function appendPaymentLog(
 export async function applyPaystackBookingVerification(
   admin: SupabaseClient,
   input: ApplyBookingPaymentInput,
-): Promise<{ ok: boolean; reason?: string; bookingId?: string; alreadyPaid?: boolean }> {
+): Promise<{ ok: boolean; reason?: string; bookingId?: string; alreadyPaid?: boolean; confirmed?: boolean }> {
   const { data: booking, error } = await admin
     .from("bookings")
-    .select("id, deposit_amount, deposit_paid, add_ons")
+    .select("id, deposit_amount, deposit_paid, add_ons, status")
     .eq("paystack_reference", input.reference)
     .maybeSingle();
 
@@ -64,45 +61,45 @@ export async function applyPaystackBookingVerification(
     auditEntry,
   );
 
+  await admin
+    .from("bookings")
+    .update({ add_ons: nextAddOns, updated_at: new Date().toISOString() })
+    .eq("id", booking.id);
+
   if (booking.deposit_paid) {
-    await admin
-      .from("bookings")
-      .update({ add_ons: nextAddOns, updated_at: new Date().toISOString() })
-      .eq("id", booking.id);
-    return { ok: true, bookingId: booking.id, alreadyPaid: true };
+    const finalized = await finalizePaidBooking(admin, booking.id, {
+      notifySalonDeposit: false,
+      source: "paystack",
+    });
+    return {
+      ok: finalized.ok,
+      reason: finalized.reason,
+      bookingId: booking.id,
+      alreadyPaid: true,
+      confirmed: finalized.confirmed,
+    };
   }
 
   if (!amountMatches || !currencyMatches) {
-    await admin
-      .from("bookings")
-      .update({ add_ons: nextAddOns, updated_at: new Date().toISOString() })
-      .eq("id", booking.id);
     return { ok: false, reason: "Payment amount mismatch.", bookingId: booking.id };
   }
 
   if (!input.paid) {
-    await admin
-      .from("bookings")
-      .update({ add_ons: nextAddOns, updated_at: new Date().toISOString() })
-      .eq("id", booking.id);
     return { ok: false, reason: "Payment not completed.", bookingId: booking.id };
   }
 
-  await admin
-    .from("bookings")
-    .update({
-      deposit_paid: true,
-      add_ons: nextAddOns,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", booking.id);
+  const finalized = await finalizePaidBooking(admin, booking.id, {
+    notifySalonDeposit: true,
+    source: "paystack",
+  });
 
-  await Promise.allSettled([
-    notifySalonBookingRequest(admin, booking.id, "deposit_paid"),
-    notifyClientBookingUpdate(admin, booking.id, "deposit_paid"),
-  ]);
-
-  return { ok: true, bookingId: booking.id };
+  return {
+    ok: finalized.ok,
+    reason: finalized.reason,
+    bookingId: booking.id,
+    alreadyPaid: finalized.alreadyPaid,
+    confirmed: finalized.confirmed,
+  };
 }
 
 export async function verifyAndApplyBookingPayment(reference: string) {
@@ -125,6 +122,7 @@ export async function verifyAndApplyBookingPayment(reference: string) {
     ok: result.ok,
     bookingId: result.bookingId,
     alreadyPaid: result.alreadyPaid,
+    confirmed: result.confirmed,
     error: result.reason,
   };
 }

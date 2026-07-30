@@ -61,6 +61,7 @@ export function BookingForm({
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [dateFullyBooked, setDateFullyBooked] = useState(false);
+  const [slotCounts, setSlotCounts] = useState<Record<string, number>>({});
   const [checkingDateCapacity, setCheckingDateCapacity] = useState(false);
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<{
@@ -162,6 +163,7 @@ export function BookingForm({
   useEffect(() => {
     if (!locationId || !bookingDate) {
       setDateFullyBooked(false);
+      setSlotCounts({});
       return;
     }
 
@@ -176,6 +178,7 @@ export function BookingForm({
         const data = (await res.json()) as {
           fullyBooked?: boolean;
           locationLabel?: string;
+          slots?: Record<string, number>;
           error?: string;
         };
 
@@ -183,11 +186,13 @@ export function BookingForm({
 
         if (!res.ok) {
           setDateFullyBooked(false);
+          setSlotCounts({});
           return;
         }
 
         const fullyBooked = Boolean(data.fullyBooked);
         setDateFullyBooked(fullyBooked);
+        setSlotCounts(data.slots ?? {});
 
         if (fullyBooked) {
           form.setValue("bookingTime", "");
@@ -200,9 +205,23 @@ export function BookingForm({
           }
         } else {
           lastCapacityToastKey.current = capacityKey;
+          const currentTime = form.getValues("bookingTime");
+          if (
+            currentTime &&
+            (data.slots?.[currentTime] ?? 0) >= MAX_BOOKINGS_PER_SLOT
+          ) {
+            form.setValue("bookingTime", "");
+            toast.error("That time just filled up", {
+              description: "Please choose another time slot.",
+              duration: 5000,
+            });
+          }
         }
       } catch {
-        if (!cancelled) setDateFullyBooked(false);
+        if (!cancelled) {
+          setDateFullyBooked(false);
+          setSlotCounts({});
+        }
       } finally {
         if (!cancelled) setCheckingDateCapacity(false);
       }
@@ -712,11 +731,20 @@ export function BookingForm({
                   {...form.register("bookingTime")}
                 >
                   <option value="">Select time</option>
-                  {timeSlots.map((slot) => (
-                    <option key={slot.value} value={slot.value}>
-                      {slot.label}
-                    </option>
-                  ))}
+                  {timeSlots.map((slot) => {
+                    const taken = slotCounts[slot.value] ?? 0;
+                    const full = taken >= MAX_BOOKINGS_PER_SLOT;
+                    const remaining = Math.max(0, MAX_BOOKINGS_PER_SLOT - taken);
+                    return (
+                      <option key={slot.value} value={slot.value} disabled={full}>
+                        {full
+                          ? `${slot.label} · full`
+                          : taken > 0
+                            ? `${slot.label} · ${remaining} left`
+                            : slot.label}
+                      </option>
+                    );
+                  })}
                 </select>
                 {form.formState.errors.bookingTime ? (
                   <p className="mt-1 text-xs text-red-600">

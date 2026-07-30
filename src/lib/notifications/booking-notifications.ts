@@ -127,11 +127,11 @@ export async function notifySalonBookingRequest(
   });
 }
 
-/** Confirm receipt to the client after booking or deposit. */
+/** Confirm receipt / confirmation to the client after booking, deposit, or auto-confirm. */
 export async function notifyClientBookingUpdate(
   admin: SupabaseClient,
   bookingId: string,
-  event: "submitted" | "deposit_paid",
+  event: "submitted" | "deposit_paid" | "confirmed",
 ) {
   const booking = await loadBooking(admin, bookingId);
   if (!booking) return;
@@ -143,23 +143,34 @@ export async function notifyClientBookingUpdate(
   const whatsAppUrl = buildClientBookingSupportLink(clientName, service, when);
 
   const subject =
-    event === "deposit_paid" ? "Glam Room: deposit received" : "Glam Room: booking received";
+    event === "confirmed"
+      ? "Glam Room: appointment confirmed"
+      : event === "deposit_paid"
+        ? "Glam Room: deposit received"
+        : "Glam Room: booking received";
 
   const html = renderBookingEmail({
-    variant: event === "deposit_paid" ? "client_deposit_paid" : "client_submitted",
+    variant:
+      event === "confirmed"
+        ? "client_confirmed"
+        : event === "deposit_paid"
+          ? "client_deposit_paid"
+          : "client_submitted",
     clientName,
     service,
     when,
     location,
-    depositLine: event === "deposit_paid" ? depositLine : undefined,
+    depositLine: event === "deposit_paid" || event === "confirmed" ? depositLine : undefined,
     whatsAppUrl,
     trackUrl,
   });
 
   const smsText =
-    event === "deposit_paid"
-      ? `The Glam Room: deposit confirmed for ${service} on ${when}. We'll confirm on WhatsApp soon. ${whatsAppUrl ?? ""}`
-      : `The Glam Room: booking received for ${service} on ${when}. We'll confirm on WhatsApp soon. ${whatsAppUrl ?? ""}`;
+    event === "confirmed"
+      ? `The Glam Room: your ${service} on ${when} is confirmed. See you soon! Track: ${trackUrl}`
+      : event === "deposit_paid"
+        ? `The Glam Room: deposit confirmed for ${service} on ${when}. We'll confirm on WhatsApp soon. ${whatsAppUrl ?? ""}`
+        : `The Glam Room: booking received for ${service} on ${when}. We'll confirm on WhatsApp soon. ${whatsAppUrl ?? ""}`;
 
   await sendTransactionalMessage({
     toEmail: clientEmail,

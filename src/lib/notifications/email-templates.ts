@@ -2,7 +2,12 @@ import { BRAND } from "@/lib/constants/brand";
 
 type EmailButton = { label: string; href: string; primary?: boolean };
 
-type BookingEmailVariant = "client_submitted" | "client_deposit_paid" | "salon_new" | "salon_deposit_paid";
+type BookingEmailVariant =
+  | "client_submitted"
+  | "client_deposit_paid"
+  | "client_confirmed"
+  | "salon_new"
+  | "salon_deposit_paid";
 
 export type BookingEmailContent = {
   variant: BookingEmailVariant;
@@ -60,6 +65,12 @@ function variantCopy(content: BookingEmailContent) {
         eyebrow: "Deposit confirmed",
         headline: "Your slot is secured",
         intro: `Hi ${content.clientName}, your deposit is confirmed. We'll reach out on WhatsApp to finalize your appointment.`,
+      };
+    case "client_confirmed":
+      return {
+        eyebrow: "You're confirmed",
+        headline: "See you at Glam Room",
+        intro: `Hi ${content.clientName}, your deposit is in and your appointment is confirmed. We can't wait to glam you.`,
       };
     case "salon_new":
       return {

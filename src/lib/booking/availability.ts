@@ -97,6 +97,49 @@ export async function getShopDailyBookingStatus(
   };
 }
 
+/** Local HH:mm key matching `buildDatetime(date, time)` slot values. */
+function slotTimeFromStartAt(startAt: string) {
+  const d = new Date(startAt);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+/**
+ * Per-slot active booking counts for a shop day (keys are "HH:mm" time values).
+ */
+export async function getShopDaySlotCounts(
+  supabase: SupabaseClient,
+  locationId: string,
+  bookingDate: string,
+) {
+  const { start, end } = bookingDayRange(bookingDate);
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("start_at")
+    .eq("location_id", locationId)
+    .in("status", [...ACTIVE_STATUSES])
+    .gte("start_at", start)
+    .lte("start_at", end);
+
+  if (error) {
+    return {
+      slots: {} as Record<string, number>,
+      maxPerSlot: MAX_BOOKINGS_PER_SLOT,
+      error: error.message,
+    };
+  }
+
+  const slots: Record<string, number> = {};
+  for (const row of data ?? []) {
+    if (!row.start_at) continue;
+    const key = slotTimeFromStartAt(row.start_at);
+    slots[key] = (slots[key] ?? 0) + 1;
+  }
+
+  return { slots, maxPerSlot: MAX_BOOKINGS_PER_SLOT, error: null as string | null };
+}
+
 /** Enforce per-slot (3) and per-shop daily (12) capacity before creating a booking. */
 export async function validateBookingCapacity(
   supabase: SupabaseClient,
