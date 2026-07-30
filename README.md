@@ -47,4 +47,12 @@ Cron runs **once daily** (08:00 UTC) on Vercel Hobby. Upgrade to Pro for hourly 
 | `npm run dev` | Dev server + opens browser |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
+| `npm run test:e2e` | Playwright critical-path smoke (book + admin) |
+| `npm run test:e2e:ui` | Playwright UI mode |
 | `npm run deploy:vercel` | Deploy to Vercel production |
+
+### E2E notes
+
+- Public tests (home + book) run against the local app (`127.0.0.1:3100`) and mock Paystack initialize so no real charge happens.
+- Admin login / attendance tests **skip** unless you set `E2E_ADMIN_EMAIL` and `E2E_ADMIN_PASSWORD` (staff or super-admin account). Prefer a dedicated test login.
+- Point at a running server with `PLAYWRIGHT_BASE_URL=https://…` if you do not want Playwright to start `npm run dev:server`.

@@ -10,6 +10,8 @@
     "perf:budget": "node scripts/perf-budget.mjs",
     "start": "next start",
     "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "deploy:vercel": "vercel deploy --prod --yes",
     "deploy:vercel:preview": "vercel deploy --yes",
     "env:push:notifications": "node scripts/push-notification-env.mjs"
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
