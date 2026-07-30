@@ -5,7 +5,9 @@ import { AdminDashboardShell } from "@/components/admin/admin-dashboard-shell";
 import { AdminFlashToast } from "@/components/admin/admin-flash-toast";
 import { AdminMobileChrome } from "@/components/admin/admin-mobile-chrome";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminNavigationLoader } from "@/components/admin/admin-navigation-loader";
 import { AdminPanel, adminBtnGhost, adminBtnOutline } from "@/components/admin/admin-ui";
+import { PageLoader } from "@/components/ui/page-loader";
 import {
   adminAuthRedirectPath,
   getAdminAccess,
@@ -93,9 +95,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             shopLabel={access.assignedLocationLabel}
             signOut={signOut}
           />
-          <main className="w-full flex-1 px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:px-8 lg:pb-10 xl:px-10">
+          <main className="relative w-full flex-1 px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:px-8 lg:pb-10 xl:px-10">
             <Suspense fallback={null}>
               <AdminFlashToast />
+            </Suspense>
+            <Suspense fallback={null}>
+              <AdminNavigationLoader />
             </Suspense>
             {children}
           </main>
