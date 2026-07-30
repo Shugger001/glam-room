@@ -1,8 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Toaster } from "sonner";
 import { PostHogInit } from "@/components/analytics/posthog-init";
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import { ClearStalePwa } from "@/components/pwa/clear-stale-pwa";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -10,6 +12,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <LazyMotion features={domAnimation} strict>
       <ClearStalePwa />
       <PostHogInit />
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
       {children}
       <Toaster
         position="top-center"

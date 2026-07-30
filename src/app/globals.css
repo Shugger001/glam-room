@@ -88,6 +88,50 @@
       opacity: 1 !important;
     }
   }
+
+  .page-loader-ring {
+    animation: page-loader-spin 0.9s linear infinite;
+  }
+
+  .nav-progress-bar {
+    transform-origin: left center;
+    animation: nav-progress-grow 8s cubic-bezier(0.1, 0.05, 0.1, 1) forwards;
+  }
+
+  @keyframes page-loader-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes nav-progress-grow {
+    0% {
+      transform: scaleX(0.08);
+    }
+    20% {
+      transform: scaleX(0.35);
+    }
+    50% {
+      transform: scaleX(0.65);
+    }
+    80% {
+      transform: scaleX(0.85);
+    }
+    100% {
+      transform: scaleX(0.92);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-loader-ring {
+      animation: none;
+      border-color: var(--glam-accent);
+    }
+    .nav-progress-bar {
+      animation: none;
+      transform: scaleX(0.6);
+    }
+  }
 }
 
 @utility glass-panel {

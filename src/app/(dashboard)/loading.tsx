@@ -1,7 +1,9 @@
+import { PageLoader } from "@/components/ui/page-loader";
+
 export default function DashboardLoading() {
   return (
-    <div className="min-h-[40vh] animate-pulse p-8 text-center text-sm text-white/60">
-      Loading dashboard...
+    <div className="min-h-[40vh] bg-[#0A1A2F]">
+      <PageLoader label="Loading dashboard…" compact tone="dark" />
     </div>
   );
 }
