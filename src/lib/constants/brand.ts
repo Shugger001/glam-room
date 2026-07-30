@@ -37,7 +37,7 @@ export const BRAND = {
     background: "#F8F5F2",
   },
   links: {
-    instagram: "https://www.instagram.com/asantewaaaa",
+    instagram: "https://www.instagram.com/_asantewaaaa_",
     tiktok: "https://www.tiktok.com/@asantewaaaaa",
     youtube: "https://www.youtube.com/@asantewaa",
     whatsapp: "https://wa.me/233243646400?text=Hi%20Glam%20Room!%20I%27d%20like%20to%20book%20an%20appointment%20%F0%9F%92%85",
