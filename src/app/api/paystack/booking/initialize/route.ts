@@ -17,7 +17,7 @@ function paystackEmail(values: { clientEmail?: string; clientPhone: string; clie
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`paystack-booking:${ip}`, 15, 60_000)) {
+  if (!(await rateLimit(`paystack-booking:${ip}`, 15, 60_000))) {
     return NextResponse.json({ error: "Too many attempts. Please wait a minute." }, { status: 429 });
   }
 

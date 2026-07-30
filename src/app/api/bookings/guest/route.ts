@@ -18,7 +18,7 @@ const guestBookingRequestSchema = guestBookingSchema.extend({
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`guest-booking:${ip}`, 12, 60_000)) {
+  if (!(await rateLimit(`guest-booking:${ip}`, 12, 60_000))) {
     return NextResponse.json({ error: "Too many attempts. Please wait a minute." }, { status: 429 });
   }
 

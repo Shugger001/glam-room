@@ -12,7 +12,7 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`booking-capacity:${ip}`, 30, 60_000)) {
+  if (!(await rateLimit(`booking-capacity:${ip}`, 30, 60_000))) {
     return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
   }
 

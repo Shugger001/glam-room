@@ -28,7 +28,7 @@ function locationLabel(locationId: string | null, locations: Awaited<ReturnType<
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`booking-lookup:${ip}`, 10, 60_000)) {
+  if (!(await rateLimit(`booking-lookup:${ip}`, 10, 60_000))) {
     return NextResponse.json({ error: "Too many requests. Please try again shortly." }, { status: 429 });
   }
 

@@ -25,7 +25,7 @@ function validSignature(raw: string, secret: string, signature: string | null): 
 
 export async function POST(request: Request) {
   const source = request.headers.get("x-forwarded-for") ?? "paystack";
-  if (!rateLimit(`paystack-webhook:${source}`, 120, 60_000)) {
+  if (!(await rateLimit(`paystack-webhook:${source}`, 120, 60_000))) {
     return NextResponse.json({ ok: false, error: "Rate limited" }, { status: 429 });
   }
   const secret = process.env.PAYSTACK_SECRET_KEY;

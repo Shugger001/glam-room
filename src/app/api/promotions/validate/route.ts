@@ -11,7 +11,7 @@ const bodySchema = z.object({
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`promo-validate:${ip}`, 20, 60_000)) {
+  if (!(await rateLimit(`promo-validate:${ip}`, 20, 60_000))) {
     return NextResponse.json({ error: "Too many attempts. Please wait a moment." }, { status: 429 });
   }
 

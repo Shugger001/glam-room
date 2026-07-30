@@ -10,8 +10,11 @@
     "perf:budget": "node scripts/perf-budget.mjs",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:public": "playwright test e2e/home.spec.ts e2e/book.spec.ts",
     "deploy:vercel": "vercel deploy --prod --yes",
     "deploy:vercel:preview": "vercel deploy --yes",
     "env:push:notifications": "node scripts/push-notification-env.mjs"
@@ -21,6 +24,8 @@
     "@sentry/node": "^10.47.0",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "clsx": "^2.1.1",
@@ -47,6 +52,7 @@
     "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vercel": "^50.42.0"
+    "vercel": "^50.42.0",
+    "vitest": "^4.1.10"
   }
 }

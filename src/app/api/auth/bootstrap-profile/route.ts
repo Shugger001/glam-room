@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "local";
-  if (!rateLimit(`bootstrap-profile:${ip}`, 30, 60_000)) {
+  if (!(await rateLimit(`bootstrap-profile:${ip}`, 30, 60_000))) {
     return NextResponse.json({ ok: false, error: "Too many requests" }, { status: 429 });
   }
 

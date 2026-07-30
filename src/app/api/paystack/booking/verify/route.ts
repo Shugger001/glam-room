@@ -9,7 +9,7 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`paystack-booking-verify:${ip}`, 40, 60_000)) {
+  if (!(await rateLimit(`paystack-booking-verify:${ip}`, 40, 60_000))) {
     return NextResponse.json({ ok: false, error: "Too many verify requests." }, { status: 429 });
   }
 

@@ -31,7 +31,7 @@ function serviceDuration(
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`booking-manage:${ip}`, 8, 60_000)) {
+  if (!(await rateLimit(`booking-manage:${ip}`, 8, 60_000))) {
     return NextResponse.json({ error: "Too many attempts. Please wait a moment." }, { status: 429 });
   }
 

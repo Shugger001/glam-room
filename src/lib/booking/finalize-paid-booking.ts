@@ -3,8 +3,7 @@ import {
   notifyClientBookingUpdate,
   notifySalonBookingRequest,
 } from "@/lib/notifications/booking-notifications";
-
-const CONFIRMABLE_STATUSES = new Set(["pending", "awaiting_approval"]);
+import { canAutoConfirmBookingStatus } from "@/lib/payments/paystack-match";
 
 type FinalizeOptions = {
   /** Notify salon that a deposit was received (Paystack / desk). Default true. */
@@ -40,7 +39,7 @@ export async function finalizePaidBooking(
   }
 
   const alreadyPaid = Boolean(booking.deposit_paid);
-  const canConfirm = CONFIRMABLE_STATUSES.has(booking.status);
+  const canConfirm = canAutoConfirmBookingStatus(booking.status);
   const nextStatus = canConfirm ? "confirmed" : booking.status;
 
   const updatePayload: Record<string, unknown> = {

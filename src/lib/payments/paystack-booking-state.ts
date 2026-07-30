@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { finalizePaidBooking } from "@/lib/booking/finalize-paid-booking";
+import {
+  paystackAmountMatches,
+  paystackCurrencyMatches,
+} from "@/lib/payments/paystack-match";
 import { fetchPaystackTransaction } from "@/lib/payments/paystack-transaction";
 
 export type BookingPaymentEvent =
@@ -38,13 +42,8 @@ export async function applyPaystackBookingVerification(
   if (!booking) return { ok: false, reason: "Booking not found for reference." };
 
   const depositMajor = Number(booking.deposit_amount ?? 0);
-  const expectedMinor = Math.round(depositMajor * 100);
-  const amountMatches =
-    input.amountMinor == null || expectedMinor <= 0 || input.amountMinor === expectedMinor;
-  const currencyMatches =
-    !input.currency ||
-    input.currency.toUpperCase() ===
-      (process.env.NEXT_PUBLIC_PAYSTACK_CURRENCY?.trim().toUpperCase() || "GHS");
+  const amountMatches = paystackAmountMatches(depositMajor, input.amountMinor);
+  const currencyMatches = paystackCurrencyMatches(input.currency);
 
   const auditEntry = {
     at: new Date().toISOString(),

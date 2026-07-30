@@ -16,5 +16,30 @@ jobs:
           node-version: "20"
           cache: npm
       - run: npm ci
+      - run: npm run test
       - run: npm run build
       - run: npm run perf:budget
+
+  e2e:
+    runs-on: ubuntu-latest
+    # Requires repo secrets for a seeded Supabase project. Set ENABLE_E2E=true when ready.
+    if: ${{ vars.ENABLE_E2E == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: Public E2E smoke
+        env:
+          CI: true
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+          NEXT_PUBLIC_PAYSTACK_CURRENCY: GHS
+        run: npm run test:e2e:public

@@ -11,7 +11,7 @@ const submitSchema = z.object({
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!rateLimit(`review-submit:${ip}`, 6, 60_000)) {
+  if (!(await rateLimit(`review-submit:${ip}`, 6, 60_000))) {
     return NextResponse.json({ error: "Too many attempts. Please wait." }, { status: 429 });
   }
 
