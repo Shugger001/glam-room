@@ -7,6 +7,8 @@ export type StaffMember = {
   specialty: string[];
   image: string;
   instagram?: string;
+  /** null / omitted = floater (all shops) */
+  homeLocationId?: string | null;
 };
 
 export const SALON_STAFF: StaffMember[] = [

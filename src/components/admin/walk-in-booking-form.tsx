@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { SALON_LOCATIONS } from "@/lib/constants/locations";
 import { filterServicesForLocation, type SalonService } from "@/lib/constants/services";
+import { filterStaffForLocation } from "@/lib/booking/staff-assignment";
 import { BOOKING_TIME_SLOTS } from "@/lib/validation/booking";
 import { AdminBtnPrimary } from "@/components/admin/admin-ui";
 
-type StaffOption = { id: string; name: string };
+type StaffOption = { id: string; name: string; homeLocationId?: string | null };
 
 export type WalkInDefaults = {
   open?: boolean;
@@ -45,6 +46,11 @@ export function WalkInBookingForm({
   const scopedServices = useMemo(
     () => filterServicesForLocation(services, locationId || null),
     [services, locationId],
+  );
+
+  const scopedStaff = useMemo(
+    () => filterStaffForLocation(staff, locationId || null),
+    [staff, locationId],
   );
 
   const today = new Date().toISOString().slice(0, 10);
@@ -100,11 +106,11 @@ export function WalkInBookingForm({
           </label>
           <label className="block text-xs text-white/60">
             Stylist
-            <select name="staffId" className={inputClass}>
+            <select name="staffId" className={inputClass} key={`staff-${locationId}`}>
               <option value="" className="bg-glam-primary">
                 Unassigned
               </option>
-              {staff.map((s) => (
+              {scopedStaff.map((s) => (
                 <option key={s.id} value={s.id} className="bg-glam-primary">
                   {s.name}
                 </option>

@@ -44,7 +44,7 @@ export async function createWalkInBookingAction(formData: FormData) {
 
   const { staffId: formStaffId, ...walkInValues } = parsed.data;
 
-  await createWalkInBooking(admin, {
+  const created = await createWalkInBooking(admin, {
     ...walkInValues,
     staffId: formStaffId?.trim() || null,
     locationLabel: locationLabelFromId(parsed.data.locationId) ?? parsed.data.locationId,
@@ -55,6 +55,10 @@ export async function createWalkInBookingAction(formData: FormData) {
     },
     createdByUserId: access.userId,
   });
+
+  if (!created.ok) {
+    return redirectBackWithFlash("error", created.error);
+  }
 
   revalidatePath("/admin/appointments");
   revalidatePath("/admin");

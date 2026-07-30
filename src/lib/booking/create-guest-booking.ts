@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   hasClientDuplicateBooking,
+  isStaffScheduleAvailable,
   validateBookingCapacity,
 } from "@/lib/booking/availability";
+import { assertBookableStaff } from "@/lib/booking/staff-assignment";
 import { BOOKING_DEPOSIT_GHS, computeDepositAmount } from "@/lib/booking/deposit";
 import type { GuestBookingValues } from "@/lib/validation/booking";
 
@@ -32,6 +34,11 @@ export async function insertGuestBooking(
     new Date(startAt).getTime() + service.durationMinutes * 60_000,
   ).toISOString();
 
+  const staffOk = await assertBookableStaff(supabase, staffId, values.locationId);
+  if (!staffOk.ok) {
+    return { ok: false as const, error: staffOk.error };
+  }
+
   const capacityCheck = await validateBookingCapacity(supabase, {
     startAt,
     locationId: values.locationId,
@@ -39,6 +46,15 @@ export async function insertGuestBooking(
   });
   if (!capacityCheck.available) {
     return { ok: false as const, error: capacityCheck.error ?? "That time slot is full." };
+  }
+
+  const scheduleCheck = await isStaffScheduleAvailable(supabase, {
+    staffId,
+    startAt,
+    endAt,
+  });
+  if (!scheduleCheck.available) {
+    return { ok: false as const, error: scheduleCheck.error ?? "Stylist is booked." };
   }
 
   const duplicateCheck = await hasClientDuplicateBooking(

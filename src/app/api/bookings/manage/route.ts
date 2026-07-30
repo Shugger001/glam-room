@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { validateBookingCapacity } from "@/lib/booking/availability";
+import {
+  isStaffScheduleAvailable,
+  validateBookingCapacity,
+} from "@/lib/booking/availability";
 import { MANAGEABLE_STATUSES, verifyClientBooking } from "@/lib/booking/lookup-match";
 import { getLiveLocations, locationLabelFromList } from "@/lib/data/live-site-content";
 import { getSalonNotifyContacts } from "@/lib/notifications/salon-contact";
@@ -126,6 +129,19 @@ export async function POST(request: Request) {
     if (!capacity.available) {
       return NextResponse.json(
         { error: capacity.error ?? "That time slot is not available." },
+        { status: 400 },
+      );
+    }
+
+    const schedule = await isStaffScheduleAvailable(admin, {
+      staffId: booking.staff_id,
+      startAt,
+      endAt,
+      excludeBookingId: bookingId,
+    });
+    if (!schedule.available) {
+      return NextResponse.json(
+        { error: schedule.error ?? "Your stylist is booked for that time." },
         { status: 400 },
       );
     }

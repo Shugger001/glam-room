@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateBookingCapacity } from "@/lib/booking/availability";
+import { isStaffScheduleAvailable, validateBookingCapacity } from "@/lib/booking/availability";
+import { assertBookableStaff } from "@/lib/booking/staff-assignment";
 import { BOOKING_DEPOSIT_GHS, computeDepositAmount } from "@/lib/booking/deposit";
 import type { AdminWalkInValues } from "@/lib/validation/admin-walk-in";
 
@@ -21,6 +22,13 @@ export async function createWalkInBooking(
     new Date(startAt).getTime() + input.service.durationMinutes * 60_000,
   ).toISOString();
 
+  if (input.staffId) {
+    const staffOk = await assertBookableStaff(supabase, input.staffId, input.locationId);
+    if (!staffOk.ok) {
+      return { ok: false as const, error: staffOk.error };
+    }
+  }
+
   const capacityCheck = await validateBookingCapacity(supabase, {
     startAt,
     locationId: input.locationId,
@@ -28,6 +36,15 @@ export async function createWalkInBooking(
   });
   if (!capacityCheck.available) {
     return { ok: false as const, error: capacityCheck.error ?? "That time slot is full." };
+  }
+
+  const scheduleCheck = await isStaffScheduleAvailable(supabase, {
+    staffId: input.staffId,
+    startAt,
+    endAt,
+  });
+  if (!scheduleCheck.available) {
+    return { ok: false as const, error: scheduleCheck.error ?? "Stylist is booked." };
   }
 
   const waiveDeposit = input.waiveDeposit === "true";
@@ -61,7 +78,9 @@ export async function createWalkInBooking(
       ]
         .filter(Boolean)
         .join(" · "),
-      add_ons: waiveDeposit ? { deposit_waived: true, deposit_flat_ghs: BOOKING_DEPOSIT_GHS } : { deposit_flat_ghs: BOOKING_DEPOSIT_GHS },
+      add_ons: waiveDeposit
+        ? { deposit_waived: true, deposit_flat_ghs: BOOKING_DEPOSIT_GHS }
+        : { deposit_flat_ghs: BOOKING_DEPOSIT_GHS },
     })
     .select("id")
     .single();

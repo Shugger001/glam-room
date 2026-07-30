@@ -53,7 +53,11 @@ export async function POST(request: Request) {
       .select("id, name, duration_minutes, base_price, active, location_ids")
       .eq("id", values.serviceId)
       .maybeSingle(),
-    admin.from("staff").select("id, active, is_front_desk").eq("id", staffId).maybeSingle(),
+    admin
+      .from("staff")
+      .select("id, active, is_front_desk, home_location_id")
+      .eq("id", staffId)
+      .maybeSingle(),
   ]);
 
   if (serviceError || !serviceRow || serviceRow.active === false) {
@@ -75,6 +79,16 @@ export async function POST(request: Request) {
 
   if (!staffRow || staffRow.active === false || staffRow.is_front_desk === true) {
     return NextResponse.json({ error: "Stylist assignment is invalid." }, { status: 400 });
+  }
+  if (
+    typeof staffRow.home_location_id === "string" &&
+    staffRow.home_location_id.length > 0 &&
+    staffRow.home_location_id !== values.locationId
+  ) {
+    return NextResponse.json(
+      { error: "That stylist does not work at this shop. Pick another expert." },
+      { status: 400 },
+    );
   }
 
   const locationLabel =

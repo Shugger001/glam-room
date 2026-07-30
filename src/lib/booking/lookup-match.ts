@@ -17,6 +17,7 @@ export type LookupBookingRow = {
   client_name: string | null;
   client_phone: string | null;
   location_id: string | null;
+  staff_id: string | null;
   client_notes: string | null;
   services: { name?: string; duration_minutes?: number } | { name?: string; duration_minutes?: number }[] | null;
 };
@@ -31,7 +32,7 @@ export async function findClientBookings(
   const { data, error } = await supabase
     .from("bookings")
     .select(
-      "id, start_at, end_at, status, client_name, client_phone, location_id, client_notes, services(name, duration_minutes)",
+      "id, start_at, end_at, status, client_name, client_phone, location_id, staff_id, client_notes, services(name, duration_minutes)",
     )
     .in("status", [...LOOKUP_ACTIVE_STATUSES])
     .order("start_at", { ascending: false })

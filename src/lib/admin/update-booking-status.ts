@@ -2,6 +2,11 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireStaffBookingAccess } from "@/lib/admin/access";
 import { redirectBackWithFlash } from "@/lib/admin/flash-redirect";
+import {
+  isStaffScheduleAvailable,
+  validateBookingCapacity,
+} from "@/lib/booking/availability";
+import { assertBookableStaff } from "@/lib/booking/staff-assignment";
 import { sendTransactionalMessage } from "@/lib/notifications/send-transactional";
 
 export const BOOKING_STATUS_OPTIONS = [
@@ -16,6 +21,14 @@ export const BOOKING_STATUS_OPTIONS = [
 ] as const;
 
 export type BookingStatusOption = (typeof BOOKING_STATUS_OPTIONS)[number];
+
+function localBookingDate(iso: string) {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export async function updateBookingStatusAction(formData: FormData) {
   "use server";
@@ -33,7 +46,9 @@ export async function updateBookingStatusAction(formData: FormData) {
 
   const { data: existing } = await admin
     .from("bookings")
-    .select("status, start_at, end_at, user_id, client_name, client_phone, staff_id, admin_notes")
+    .select(
+      "status, start_at, end_at, user_id, client_name, client_phone, staff_id, admin_notes, location_id",
+    )
     .eq("id", id)
     .maybeSingle();
   if (!existing) return;
@@ -52,6 +67,39 @@ export async function updateBookingStatusAction(formData: FormData) {
   }
 
   const nextStaffId = staffIdRaw === "none" ? null : staffIdRaw || null;
+  const effectiveStaffId = formData.has("staff_id") ? nextStaffId : existing.staff_id;
+  const scheduleChanged = existing.start_at !== nextStartAt;
+  const staffChanged = formData.has("staff_id") && existing.staff_id !== nextStaffId;
+
+  if (effectiveStaffId && existing.location_id && (staffChanged || scheduleChanged)) {
+    const staffOk = await assertBookableStaff(admin, effectiveStaffId, existing.location_id);
+    if (!staffOk.ok) {
+      return redirectBackWithFlash("error", staffOk.error);
+    }
+  }
+
+  if (scheduleChanged && existing.location_id) {
+    const capacity = await validateBookingCapacity(admin, {
+      startAt: nextStartAt,
+      locationId: existing.location_id,
+      bookingDate: localBookingDate(nextStartAt),
+    });
+    if (!capacity.available) {
+      return redirectBackWithFlash("error", capacity.error ?? "That time slot is full.");
+    }
+  }
+
+  if (effectiveStaffId && (scheduleChanged || staffChanged)) {
+    const schedule = await isStaffScheduleAvailable(admin, {
+      staffId: effectiveStaffId,
+      startAt: nextStartAt,
+      endAt: nextEndAt,
+      excludeBookingId: id,
+    });
+    if (!schedule.available) {
+      return redirectBackWithFlash("error", schedule.error ?? "Stylist is booked.");
+    }
+  }
 
   const updatePayload: Record<string, unknown> = {
     status,
@@ -68,13 +116,9 @@ export async function updateBookingStatusAction(formData: FormData) {
 
   await admin.from("bookings").update(updatePayload).eq("id", id);
 
-  if (
-    existing.status !== status ||
-    existing.start_at !== nextStartAt ||
-    (formData.has("staff_id") && existing.staff_id !== nextStaffId)
-  ) {
+  if (existing.status !== status || scheduleChanged || staffChanged) {
     let body = `Your Glam Room booking is now ${status.replaceAll("_", " ")}.`;
-    if (existing.start_at !== nextStartAt) {
+    if (scheduleChanged) {
       body += ` New schedule: ${new Date(nextStartAt).toLocaleString()}.`;
     }
 

@@ -177,7 +177,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
   const [{ data, count }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes] =
     await Promise.all([
     query.range(rangeFrom, rangeTo),
-    admin.from("staff").select("id, name").eq("active", true).eq("is_front_desk", false).order("sort_order"),
+    admin.from("staff").select("id, name, home_location_id").eq("active", true).eq("is_front_desk", false).order("sort_order"),
     (async () => {
       const { start, end } = dayBounds();
       let statsQuery = admin
@@ -318,7 +318,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
 
       <WalkInBookingForm
         services={services}
-        staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        staff={(staffRows ?? []).map((s) => ({
+          id: s.id,
+          name: s.name,
+          homeLocationId: (s as { home_location_id?: string | null }).home_location_id ?? null,
+        }))}
         defaultLocationId={locationScope}
         defaults={{
           open: walkinOpen,
@@ -470,7 +474,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           bookings={bookings}
           updateBookingStatus={updateBookingStatusAction}
           markDepositPaid={markDepositPaidAction}
-          staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+          staffOptions={(staffRows ?? []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            homeLocationId: (s as { home_location_id?: string | null }).home_location_id ?? null,
+          }))}
         />
         {totalPages > 1 ? (
           <div className="mt-4 flex items-center justify-between gap-3 text-xs text-white/60">

@@ -28,7 +28,12 @@ export type AdminBookingRow = {
   staff?: { name?: string } | null;
 };
 
-export type StaffOption = { id: string; name: string };
+export type StaffOption = { id: string; name: string; homeLocationId?: string | null };
+
+function staffOptionsForBooking(options: StaffOption[], locationId: string | null | undefined) {
+  if (!locationId) return options;
+  return options.filter((s) => !s.homeLocationId || s.homeLocationId === locationId);
+}
 
 const tableWrapClass =
   "hidden overflow-x-auto rounded-xl border border-white/10 bg-black/20 md:block [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]";
@@ -254,7 +259,7 @@ function MobileBookingCards({
                       <option value="none" className="bg-glam-primary">
                         Unassigned
                       </option>
-                      {staffOptions.map((s) => (
+                      {staffOptionsForBooking(staffOptions, b.location_id).map((s) => (
                         <option key={s.id} value={s.id} className="bg-glam-primary">
                           {s.name}
                         </option>
@@ -453,7 +458,7 @@ export function BookingsTable({
                           <option value="none" className="bg-glam-primary">
                             Unassigned
                           </option>
-                          {staffOptions.map((s) => (
+                          {staffOptionsForBooking(staffOptions, b.location_id).map((s) => (
                             <option key={s.id} value={s.id} className="bg-glam-primary">
                               {s.name}
                             </option>

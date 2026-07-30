@@ -6,6 +6,8 @@ export type LiveStaff = {
   name: string;
   role: string;
   specialty: string[];
+  /** null = floater (all shops) */
+  homeLocationId: string | null;
 };
 
 function mapStaffRow(row: Record<string, unknown>): StaffMember | null {
@@ -23,9 +25,13 @@ function mapStaffRow(row: Record<string, unknown>): StaffMember | null {
     typeof row.instagram_url === "string" && row.instagram_url.length > 0
       ? row.instagram_url
       : undefined;
+  const homeLocationId =
+    typeof row.home_location_id === "string" && row.home_location_id.length > 0
+      ? row.home_location_id
+      : null;
 
   if (!id || !name) return null;
-  return { id, name, role, bio, experience, specialty, image, instagram };
+  return { id, name, role, bio, experience, specialty, image, instagram, homeLocationId };
 }
 
 export async function getStaffMembers(): Promise<StaffMember[]> {
@@ -33,7 +39,9 @@ export async function getStaffMembers(): Promise<StaffMember[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("staff")
-      .select("id, name, role, bio, experience, specialty, image_url, instagram_url, active, sort_order, is_front_desk")
+      .select(
+        "id, name, role, bio, experience, specialty, image_url, instagram_url, home_location_id, active, sort_order, is_front_desk",
+      )
       .eq("active", true)
       .eq("is_front_desk", false)
       .order("sort_order", { ascending: true });
@@ -54,6 +62,7 @@ export async function getLiveStaff(): Promise<LiveStaff[]> {
     name: s.name,
     role: s.role,
     specialty: s.specialty,
+    homeLocationId: s.homeLocationId ?? null,
   }));
 }
 

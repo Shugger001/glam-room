@@ -140,6 +140,46 @@ export async function getShopDaySlotCounts(
   return { slots, maxPerSlot: MAX_BOOKINGS_PER_SLOT, error: null as string | null };
 }
 
+/** Block assigning a stylist who already has an overlapping active booking. */
+export async function isStaffScheduleAvailable(
+  supabase: SupabaseClient,
+  options: {
+    staffId: string | null | undefined;
+    startAt: string;
+    endAt: string;
+    excludeBookingId?: string;
+  },
+) {
+  if (!options.staffId) {
+    return { available: true as const, error: null as string | null };
+  }
+
+  let query = supabase
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("staff_id", options.staffId)
+    .in("status", [...ACTIVE_STATUSES])
+    .lt("start_at", options.endAt)
+    .gt("end_at", options.startAt);
+
+  if (options.excludeBookingId) {
+    query = query.neq("id", options.excludeBookingId);
+  }
+
+  const { count, error } = await query;
+  if (error) return { available: false as const, error: error.message };
+
+  if ((count ?? 0) > 0) {
+    return {
+      available: false as const,
+      error:
+        "That stylist already has a client in this time window. Pick another time or stylist.",
+    };
+  }
+
+  return { available: true as const, error: null as string | null };
+}
+
 /** Enforce per-slot (3) and per-shop daily (12) capacity before creating a booking. */
 export async function validateBookingCapacity(
   supabase: SupabaseClient,

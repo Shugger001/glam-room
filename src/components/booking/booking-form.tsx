@@ -21,6 +21,7 @@ import {
   MAX_BOOKINGS_PER_SLOT,
 } from "@/lib/booking/availability";
 import { computeDepositAmount } from "@/lib/booking/deposit";
+import { filterStaffForLocation } from "@/lib/booking/staff-assignment";
 import type { LiveStaff } from "@/lib/data/live-staff";
 import { formatShopPrice } from "@/lib/format/money";
 import {
@@ -126,6 +127,21 @@ export function BookingForm({
     () => services.find((s) => s.id === serviceId),
     [services, serviceId],
   );
+
+  const scopedStaff = useMemo(
+    () => filterStaffForLocation(staff, locationId || null),
+    [staff, locationId],
+  );
+
+  useEffect(() => {
+    if (scopedStaff.length === 0) {
+      if (selectedStaffId) setSelectedStaffId("");
+      return;
+    }
+    if (!scopedStaff.some((s) => s.id === selectedStaffId)) {
+      setSelectedStaffId(scopedStaff[0]?.id ?? "");
+    }
+  }, [scopedStaff, selectedStaffId]);
 
   const selectedLocation = useMemo(
     () => locations.find((l) => l.id === locationId),
@@ -653,11 +669,11 @@ export function BookingForm({
               ) : null}
             </label>
 
-            {staff.length > 0 ? (
+            {scopedStaff.length > 0 ? (
               <fieldset>
                 <legend className="text-sm font-medium">Stylist</legend>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {staff.map((member) => {
+                  {scopedStaff.map((member) => {
                     const selected = selectedStaffId === member.id;
                     return (
                       <button
@@ -676,11 +692,18 @@ export function BookingForm({
                   })}
                 </div>
                 <p className="mt-2 text-xs text-glam-muted">
-                  {staff.length === 1
+                  {scopedStaff.length === 1
                     ? "Your appointment will be with our lead stylist."
-                    : "Choose your preferred expert or leave the default."}
+                    : locationId
+                      ? "Experts available at this shop."
+                      : "Choose your preferred expert or leave the default."}
                 </p>
               </fieldset>
+            ) : locationId ? (
+              <p className="rounded-lg border border-amber-500/40 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                No stylists are assigned to this shop yet. WhatsApp us to book, or pick another
+                location.
+              </p>
             ) : null}
 
             <p

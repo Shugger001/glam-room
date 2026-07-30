@@ -306,7 +306,7 @@ async function StaffDashboard({
       Promise.all([
         admin
           .from("staff")
-          .select("id, name")
+          .select("id, name, home_location_id")
           .eq("active", true)
           .eq("is_front_desk", false)
           .order("sort_order"),
@@ -357,7 +357,11 @@ async function StaffDashboard({
       <BulkChaseDepositsBar targets={chaseTargets} />
       <WalkInBookingForm
         services={mapServices(serviceRows)}
-        staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        staff={(staffRows ?? []).map((s) => ({
+          id: s.id,
+          name: s.name,
+          homeLocationId: (s as { home_location_id?: string | null }).home_location_id ?? null,
+        }))}
         defaultLocationId={access.assignedLocationId}
         createWalkInBooking={createWalkInBookingAction}
       />
@@ -378,7 +382,11 @@ async function StaffDashboard({
           bookings={visibleBookings}
           updateBookingStatus={updateBookingStatusAction}
           markDepositPaid={markDepositPaidAction}
-          staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+          staffOptions={(staffRows ?? []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            homeLocationId: (s as { home_location_id?: string | null }).home_location_id ?? null,
+          }))}
         />
       </AdminSection>
     </div>
@@ -421,7 +429,7 @@ async function SuperAdminDashboard({
     Promise.all([
       admin
         .from("staff")
-        .select("id, name")
+        .select("id, name, home_location_id")
         .eq("active", true)
         .eq("is_front_desk", false)
         .order("sort_order"),
@@ -469,7 +477,11 @@ async function SuperAdminDashboard({
       <AdminIntegrationSnapshot health={integrationHealth} />
       <WalkInBookingForm
         services={mapServices(serviceRows)}
-        staff={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+        staff={(staffRows ?? []).map((s) => ({
+          id: s.id,
+          name: s.name,
+          homeLocationId: (s as { home_location_id?: string | null }).home_location_id ?? null,
+        }))}
         createWalkInBooking={createWalkInBookingAction}
       />
       <AdminSection
@@ -489,7 +501,11 @@ async function SuperAdminDashboard({
           bookings={visibleBookings}
           updateBookingStatus={updateBookingStatusAction}
           markDepositPaid={markDepositPaidAction}
-          staffOptions={(staffRows ?? []).map((s) => ({ id: s.id, name: s.name }))}
+          staffOptions={(staffRows ?? []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            homeLocationId: (s as { home_location_id?: string | null }).home_location_id ?? null,
+          }))}
         />
       </AdminSection>
     </div>
