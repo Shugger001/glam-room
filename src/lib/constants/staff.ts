@@ -18,6 +18,6 @@ export const SALON_STAFF: StaffMember[] = [
     experience: "4M+ followers",
     specialty: ["Hair Reset", "Braids", "Wig Installation", "Silk Press"],
     image: "/images/asantewaa-gown-smile.png",
-    instagram: "https://www.instagram.com/_asantewaaaa_",
+    instagram: "https://www.instagram.com/_asantewaaaa_/",
   },
 ];

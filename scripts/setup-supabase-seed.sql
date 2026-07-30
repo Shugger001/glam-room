@@ -288,7 +288,7 @@ insert into public.staff (
   'Asantewaa', 'Founder & Lead Stylist',
   'Glam Room is her love letter to Accra: warm vibes, expert hands, and zero tolerance for bad hair days.',
   '4M+ followers', array['Hair Reset', 'Braids', 'Wig Installation', 'Silk Press'],
-  '/images/asantewaa-gown-smile.png', 'https://www.instagram.com/_asantewaaaa_', true, 1
+  '/images/asantewaa-gown-smile.png', 'https://www.instagram.com/_asantewaaaa_/', true, 1
 ) on conflict (id) do update set
   name = excluded.name,
   role = excluded.role,
