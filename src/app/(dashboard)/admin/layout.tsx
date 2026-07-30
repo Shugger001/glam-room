@@ -7,7 +7,6 @@ import { AdminMobileChrome } from "@/components/admin/admin-mobile-chrome";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminNavigationLoader } from "@/components/admin/admin-navigation-loader";
 import { AdminPanel, adminBtnGhost, adminBtnOutline } from "@/components/admin/admin-ui";
-import { PageLoader } from "@/components/ui/page-loader";
 import {
   adminAuthRedirectPath,
   getAdminAccess,
