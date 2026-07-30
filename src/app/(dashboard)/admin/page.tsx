@@ -32,7 +32,7 @@ import {
   adminBtnOutline,
   adminTabClass,
 } from "@/components/admin/admin-ui";
-import { loadStaffPresence } from "@/lib/admin/staff-clock";
+import { clockedInAtMapFromPresence, loadStaffPresence } from "@/lib/admin/staff-clock";
 import { cn } from "@/lib/utils/cn";
 import { SALON_SERVICES, isServiceCategory, type SalonService } from "@/lib/constants/services";
 
@@ -326,6 +326,7 @@ async function StaffDashboard({
   const staffOnFloor = presence.filter(
     (m) => m.openShift && (!locationScope || m.openShift.locationId === locationScope),
   ).length;
+  const clockedInAt = clockedInAtMapFromPresence(presence);
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "scheduled", href: "/admin/appointments?range=today" },
@@ -382,6 +383,7 @@ async function StaffDashboard({
           bookings={visibleBookings}
           updateBookingStatus={updateBookingStatusAction}
           markDepositPaid={markDepositPaidAction}
+          clockedInAt={clockedInAt}
           staffOptions={(staffRows ?? []).map((s) => ({
             id: s.id,
             name: s.name,
@@ -447,6 +449,7 @@ async function SuperAdminDashboard({
   const visibleBookings = filterTodayBoard(todayBookings, q, depositFilter, statusFilter);
   const chaseTargets = chaseTargetsFromBookings(todayBookings);
   const staffOnFloor = presence.filter((m) => m.openShift).length;
+  const clockedInAt = clockedInAtMapFromPresence(presence);
 
   const kpis = [
     { label: "Today", value: `${stats.total}`, hint: "all shops", href: "/admin/appointments?range=today" },
@@ -501,6 +504,7 @@ async function SuperAdminDashboard({
           bookings={visibleBookings}
           updateBookingStatus={updateBookingStatusAction}
           markDepositPaid={markDepositPaidAction}
+          clockedInAt={clockedInAt}
           staffOptions={(staffRows ?? []).map((s) => ({
             id: s.id,
             name: s.name,

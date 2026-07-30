@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import {
   clockInStaffAction,
   clockOutStaffAction,
@@ -16,6 +20,39 @@ type StaffClockStripProps = {
   shopLabel?: string | null;
 };
 
+function PendingButton({
+  className,
+  idleLabel,
+  pendingLabel,
+}: {
+  className?: string;
+  idleLabel: string;
+  pendingLabel: string;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className={cn(className, pending && "opacity-60")}>
+      {pending ? pendingLabel : idleLabel}
+    </button>
+  );
+}
+
+function LiveDuration({ clockInAt }: { clockInAt: string }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+
+    const id = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return <>{formatShiftDuration(clockInAt, null, now)}</>;
+}
+
 export function StaffClockStrip({
   members,
   locationScope,
@@ -25,12 +62,9 @@ export function StaffClockStrip({
   const onFloor = members.filter(
     (m) => m.openShift && (!locationScope || m.openShift.locationId === locationScope),
   );
-  // Only super admins see cross-shop presence — front desks see their shop only
-  const elsewhere = isSuperAdmin
-    ? members.filter(
-        (m) => m.openShift && locationScope && m.openShift.locationId !== locationScope,
-      )
-    : [];
+  const elsewhere = members.filter(
+    (m) => m.openShift && locationScope && m.openShift.locationId !== locationScope,
+  );
   const offFloor = members.filter((m) => !m.openShift);
   const defaultLocationId = locationScope ?? SALON_LOCATIONS[0]?.id ?? "";
   const canClockHere = Boolean(defaultLocationId) || isSuperAdmin;
@@ -53,6 +87,9 @@ export function StaffClockStrip({
           <p className="mt-1 text-sm text-white">
             {onFloor.length} on floor
             <span className="text-white/45"> · {offFloor.length} off</span>
+            {elsewhere.length > 0 ? (
+              <span className="text-white/45"> · {elsewhere.length} elsewhere</span>
+            ) : null}
           </p>
         </div>
         <a
@@ -82,7 +119,7 @@ export function StaffClockStrip({
                 <p className="text-xs text-white/55">
                   {m.openShift?.locationLabel}
                   {" · in "}
-                  {formatShiftDuration(m.openShift!.clockInAt)}
+                  <LiveDuration clockInAt={m.openShift!.clockInAt} />
                   {" · "}
                   {new Date(m.openShift!.clockInAt).toLocaleTimeString([], {
                     hour: "numeric",
@@ -90,11 +127,29 @@ export function StaffClockStrip({
                   })}
                 </p>
               </div>
-              <form action={clockOutStaffAction}>
+              <form
+                action={clockOutStaffAction}
+                className="flex flex-wrap items-center gap-2"
+                onSubmit={(event) => {
+                  if (!window.confirm(`Clock out ${m.name}?`)) {
+                    event.preventDefault();
+                  }
+                }}
+              >
                 <input type="hidden" name="shift_id" value={m.openShift!.id} />
-                <button type="submit" className={cn(adminBtnOutline, "min-h-10")}>
-                  Clock out
-                </button>
+                <input
+                  type="text"
+                  name="notes"
+                  placeholder="Note (optional)"
+                  maxLength={240}
+                  aria-label={`Clock-out note for ${m.name}`}
+                  className="w-28 rounded-md border border-white/20 bg-transparent px-2 py-1.5 text-xs text-white placeholder:text-white/35 sm:w-36"
+                />
+                <PendingButton
+                  className={cn(adminBtnOutline, "min-h-10")}
+                  idleLabel="Clock out"
+                  pendingLabel="…"
+                />
               </form>
             </li>
           ))}
@@ -108,7 +163,7 @@ export function StaffClockStrip({
           {elsewhere.map((m) => (
             <li
               key={m.staffId}
-              className="rounded-lg border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/50"
+              className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-100/80"
             >
               {m.name} · already in at {m.openShift?.locationLabel}
             </li>
@@ -156,12 +211,11 @@ export function StaffClockStrip({
                       <input type="hidden" name="location_id" value={defaultLocationId} />
                     )}
                     <input type="hidden" name="staff_id" value={m.staffId} />
-                    <button
-                      type="submit"
+                    <PendingButton
                       className={cn(adminBtnPrimary, "min-h-10 shrink-0 px-3 text-xs")}
-                    >
-                      In
-                    </button>
+                      idleLabel="In"
+                      pendingLabel="…"
+                    />
                   </form>
                 </li>
               ))}

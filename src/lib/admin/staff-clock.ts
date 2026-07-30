@@ -11,6 +11,8 @@ export type StaffShiftRow = {
   clock_in_at: string;
   clock_out_at: string | null;
   notes: string | null;
+  clocked_in_by?: string | null;
+  clocked_out_by?: string | null;
   staff: { id: string; name: string; role: string } | null;
 };
 
@@ -46,7 +48,7 @@ function dayBounds(date = new Date()) {
 }
 
 /** Monday 00:00 → Sunday 23:59:59.999 (local). */
-function weekBounds(date = new Date()) {
+export function weekBounds(date = new Date()) {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
   const day = start.getDay(); // 0 Sun … 6 Sat
@@ -58,15 +60,32 @@ function weekBounds(date = new Date()) {
   return { start, end };
 }
 
-function shiftMinutes(clockInAt: string, clockOutAt?: string | null) {
+export function toDateInputValue(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function parseDateInput(value: string, endOfDay = false) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  if (Number.isNaN(date.getTime())) return null;
+  if (endOfDay) date.setHours(23, 59, 59, 999);
+  else date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function shiftMinutes(clockInAt: string, clockOutAt?: string | null, nowMs = Date.now()) {
   const start = new Date(clockInAt).getTime();
-  const end = clockOutAt ? new Date(clockOutAt).getTime() : Date.now();
+  const end = clockOutAt ? new Date(clockOutAt).getTime() : nowMs;
   if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 0;
   return Math.floor((end - start) / 60_000);
 }
 
-export function formatShiftDuration(clockInAt: string, clockOutAt?: string | null) {
-  return formatMinutes(shiftMinutes(clockInAt, clockOutAt));
+export function formatShiftDuration(clockInAt: string, clockOutAt?: string | null, nowMs?: number) {
+  return formatMinutes(shiftMinutes(clockInAt, clockOutAt, nowMs ?? Date.now()));
 }
 
 export function formatMinutes(mins: number) {
@@ -85,6 +104,42 @@ export type StaffWeekHoursRow = {
   openCount: number;
   totalMinutes: number;
 };
+
+function mapStaffJoin(staffJoin: unknown): { id: string; name: string; role: string } | null {
+  if (staffJoin && typeof staffJoin === "object" && !Array.isArray(staffJoin)) {
+    return staffJoin as { id: string; name: string; role: string };
+  }
+  if (Array.isArray(staffJoin) && staffJoin[0]) {
+    return staffJoin[0] as { id: string; name: string; role: string };
+  }
+  return null;
+}
+
+/**
+ * Staff IDs with an open shift at a given shop (or any shop when locationId is null).
+ */
+export function clockedInStaffIdsAtLocation(
+  members: StaffPresenceMember[],
+  locationId: string | null,
+) {
+  const ids = new Set<string>();
+  for (const member of members) {
+    if (!member.openShift) continue;
+    if (!locationId || member.openShift.locationId === locationId) {
+      ids.add(member.staffId);
+    }
+  }
+  return ids;
+}
+
+/** staffId → locationId for everyone currently clocked in. */
+export function clockedInAtMapFromPresence(members: StaffPresenceMember[]) {
+  const map: Record<string, string> = {};
+  for (const member of members) {
+    if (member.openShift) map[member.staffId] = member.openShift.locationId;
+  }
+  return map;
+}
 
 /**
  * Aggregate clocked hours for the current local week, scoped to a shop when provided.
@@ -106,13 +161,7 @@ export async function loadWeekHours(
 
   for (const shift of data ?? []) {
     const staffId = shift.staff_id as string;
-    const staffJoin = shift.staff as unknown;
-    const staff =
-      staffJoin && typeof staffJoin === "object" && !Array.isArray(staffJoin)
-        ? (staffJoin as { id: string; name: string; role: string })
-        : Array.isArray(staffJoin) && staffJoin[0]
-          ? (staffJoin[0] as { id: string; name: string; role: string })
-          : null;
+    const staff = mapStaffJoin(shift.staff);
     const existing = byStaff.get(staffId) ?? {
       staffId,
       name: staff?.name ?? "—",
@@ -143,30 +192,39 @@ export async function loadStaffPresence(
   locationScope: string | null = null,
 ): Promise<StaffPresenceMember[]> {
   if (locationScope) {
-    // Shop-scoped: only fetch staff belonging to this shop (home match or floater)
-    // and only open shifts at this shop.
-    const [{ data: staffRows }, { data: openShifts }] = await Promise.all([
-      admin
-        .from("staff")
-        .select("id, name, role, is_front_desk, home_location_id")
-        .eq("active", true)
-        .or(`home_location_id.eq.${locationScope},home_location_id.is.null`)
-        .order("sort_order"),
-      admin
+    const { data: staffRows } = await admin
+      .from("staff")
+      .select("id, name, role, is_front_desk, home_location_id")
+      .eq("active", true)
+      .or(`home_location_id.eq.${locationScope},home_location_id.is.null`)
+      .order("sort_order");
+
+    const staffIds = (staffRows ?? []).map((row) => row.id as string);
+    let openShifts: Array<{
+      id: string;
+      staff_id: string;
+      location_id: string;
+      clock_in_at: string;
+    }> = [];
+
+    if (staffIds.length > 0) {
+      // Include open shifts at this shop and elsewhere so front desk sees “already in at X”
+      const { data } = await admin
         .from("staff_shifts")
         .select("id, staff_id, location_id, clock_in_at")
         .is("clock_out_at", null)
-        .eq("location_id", locationScope),
-    ]);
+        .in("staff_id", staffIds);
+      openShifts = (data ?? []) as typeof openShifts;
+    }
 
     const openByStaff = new Map(
-      (openShifts ?? []).map((s) => [
-        s.staff_id as string,
+      openShifts.map((s) => [
+        s.staff_id,
         {
-          id: s.id as string,
-          locationId: s.location_id as string,
-          locationLabel: locationLabelFromId(s.location_id as string) ?? (s.location_id as string),
-          clockInAt: s.clock_in_at as string,
+          id: s.id,
+          locationId: s.location_id,
+          locationLabel: locationLabelFromId(s.location_id) ?? s.location_id,
+          clockInAt: s.clock_in_at,
         },
       ]),
     );
@@ -186,7 +244,6 @@ export async function loadStaffPresence(
       });
   }
 
-  // Super admin: full roster + all open shifts across shops.
   const [{ data: staffRows }, { data: openShifts }] = await Promise.all([
     admin
       .from("staff")
@@ -223,20 +280,92 @@ export async function loadStaffPresence(
     });
 }
 
+/**
+ * Shifts that started today, plus overnight open shifts still on the floor.
+ */
 export async function loadTodayShifts(
   admin: ReturnType<typeof createAdminClient>,
   locationScope: string | null,
 ): Promise<StaffShiftRow[]> {
   const { start, end } = dayBounds();
-  let q = admin
+  const selectCols =
+    "id, staff_id, location_id, clock_in_at, clock_out_at, notes, clocked_in_by, clocked_out_by, staff(id, name, role)";
+
+  let todayQuery = admin
     .from("staff_shifts")
-    .select("id, staff_id, location_id, clock_in_at, clock_out_at, notes, staff(id, name, role)")
+    .select(selectCols)
     .gte("clock_in_at", start.toISOString())
     .lte("clock_in_at", end.toISOString())
     .order("clock_in_at", { ascending: false });
+  if (locationScope) todayQuery = todayQuery.eq("location_id", locationScope);
+
+  let overnightQuery = admin
+    .from("staff_shifts")
+    .select(selectCols)
+    .is("clock_out_at", null)
+    .lt("clock_in_at", start.toISOString())
+    .order("clock_in_at", { ascending: false });
+  if (locationScope) overnightQuery = overnightQuery.eq("location_id", locationScope);
+
+  const [{ data: today }, { data: overnight }] = await Promise.all([todayQuery, overnightQuery]);
+  const byId = new Map<string, StaffShiftRow>();
+  for (const row of [...(overnight ?? []), ...(today ?? [])]) {
+    byId.set(row.id as string, row as unknown as StaffShiftRow);
+  }
+
+  return [...byId.values()].sort(
+    (a, b) => new Date(b.clock_in_at).getTime() - new Date(a.clock_in_at).getTime(),
+  );
+}
+
+/**
+ * Payroll timesheet rows for an inclusive local date range (by clock_in_at).
+ */
+export async function loadShiftsInRange(
+  admin: ReturnType<typeof createAdminClient>,
+  locationScope: string | null,
+  fromDate: string,
+  toDate: string,
+): Promise<StaffShiftRow[]> {
+  const from = parseDateInput(fromDate, false);
+  const to = parseDateInput(toDate, true);
+  if (!from || !to || from > to) return [];
+
+  let q = admin
+    .from("staff_shifts")
+    .select(
+      "id, staff_id, location_id, clock_in_at, clock_out_at, notes, clocked_in_by, clocked_out_by, staff(id, name, role)",
+    )
+    .gte("clock_in_at", from.toISOString())
+    .lte("clock_in_at", to.toISOString())
+    .order("clock_in_at", { ascending: false });
   if (locationScope) q = q.eq("location_id", locationScope);
+
   const { data } = await q;
   return (data ?? []) as unknown as StaffShiftRow[];
+}
+
+export function shiftsToCsv(rows: StaffShiftRow[]) {
+  const header = ["staff", "role", "shop", "clock_in", "clock_out", "minutes", "notes"];
+  const lines = [header.join(",")];
+  for (const row of rows) {
+    const minutes = shiftMinutes(row.clock_in_at, row.clock_out_at);
+    const cells = [
+      row.staff?.name ?? "",
+      row.staff?.role ?? "",
+      locationLabelFromId(row.location_id) ?? row.location_id,
+      row.clock_in_at,
+      row.clock_out_at ?? "",
+      String(minutes),
+      row.notes ?? "",
+    ].map((value) => {
+      const raw = String(value);
+      if (/[",\n]/.test(raw)) return `"${raw.replaceAll('"', '""')}"`;
+      return raw;
+    });
+    lines.push(cells.join(","));
+  }
+  return `${lines.join("\n")}\n`;
 }
 
 export async function clockInStaffAction(formData: FormData) {
@@ -250,9 +379,7 @@ export async function clockInStaffAction(formData: FormData) {
     return redirectBackWithFlash("error", "Pick a team member to clock in.", "/admin/attendance");
   }
 
-  const locationId = access.isSuperAdmin
-    ? locationRaw
-    : access.assignedLocationId ?? "";
+  const locationId = access.isSuperAdmin ? locationRaw : access.assignedLocationId ?? "";
 
   if (!locationId || !validLocationId(locationId)) {
     return redirectBackWithFlash(
@@ -314,6 +441,7 @@ export async function clockOutStaffAction(formData: FormData) {
 
   const access = await requireAdminAccess();
   const shiftId = String(formData.get("shift_id") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim().slice(0, 240);
   if (!shiftId) {
     return redirectBackWithFlash("error", "Missing shift to clock out.", "/admin/attendance");
   }
@@ -339,12 +467,15 @@ export async function clockOutStaffAction(formData: FormData) {
     }
   }
 
+  const updatePayload: Record<string, unknown> = {
+    clock_out_at: new Date().toISOString(),
+    clocked_out_by: access.userId,
+  };
+  if (notes.length > 0) updatePayload.notes = notes;
+
   const { error } = await admin
     .from("staff_shifts")
-    .update({
-      clock_out_at: new Date().toISOString(),
-      clocked_out_by: access.userId,
-    })
+    .update(updatePayload)
     .eq("id", shiftId)
     .is("clock_out_at", null);
 

@@ -30,9 +30,21 @@ export type AdminBookingRow = {
 
 export type StaffOption = { id: string; name: string; homeLocationId?: string | null };
 
+/** Map of staffId → shop locationId for open clock-ins. */
+export type ClockedInAtMap = Record<string, string>;
+
 function staffOptionsForBooking(options: StaffOption[], locationId: string | null | undefined) {
   if (!locationId) return options;
   return options.filter((s) => !s.homeLocationId || s.homeLocationId === locationId);
+}
+
+function stylistOnFloor(
+  staffId: string | null | undefined,
+  locationId: string | null | undefined,
+  clockedInAt: ClockedInAtMap,
+) {
+  if (!staffId || !locationId) return true;
+  return clockedInAt[staffId] === locationId;
 }
 
 const tableWrapClass =
@@ -145,6 +157,7 @@ function MobileBookingCards({
   updateBookingStatus,
   markDepositPaid,
   staffOptions,
+  clockedInAt,
   showStaff,
   showOps,
 }: {
@@ -152,6 +165,7 @@ function MobileBookingCards({
   updateBookingStatus: (formData: FormData) => Promise<void>;
   markDepositPaid?: (formData: FormData) => Promise<void>;
   staffOptions: StaffOption[];
+  clockedInAt: ClockedInAtMap;
   showStaff: boolean;
   showOps: boolean;
 }) {
@@ -259,12 +273,20 @@ function MobileBookingCards({
                       <option value="none" className="bg-glam-primary">
                         Unassigned
                       </option>
-                      {staffOptionsForBooking(staffOptions, b.location_id).map((s) => (
-                        <option key={s.id} value={s.id} className="bg-glam-primary">
-                          {s.name}
-                        </option>
-                      ))}
+                      {staffOptionsForBooking(staffOptions, b.location_id).map((s) => {
+                        const onFloor = stylistOnFloor(s.id, b.location_id, clockedInAt);
+                        return (
+                          <option key={s.id} value={s.id} className="bg-glam-primary">
+                            {onFloor ? s.name : `${s.name} · off floor`}
+                          </option>
+                        );
+                      })}
                     </select>
+                    {!stylistOnFloor(b.staff_id, b.location_id, clockedInAt) ? (
+                      <span className="mt-1 block text-[0.65rem] text-amber-200/90">
+                        Assigned stylist is not clocked in at this shop.
+                      </span>
+                    ) : null}
                   </label>
                 ) : null}
                 {showOps ? (
@@ -296,6 +318,7 @@ type BookingsTableProps = {
   updateBookingStatus: (formData: FormData) => Promise<void>;
   markDepositPaid?: (formData: FormData) => Promise<void>;
   staffOptions?: StaffOption[];
+  clockedInAt?: ClockedInAtMap;
   showReschedule?: boolean;
   showStaff?: boolean;
   showOps?: boolean;
@@ -307,6 +330,7 @@ export function BookingsTable({
   updateBookingStatus,
   markDepositPaid,
   staffOptions = [],
+  clockedInAt = {},
   showReschedule = true,
   showStaff = true,
   showOps = true,
@@ -333,6 +357,7 @@ export function BookingsTable({
         updateBookingStatus={updateBookingStatus}
         markDepositPaid={markDepositPaid}
         staffOptions={staffOptions}
+        clockedInAt={clockedInAt}
         showStaff={showStaff}
         showOps={showOps}
       />
@@ -449,21 +474,29 @@ export function BookingsTable({
                   {showStaff ? (
                     <td className={tdClass}>
                       {staffOptions.length > 0 ? (
-                        <select
-                          form={formId}
-                          name="staff_id"
-                          defaultValue={b.staff_id ?? "none"}
-                          className={selectClass}
-                        >
-                          <option value="none" className="bg-glam-primary">
-                            Unassigned
-                          </option>
-                          {staffOptionsForBooking(staffOptions, b.location_id).map((s) => (
-                            <option key={s.id} value={s.id} className="bg-glam-primary">
-                              {s.name}
+                        <>
+                          <select
+                            form={formId}
+                            name="staff_id"
+                            defaultValue={b.staff_id ?? "none"}
+                            className={selectClass}
+                          >
+                            <option value="none" className="bg-glam-primary">
+                              Unassigned
                             </option>
-                          ))}
-                        </select>
+                            {staffOptionsForBooking(staffOptions, b.location_id).map((s) => {
+                              const onFloor = stylistOnFloor(s.id, b.location_id, clockedInAt);
+                              return (
+                                <option key={s.id} value={s.id} className="bg-glam-primary">
+                                  {onFloor ? s.name : `${s.name} · off floor`}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          {!stylistOnFloor(b.staff_id, b.location_id, clockedInAt) ? (
+                            <p className="mt-1 text-[0.65rem] text-amber-200/90">Not clocked in</p>
+                          ) : null}
+                        </>
                       ) : (
                         (b.staff?.name ?? "-")
                       )}
@@ -544,11 +577,13 @@ export function BookingsByTimeGroups({
   updateBookingStatus,
   markDepositPaid,
   staffOptions = [],
+  clockedInAt = {},
 }: {
   bookings: AdminBookingRow[];
   updateBookingStatus: (formData: FormData) => Promise<void>;
   markDepositPaid?: (formData: FormData) => Promise<void>;
   staffOptions?: StaffOption[];
+  clockedInAt?: ClockedInAtMap;
 }) {
   if (bookings.length === 0) {
     return (
@@ -586,6 +621,7 @@ export function BookingsByTimeGroups({
             updateBookingStatus={updateBookingStatus}
             markDepositPaid={markDepositPaid}
             staffOptions={staffOptions}
+            clockedInAt={clockedInAt}
           />
         </section>
       ))}

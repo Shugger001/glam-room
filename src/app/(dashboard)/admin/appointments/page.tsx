@@ -4,6 +4,7 @@ import {
   requireAdminAccess,
 } from "@/lib/admin/access";
 import { createWalkInBookingAction } from "@/lib/admin/walk-in-booking-action";
+import { clockedInAtMapFromPresence, loadStaffPresence } from "@/lib/admin/staff-clock";
 import { WalkInBookingForm } from "@/components/admin/walk-in-booking-form";
 import { SALON_SERVICES, isServiceCategory, type SalonService } from "@/lib/constants/services";
 
@@ -174,7 +175,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
     query = query.gte("start_at", start.toISOString()).lte("start_at", end.toISOString());
   }
 
-  const [{ data, count }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes] =
+  const [{ data, count }, { data: staffRows }, statsRes, { data: serviceRows }, capacityRows, paidAwaitingRes, presence] =
     await Promise.all([
     query.range(rangeFrom, rangeTo),
     admin.from("staff").select("id, name, home_location_id").eq("active", true).eq("is_front_desk", false).order("sort_order"),
@@ -203,9 +204,11 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
       if (locationScope) paidQuery = paidQuery.eq("location_id", locationScope);
       return paidQuery;
     })(),
+    loadStaffPresence(admin, locationScope),
   ]);
 
   const bookings = await enrichBookingsWithCrm(admin, (data ?? []) as AdminBookingRow[]);
+  const clockedInAt = clockedInAtMapFromPresence(presence);
   const total = count ?? bookings.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const showingFrom = total === 0 ? 0 : rangeFrom + 1;
@@ -474,6 +477,7 @@ export default async function AdminAppointmentsPage({ searchParams }: { searchPa
           bookings={bookings}
           updateBookingStatus={updateBookingStatusAction}
           markDepositPaid={markDepositPaidAction}
+          clockedInAt={clockedInAt}
           staffOptions={(staffRows ?? []).map((s) => ({
             id: s.id,
             name: s.name,
